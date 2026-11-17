@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="icon.png" alt="Menfez" width="128">
+  <img src="icon.png" alt="Menfez" width="120">
 </p>
 
-<h1 align="center">Menfez</h1>
+<h1 align="center">Menfez<sub><sup>.app</sup></sub></h1>
 
 <p align="center">
   Engelli ağda Discord'a bağlanmak için macOS uygulaması<br>
@@ -10,98 +10,70 @@
 </p>
 
 <p align="center">
-  <a href="#türkçe">Türkçe</a> · <a href="#english">English</a> ·
-  <a href="https://github.com/BurhanRB/Menfez/releases">İndir / Download</a>
+  <a href="https://github.com/BurhanRB/Menfez/releases"><img src="https://img.shields.io/github/v/release/BurhanRB/Menfez?include_prereleases&label=release" alt="Release"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-lightgrey?logo=apple" alt="macOS 13+">
+  <img src="https://img.shields.io/badge/Apple%20Silicon%20%2B%20Intel-universal-lightgrey" alt="Apple Silicon + Intel">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache-2.0"></a>
+  <a href="https://github.com/BurhanRB/Menfez/releases"><img src="https://img.shields.io/github/downloads/BurhanRB/Menfez/total" alt="Downloads"></a>
 </p>
+
+<h3 align="center"><a href="https://github.com/BurhanRB/Menfez/releases">İndir / Download</a></h3>
 
 <p align="center">
-  <img src="docs/screenshots/light.png" alt="Menfez, açık tema / light theme" width="400">
-  <img src="docs/screenshots/dark.png" alt="Menfez, koyu tema / dark theme" width="400">
+  <img src="docs/screenshots/demo.gif" alt="Menfez ekranları / Menfez screens" width="800">
 </p>
 
-<table>
-  <tr>
-    <td align="center"><img src="docs/screenshots/dpi.png" alt="DPI modu / DPI mode" width="260"><br>DPI</td>
-    <td align="center"><img src="docs/screenshots/tunnel.png" alt="Tünel modu / Tunnel mode" width="260"><br>Tünel / Tunnel</td>
-    <td align="center"><img src="docs/screenshots/help.png" alt="Yardım / Help" width="260"><br>Yardım / Help</td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/servers.png" alt="Sunucular / Servers" width="260"><br>Sunucular / Servers</td>
-    <td align="center"><img src="docs/screenshots/whatsnew.png" alt="Yenilikler / What's new" width="260"><br>Yenilikler / What's new</td>
-    <td align="center"><img src="docs/screenshots/menubar-icons.png" alt="Menü çubuğu simgeleri / Menu bar icons" width="160"><br>Menü çubuğu / Menu bar</td>
-  </tr>
-</table>
+<details open>
+<summary><b>🇹🇷 Türkçe</b></summary>
 
----
-
-## Türkçe
-
-### Menfez nedir
+### Nedir
 
 Menfez, Discord'un engellendiği ağlarda Discord'a bağlanmanı sağlayan bir macOS
 uygulamasıdır. DPI modu bilgisayarının içinde küçük bir proxy çalıştırır ve
-yönetici şifresi istemez. İstersen kendi WireGuard sunucunu ekleyip trafiği
-onun üzerinden de geçirebilirsin. Menfez'in bir sunucusu yoktur; tünel için
-kendi sunucunu ya da kullandığın VPN sağlayıcısının WireGuard dosyasını getirirsin.
-
-macOS 13 (Ventura) ve sonrası, Apple silicon ve Intel.
+yönetici şifresi istemez. macOS 13 (Ventura) ve sonrası, Apple silicon ve Intel.
 
 ### Kurulum
 
-1. [Releases](https://github.com/BurhanRB/Menfez/releases) sayfasından Mac'ine uygun dosyayı indir:
-   - Apple Silicon (M1, M2, M3, M4 …): `Menfez-<sürüm>-arm64.dmg`
-   - Intel: `Menfez-<sürüm>-intel.dmg`
-
-   Hangisi olduğunu bilmiyorsan: sol üstteki Apple menüsü > **Bu Mac Hakkında**.
-   "Çip: Apple M…" yazıyorsa arm64, "İşlemci: Intel" yazıyorsa intel.
+1. [Releases](https://github.com/BurhanRB/Menfez/releases) sayfasından indir:
+   Apple Silicon (M1, M2 …) için `Menfez-<sürüm>-arm64.dmg`, Intel için `Menfez-<sürüm>-intel.dmg`.
+   Emin değilsen: Apple menüsü > **Bu Mac Hakkında**.
 2. DMG'yi aç, Menfez'i **Uygulamalar** klasörüne sürükle.
-3. İlk açılışta Uygulamalar klasöründe Menfez'e **sağ tıkla > Aç**, çıkan pencerede yine **Aç**'a bas.
-   Bu sadece ilk seferde gerekir, çünkü bu sürüm henüz Apple tarafından imzalanmadı.
+3. Menfez'i aç.
 
-Homebrew kullanıyorsan tek satır yeter:
+Homebrew ile:
 
 ```sh
 brew tap burhanrb/menfez
-brew trust burhanrb/menfez   # Homebrew 7 ve sonrası başka depolara bu onayı ister
+brew trust burhanrb/menfez
 brew install --cask menfez
 ```
 
-**Açılmazsa:** Menfez'i bir kere açmayı dene, **Bitti**'ye bas. Sonra **Sistem
-Ayarları > Gizlilik ve Güvenlik**'i aç, aşağı kaydır ve **Yine de Aç**'a bas.
-macOS "Menfez hasarlı" derse dosya bozuk değildir, macOS sadece ona güvenmiyordur.
-Terminal'de şunu çalıştırıp Menfez'i yeniden aç:
-
-```sh
-xattr -dr com.apple.quarantine /Applications/Menfez.app
-```
-
-İndirdiğin dosyayı `SHA256SUMS` ile karşılaştırmak istersen: `shasum -a 256 Menfez-*.dmg`.
+**İlk açılış:** Bu sürüm Apple tarafından imzalı değil. Menfez'e **sağ tıkla > Aç**
+ya da **Sistem Ayarları > Gizlilik ve Güvenlik > Yine de Aç**.
 
 ### Modlar
 
-- **Doğrudan:** Menfez devrede değil. Ağın nasıl çalışıyorsa öyle.
-- **DPI:** Menfez bilgisayarında bir proxy başlatır ve Discord'u bu proxy ile
-  açar. Proxy, bağlantının ilk mesajını iki parçaya böler; içerik aynı kalır ama
-  engelleyen cihaz Discord'un adını göremez. Yönetici şifresi gerekmez. Discord'u
-  Menfez'in açması gerekir, o yüzden önce Discord'u kapat.
-- **Tünel:** İsteğe bağlı. Trafiği kendi WireGuard sunucun üzerinden geçirir.
-  Sadece Discord'u ya da tüm trafiği tünele yollamayı seçebilirsin. Bir kerelik
-  kurulum ister (aşağıda).
+- **Doğrudan:** Menfez devrede değil, ağın olduğu gibi çalışır.
+- **DPI:** Discord'u yerel bir proxy ile açar; bağlantının ilk mesajını bölerek engelleyen cihazdan Discord'un adını gizler. Önce Discord'u kapat.
+- **Tünel:** İsteğe bağlı. Discord'u ya da tüm trafiği kendi WireGuard sunucun üzerinden geçirir.
 
-### Kendi WireGuard dosyanı eklemek
+### Kendi WireGuard sunucun
 
-WireGuard konuşan her sağlayıcının ya da kendi sunucunun `.conf` dosyası olur.
-Menfez'de sunucu menüsünden **Sunucu ekle…** ile seç ya da dosyayı şu klasöre koy:
+Menfez'in bir sunucusu yoktur. Kendi sunucunun ya da VPN sağlayıcının `.conf`
+dosyasını **Sunucu ekle…** ile ekle ya da `~/Library/Application Support/Menfez/wireguard/` içine koy.
 
-```
-~/Library/Application Support/Menfez/wireguard/
-```
+### Gizlilik
 
-Menfez hiçbir sağlayıcının hesabına bağlanmaz, dosyandaki anahtarı kimseye göndermez.
+- Hesap, analiz ya da telemetri yok; geliştiriciye hiçbir şey gönderilmez.
+- Mac'ten çıkanlar: IP için `api.ipify.org`, konum için `ipinfo.io`, DPI modunda seçtiğin DoH sağlayıcısı (Cloudflare, Google, Quad9, AdGuard), tünelde senin WireGuard sunucun.
+- Hata kaydı sadece sen kaydedersen oluşur, Mac'inde kalır; IP ve anahtarlar gizlenir.
 
-### Tünel kurulumu
+<details>
+<summary>Daha fazla</summary>
 
-Tünel modu için WireGuard araçları ve bir kerelik yönetici kurulumu gerekir:
+#### Tünel kurulumu
+
+Bir kerelik; Menfez ya da WireGuard güncellenince tekrar çalıştır. Aynı komut uygulamanın Yardım panelinde de var.
 
 ```sh
 brew install wireguard-tools wireguard-go bash
@@ -109,138 +81,75 @@ sudo /bin/bash /Applications/Menfez.app/Contents/Resources/install-helper.sh \
   /Applications/Menfez.app/Contents/MacOS/menfez-route "$USER"
 ```
 
-Aynı komut uygulamanın Yardım panelinde de yazar. Bu komut:
+Yardımcıyı `/Library/PrivilegedHelperTools/menfez/` içine koyar ve `/etc/sudoers.d/menfez`
+içine tek kural yazar: kullanıcın sadece bu yardımcıyı şifresiz `sudo` ile çalıştırabilir.
+Kural `visudo -c` ile denetlenir, hatalıysa silinir.
 
-- Tünel yardımcısını (`menfez-route`) ve WireGuard araçlarının kopyalarını
-  `/Library/PrivilegedHelperTools/menfez/` içine koyar. Bu klasörü sadece root değiştirebilir.
-- `/etc/sudoers.d/menfez` içine tek bir kural yazar: senin kullanıcın sadece bu
-  yardımcıyı şifresiz `sudo` ile çalıştırabilir. Başka hiçbir komuta izin vermez.
-- Kuralı `visudo -c` ile denetler; hatalıysa geri siler.
+#### Kaldırma
 
-Menfez'i ya da WireGuard'ı güncelledikten sonra bu komutu bir kez daha çalıştır.
+- Homebrew: `brew uninstall --cask menfez` (ayarları da silmek için `--zap` ekle)
+- Elle: bu depodaki `./uninstall.sh` (`--keep-data` ayarları bırakır, `--dry-run` sadece gösterir)
 
-### Gizlilik
+#### Sorun giderme
 
-- Geliştiriciye hiçbir şey gönderilmez. Hesap, analiz ya da telemetri yok.
-- **IP ve konum:** Ekrandaki IP adresi `api.ipify.org`'dan, konum ve sağlayıcı
-  `ipinfo.io`'dan alınır.
-- **DNS:** DPI modunda alan adları seçtiğin DoH sağlayıcısına (Cloudflare,
-  Google, Quad9 ya da AdGuard) sorulur.
-- **Tünel:** Trafiğin senin seçtiğin WireGuard sunucusuna gider.
-- **Hata kaydı:** Sadece sen kaydedersen oluşur ve bilgisayarında kalır. IP
-  adreslerin ve anahtarların içinde gizlenir.
+- "Menfez hasarlı" diyorsa dosya bozuk değil: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
+- İndirmeyi doğrulamak için: `shasum -a 256 Menfez-*.dmg` ve `SHA256SUMS` ile karşılaştır.
+- DPI çalışmıyorsa Discord'u tamamen kapatıp Menfez'den aç.
 
-### Kaldırma
+</details>
+</details>
 
-Homebrew ile kurduysan:
+<details>
+<summary><b>🇬🇧 English</b></summary>
 
-```sh
-brew uninstall --cask menfez        # uygulamayı, tünel yardımcısını ve sudo kuralını kaldırır
-brew uninstall --zap --cask menfez  # profillerini ve ayarlarını da siler
-```
-
-Elle kurduysan bu depodaki betiği çalıştır:
-
-```sh
-./uninstall.sh              # her şeyi kaldırır
-./uninstall.sh --keep-data  # profilleri ve ayarları bırakır
-./uninstall.sh --dry-run    # neyin silineceğini gösterir
-```
-
-### Lisans
-
-Apache-2.0. Bkz. [LICENSE](LICENSE).
-
-
-### Geliştiriciler için
-
-#### Kaynaktan derleme
-
-Xcode gerekir (SwiftUI makro eklentisi Command Line Tools'ta yok).
-
-```sh
-export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-(cd Menfez && swift test)   # testler
-./build-app.sh              # Menfez.app, universal (arm64 + x86_64), ad-hoc imzalı
-./build-dmg.sh              # Menfez-<sürüm>-arm64.dmg ve Menfez-<sürüm>-intel.dmg
-./install.sh                # /Applications'a kurar (--tunnel ile tünel kurulumu da)
-```
-
-#### Sürüm kuralı
-
-Her sürümde `build-app.sh` içindeki `VERSION`'ın son hanesi bir artar
-(1.0.0, 1.0.1, 1.0.2 …) ve `Menfez/Sources/MenfezCore/Changelog.swift`'in en
-üstüne yeni bir kayıt eklenir. İkisi uyuşmazsa `ChangelogTests` başarısız olur.
-
----
-
-## English
-
-### What Menfez is
+### What it is
 
 Menfez is a macOS app that lets you open Discord on networks that block it. DPI
-mode runs a small proxy inside the app on your Mac and needs no administrator
-password. If you want, you can add your own WireGuard server and send traffic
-through it instead. Menfez ships no server; for the tunnel you bring your own
-server or your VPN provider's WireGuard file.
-
+mode runs a small proxy on your Mac and needs no administrator password.
 macOS 13 (Ventura) or later, Apple silicon and Intel.
 
 ### Install
 
-1. Download the file for your Mac from [Releases](https://github.com/BurhanRB/Menfez/releases):
-   - Apple Silicon (M1, M2, M3, M4 …): `Menfez-<version>-arm64.dmg`
-   - Intel: `Menfez-<version>-intel.dmg`
-
-   Not sure which? Apple menu (top left) > **About This Mac**. "Chip: Apple M…"
-   means arm64, "Processor: Intel" means intel.
+1. Download from [Releases](https://github.com/BurhanRB/Menfez/releases):
+   `Menfez-<version>-arm64.dmg` for Apple Silicon (M1, M2 …), `Menfez-<version>-intel.dmg` for Intel.
+   Not sure? Apple menu > **About This Mac**.
 2. Open the DMG and drag Menfez into **Applications**.
-3. The first time, in Applications **right-click Menfez > Open**, then click **Open** again.
-   You only need this once, because this build is not signed by Apple yet.
+3. Open Menfez.
 
-If you use Homebrew, one line does it:
+With Homebrew:
 
 ```sh
 brew tap burhanrb/menfez
-brew trust burhanrb/menfez   # Homebrew 7 and later asks you to trust third-party taps
+brew trust burhanrb/menfez
 brew install --cask menfez
 ```
 
-**If it still will not open:** try to open Menfez once and click **Done**. Then
-open **System Settings > Privacy & Security**, scroll down and click **Open
-Anyway**. If macOS says "Menfez is damaged", the file is fine; macOS just does
-not trust it. Run this in Terminal and open Menfez again:
-
-```sh
-xattr -dr com.apple.quarantine /Applications/Menfez.app
-```
-
-To check the download against `SHA256SUMS`: `shasum -a 256 Menfez-*.dmg`.
+**First open:** this build is not signed by Apple. **Right-click Menfez > Open**,
+or **System Settings > Privacy & Security > Open Anyway**.
 
 ### Modes
 
-- **Direct:** Menfez is off. Your network works as it normally does.
-- **DPI:** Menfez starts a proxy on your Mac and opens Discord through it. The
-  proxy splits the first message of each connection in two; the content is the
-  same, but the blocking device cannot read Discord's name. No administrator
-  password. Menfez has to be the one that opens Discord, so quit Discord first.
-- **Tunnel:** Optional. Sends traffic through your own WireGuard server. You can
-  send only Discord or all traffic through it. Needs a one-time setup (below).
+- **Direct:** Menfez is off; your network works as usual.
+- **DPI:** opens Discord through a local proxy that splits the first message of each connection, so the blocking device cannot read Discord's name. Quit Discord first.
+- **Tunnel:** optional. Sends Discord, or all traffic, through your own WireGuard server.
 
-### Adding your own WireGuard file
+### Your own WireGuard server
 
-Any WireGuard provider, or your own server, gives you a `.conf` file. In Menfez
-use **Add server…** in the server menu, or put the file in:
+Menfez ships no server. Add your own server's or your VPN provider's `.conf` file
+with **Add server…**, or put it in `~/Library/Application Support/Menfez/wireguard/`.
 
-```
-~/Library/Application Support/Menfez/wireguard/
-```
+### Privacy
 
-Menfez does not log in to any provider and does not send your key anywhere.
+- No account, no analytics, no telemetry; nothing is sent to the author.
+- What leaves your Mac: `api.ipify.org` for the IP, `ipinfo.io` for location, the DoH provider you pick in DPI mode (Cloudflare, Google, Quad9, AdGuard), and your WireGuard server in tunnel mode.
+- The debug log exists only if you save it, stays on your Mac, and hides IPs and keys.
 
-### Tunnel setup
+<details>
+<summary>More</summary>
 
-Tunnel mode needs the WireGuard tools and a one-time admin setup:
+#### Tunnel setup
+
+One time; run again after updating Menfez or WireGuard. The app's Help panel shows the same command.
 
 ```sh
 brew install wireguard-tools wireguard-go bash
@@ -248,69 +157,56 @@ sudo /bin/bash /Applications/Menfez.app/Contents/Resources/install-helper.sh \
   /Applications/Menfez.app/Contents/MacOS/menfez-route "$USER"
 ```
 
-The app's Help panel shows the same command. It:
+It puts the helper in `/Library/PrivilegedHelperTools/menfez/` and writes one rule to
+`/etc/sudoers.d/menfez`: your user may run that one helper with `sudo` without a password.
+The rule is checked with `visudo -c` and removed if invalid.
 
-- Copies the tunnel helper (`menfez-route`) and copies of the WireGuard tools
-  into `/Library/PrivilegedHelperTools/menfez/`, which only root can change.
-- Writes one rule to `/etc/sudoers.d/menfez`: your user may run that one helper
-  with `sudo` without a password. Nothing else.
-- Checks the rule with `visudo -c` and removes it again if it is invalid.
+#### Uninstall
 
-Run the command again after updating Menfez or WireGuard.
+- Homebrew: `brew uninstall --cask menfez` (add `--zap` to delete settings too)
+- By hand: `./uninstall.sh` from this repo (`--keep-data` keeps settings, `--dry-run` only shows)
 
-### Privacy
+#### Troubleshooting
 
-- Nothing is sent to the author. No account, no analytics, no telemetry.
-- **IP and location:** the IP address on screen comes from `api.ipify.org`;
-  location and provider come from `ipinfo.io`.
-- **DNS:** in DPI mode, names are looked up with the DoH provider you pick
-  (Cloudflare, Google, Quad9 or AdGuard).
-- **Tunnel:** your traffic goes to the WireGuard server you chose.
-- **Debug log:** only created when you save it, and it stays on your Mac. IP
-  addresses and keys are hidden in it.
+- "Menfez is damaged" means macOS does not trust it, not that it is broken: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
+- To verify a download: `shasum -a 256 Menfez-*.dmg` and compare with `SHA256SUMS`.
+- If DPI does not work, quit Discord fully and open it from Menfez.
 
-### Uninstall
+</details>
+</details>
 
-If you installed with Homebrew:
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/dpi.png" alt="DPI" width="260"><br>DPI</td>
+    <td align="center"><img src="docs/screenshots/tunnel.png" alt="Tünel / Tunnel" width="260"><br>Tünel / Tunnel</td>
+    <td align="center"><img src="docs/screenshots/servers.png" alt="Sunucular / Servers" width="260"><br>Sunucular / Servers</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/help.png" alt="Yardım / Help" width="260"><br>Yardım / Help</td>
+    <td align="center"><img src="docs/screenshots/whatsnew.png" alt="Yenilikler / What's new" width="260"><br>Yenilikler / What's new</td>
+    <td align="center"><img src="docs/screenshots/menubar-icons.png" alt="Menü çubuğu / Menu bar" width="160"><br>Menü çubuğu / Menu bar</td>
+  </tr>
+</table>
 
-```sh
-brew uninstall --cask menfez        # removes the app, the tunnel helper and the sudo rule
-brew uninstall --zap --cask menfez  # also deletes your profiles and settings
-```
+<details>
+<summary><b>Geliştiriciler için / For developers</b></summary>
 
-If you installed by hand, run the script from this repository:
-
-```sh
-./uninstall.sh              # remove everything
-./uninstall.sh --keep-data  # keep profiles and settings
-./uninstall.sh --dry-run    # show what would be removed
-```
-
-### License
-
-Apache-2.0. See [LICENSE](LICENSE).
-
-### For developers
-
-#### Build from source
-
-Needs Xcode (the SwiftUI macro plugin is not in the Command Line Tools).
+Xcode gerekir / Needs Xcode (the SwiftUI macro plugin is not in the Command Line Tools).
 
 ```sh
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 (cd Menfez && swift test)   # tests
 ./build-app.sh              # Menfez.app, universal (arm64 + x86_64), ad-hoc signed
-./build-dmg.sh              # Menfez-<version>-arm64.dmg and Menfez-<version>-intel.dmg
+./build-dmg.sh              # Menfez-<version>-arm64.dmg, Menfez-<version>-intel.dmg
 ./install.sh                # installs to /Applications (--tunnel also runs the tunnel setup)
 ```
 
-More detail: [docs/DPI-ENGINE.md](docs/DPI-ENGINE.md),
-[docs/READ-PATH.md](docs/READ-PATH.md), [docs/SIGNING.md](docs/SIGNING.md),
-[docs/ICON.md](docs/ICON.md).
+**Sürüm kuralı / Release rule:** every release bumps the last number of `VERSION` in
+`build-app.sh` (1.0.0, 1.0.1 …) and adds an entry at the top of
+`Menfez/Sources/MenfezCore/Changelog.swift`. `ChangelogTests` fails if they disagree.
 
-#### Release rule
+More: [DPI-ENGINE](docs/DPI-ENGINE.md) · [READ-PATH](docs/READ-PATH.md) · [SIGNING](docs/SIGNING.md) · [ICON](docs/ICON.md)
 
-Every release bumps the last number of `VERSION` in `build-app.sh` (1.0.0,
-1.0.1, 1.0.2 …) and adds an entry at the top of
-`Menfez/Sources/MenfezCore/Changelog.swift`. `ChangelogTests` fails if the two
-disagree.
+</details>
+
+Apache-2.0, bkz. / see [LICENSE](LICENSE). Discord is a trademark of Discord Inc.; Menfez is not affiliated with it.
