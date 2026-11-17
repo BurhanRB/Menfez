@@ -177,14 +177,14 @@ The rule is checked with `visudo -c` and removed if invalid.
 
 <table>
   <tr>
+    <td align="center"><img src="docs/screenshots/light.png" alt="Açık / Light" width="260"><br>Açık / Light</td>
     <td align="center"><img src="docs/screenshots/dpi.png" alt="DPI" width="260"><br>DPI</td>
     <td align="center"><img src="docs/screenshots/tunnel.png" alt="Tünel / Tunnel" width="260"><br>Tünel / Tunnel</td>
-    <td align="center"><img src="docs/screenshots/servers.png" alt="Sunucular / Servers" width="260"><br>Sunucular / Servers</td>
   </tr>
   <tr>
+    <td align="center"><img src="docs/screenshots/servers.png" alt="Sunucular / Servers" width="260"><br>Sunucular / Servers</td>
     <td align="center"><img src="docs/screenshots/help.png" alt="Yardım / Help" width="260"><br>Yardım / Help</td>
     <td align="center"><img src="docs/screenshots/whatsnew.png" alt="Yenilikler / What's new" width="260"><br>Yenilikler / What's new</td>
-    <td align="center"><img src="docs/screenshots/menubar-icons.png" alt="Menü çubuğu / Menu bar" width="160"><br>Menü çubuğu / Menu bar</td>
   </tr>
 </table>
 
