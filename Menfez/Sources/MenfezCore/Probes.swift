@@ -89,8 +89,10 @@ public enum Probes {
     ///   DPI mode, so the probe does too; the proxy resolves the name itself.
     public static func discord(proxyPort: Int? = nil,
                                doh: Bool = curlSupportsDoH,
+                               maxTime: Int = 8,
                                using runner: CommandRunner = SystemRunner()) -> DiscordProbe {
-        let result = runner.run("curl", discordArgs(proxyPort: proxyPort, doh: doh), timeout: 12)
+        let result = runner.run("curl", discordArgs(proxyPort: proxyPort, doh: doh, maxTime: maxTime),
+                                timeout: TimeInterval(maxTime + 4))
         // `-w` prints even when the request fails, after curl's error line, so
         // the numbers are on the last line either way.
         let last = result.output
@@ -117,10 +119,10 @@ public enum Probes {
     }
 
     /// The curl command line for `discord`, separate so a test can read it.
-    static func discordArgs(proxyPort: Int?, doh: Bool) -> [String] {
+    static func discordArgs(proxyPort: Int?, doh: Bool, maxTime: Int = 8) -> [String] {
         var args = ["-sS", "-o", "/dev/null",
                     "-w", "%{http_code} %{time_total}",
-                    "--max-time", "8"]
+                    "--max-time", "\(maxTime)"]
         if let proxyPort {
             args += ["-x", "http://127.0.0.1:\(proxyPort)"]
         } else if doh {

@@ -77,13 +77,76 @@ and on Apple silicon. The minimum OS is 13.0 in *both* slices.
 
 Two notes for the future signing work:
 
-- `build-app.sh` signs ad-hoc. Replacing `--sign -` with the Developer ID
-  identity is the only signing change; `build-dmg.sh` has the matching comment
-  where `codesign -s -` becomes the Developer ID Application identity plus
-  `--timestamp`. The dmg layout, the artifact name and the scripts' arguments
-  do not change.
+- Both scripts sign through `tools/sign.sh`: ad-hoc when
+  `MENFEZ_SIGN_IDENTITY` is unset, Developer ID otherwise (see the release
+  checklist below). The dmg layout, the artifact name and the scripts'
+  arguments do not change.
 - The `build/` directory holds the per-architecture scratch trees and the fused
   binaries. It is disposable; deleting it costs one rebuild.
+
+---
+
+## 1b. Release checklist
+
+Signing is driven by two environment variables, read by `tools/sign.sh`.
+Nothing in the repository names an identity, an Apple ID or a password.
+
+| Variable | Value | Unset |
+|---|---|---|
+| `MENFEZ_SIGN_IDENTITY` | `Developer ID Application: <Name> (<TEAMID>)`, exactly as `security find-identity` prints it | ad-hoc, as before |
+| `MENFEZ_NOTARY_PROFILE` | the keychain profile name, e.g. `menfez-notary` | no notarisation |
+
+With an identity, signing is inside-out and never `--deep`: `menfez-route`,
+then `Menfez.app` (both `--options runtime --timestamp`), then each dmg
+(`--timestamp`). No entitlements file: the app is not sandboxed, loads no
+third-party library and only spawns system tools (`/usr/bin/curl`,
+`/usr/sbin/netstat`, `/usr/bin/osascript`, ...), which the hardened runtime
+allows (section B). Bundle id, Info.plist and provisioning are unchanged.
+
+**Once per machine**
+
+```
+# 1. The certificate is in the login keychain; copy its exact name:
+security find-identity -v -p codesigning
+
+# 2. Store notarisation credentials (asks for an app-specific password,
+#    made at account.apple.com; it goes into the keychain, not the repo):
+xcrun notarytool store-credentials menfez-notary \
+    --apple-id "<your Apple ID>" --team-id "<TEAMID>"
+```
+
+**Every release**
+
+```
+cd macos
+# Bump VERSION in build-app.sh and add the Changelog entry (ChangelogTests).
+export MENFEZ_SIGN_IDENTITY="Developer ID Application: <Name> (<TEAMID>)"
+export MENFEZ_NOTARY_PROFILE="menfez-notary"
+./build-app.sh          # tests, universal app, signed inside-out
+./build-dmg.sh          # arm64 + intel dmgs: thin, re-sign, sign dmg,
+                        # notarytool submit --wait, stapler staple,
+                        # spctl -a -vvv -t open --context context:primary-signature <dmg>,
+                        # spctl -a -vvv -t exec <app>
+./verify-build.sh       # asserts the identity and hardened runtime too
+```
+
+`build-dmg.sh` stops if Apple's answer is not `status: Accepted`; the
+submission log is `xcrun notarytool log <id> --keychain-profile menfez-notary`.
+The sha256 lines it prints are taken after stapling, so they are the ones to
+publish.
+
+**By hand, to check a finished dmg**
+
+```
+codesign -dvv --verbose=4 Menfez.app      # Authority=Developer ID Application: ..., flags=...runtime
+xcrun stapler validate Menfez-<v>-arm64.dmg
+spctl -a -vvv -t open --context context:primary-signature Menfez-<v>-arm64.dmg
+spctl -a -vvv -t exec /Volumes/Menfez/Menfez.app      # after mounting it
+```
+
+Then download the dmg through a browser on another Mac (so it is
+quarantined) and open it once before publishing. With neither variable set
+everything above is skipped and the build is ad-hoc, exactly as before.
 
 ---
 

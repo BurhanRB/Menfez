@@ -479,33 +479,88 @@ public enum Details {
 
     // MARK: discord
 
-    private static func discordDetail(using runner: CommandRunner) -> DetailResponse {
-        // These are the three names Discord actually needs. Resolving them
-        // through the system resolver is the point: a tunnel that routes
-        // Discord's ranges but leaves the resolver alone still breaks the
-        // client, and this popup is where that shows up.
-        var items: [DetailItem] = []
-        for host in ["discord.com", "gateway.discord.gg", "cdn.discordapp.com"] {
-            let answers = Probes.systemAnswers(host, using: runner)
-            items.append(DetailItem(label: host,
-                                    value: answers.isEmpty
-                                        ? "no answer"
-                                        : answers.prefix(3).joined(separator: ", ")))
-        }
+    /// The three names Discord actually needs.
+    public static let discordHosts = ["discord.com", "gateway.discord.gg", "cdn.discordapp.com"]
 
-        let probe = Probes.discord(using: runner)
-        // The Python rendered "HTTP 200 · None ms" when curl gave a status but
-        // no timing. A missing timing is not worth a row that reads as broken,
-        // so the timing is dropped when absent.
+    private static func discordDetail(using runner: CommandRunner) -> DetailResponse {
+        // The helper's version (CLI): system resolver, direct HTTPS. The app
+        // uses `discordLive` instead, on the same path as its Discord row.
+        var names: [String: [String]] = [:]
+        for host in discordHosts { names[host] = Probes.systemAnswers(host, using: runner) }
+        return DetailResponse(what: "discord",
+                              items: discordRows(probe: Probes.discord(using: runner), names: names))
+    }
+
+    /// The popup's rows. `names` nil leaves the name rows out: the app shows
+    /// the HTTPS row from the card's last probe at once, before any lookup.
+    public static func discordRows(probe: DiscordProbe, names: [String: [String]]?) -> [DetailItem] {
+        var items: [DetailItem] = []
+        if let names {
+            for host in discordHosts {
+                let answers = names[host] ?? []
+                items.append(DetailItem(label: host,
+                                        value: answers.isEmpty
+                                            ? "no answer"
+                                            : answers.prefix(3).joined(separator: ", ")))
+            }
+        }
+        // A missing timing is not worth a row that reads as broken, so the
+        // timing is dropped when absent.
         let https: String
         if probe.code != 0 {
-            https = probe.ms.map { "HTTP \(probe.code) · \($0) ms" }
-                ?? "HTTP \(probe.code)"
+            https = probe.ms.map { "HTTP \(probe.code) · \($0) ms" } ?? "HTTP \(probe.code)"
+        } else if probe.failure == nil {
+            https = "—"   // not measured yet on this path
         } else {
             https = "unreachable (\((probe.failure ?? .blocked).rawValue))"
         }
         items.append(DetailItem(label: "HTTPS", value: https))
+        return items
+    }
 
-        return DetailResponse(what: "discord", items: items)
+    /// Fresh Discord rows, measured the way the card's Discord row is: through
+    /// the DPI proxy and DoH while DPI is on, so a provider that blocks
+    /// Discord's DNS and TLS without DPI does not make the popup wait out
+    /// every timeout and then say "no answer". No root, and bounded by
+    /// `timeout`: whatever has not answered by then is reported as such.
+    ///
+    /// The old path asked the helper through sudo, which resolved with the
+    /// system resolver and fetched over the bare connection, 30 s or more on
+    /// such a network.
+    public static func discordLive(proxyPort: Int?,
+                                   resolver: HostResolver = DoHResolver.shared,
+                                   using runner: CommandRunner = SystemRunner(),
+                                   timeout: TimeInterval = 5) -> [DetailItem] {
+        final class Box: @unchecked Sendable {
+            let lock = NSLock()
+            var names: [String: [String]] = [:]
+            var probe = DiscordProbe(code: 0, failure: .blocked)
+        }
+        let box = Box()
+        let group = DispatchGroup()
+        for host in discordHosts {
+            group.enter()
+            let store: @Sendable ([String]?) -> Void = { answers in
+                box.lock.lock(); box.names[host] = answers ?? []; box.lock.unlock()
+                group.leave()
+            }
+            if proxyPort != nil {
+                resolver.resolve(host, completion: store)
+            } else {
+                DispatchQueue.global(qos: .userInitiated).async {
+                    store(Probes.systemAnswers(host, using: runner))
+                }
+            }
+        }
+        group.enter()
+        DispatchQueue.global(qos: .userInitiated).async {
+            let probe = Probes.discord(proxyPort: proxyPort, maxTime: max(1, Int(timeout)),
+                                       using: runner)
+            box.lock.lock(); box.probe = probe; box.lock.unlock()
+            group.leave()
+        }
+        _ = group.wait(timeout: .now() + timeout + 1)
+        box.lock.lock(); defer { box.lock.unlock() }
+        return discordRows(probe: box.probe, names: box.names)
     }
 }

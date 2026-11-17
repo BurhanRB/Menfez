@@ -15,9 +15,12 @@
 #
 # and the helper refuses to run any tool as root from anywhere else.
 #
-# Used by install.sh --tunnel and by the one-time command in the app's Help.
+# Used by install.sh --tunnel, by the app's "Set up tunnel" button (through
+# macOS's own administrator password dialog) and by the command in its Help.
 #
 # Usage:  sudo /bin/bash install-helper.sh <path to menfez-route> <user>
+#         sudo /bin/bash install-helper.sh --remove   take the tunnel down, remove
+#                                                     the rule and the helper only
 #         install-helper.sh --print-sudoers <user>   print the rule, change nothing
 set -euo pipefail
 PATH=/usr/bin:/bin:/usr/sbin:/sbin
@@ -48,6 +51,27 @@ EOF
 if [ "${1:-}" = "--print-sudoers" ]; then
     valid_user "${2:-}" || die "invalid user name"
     rule "$2"
+    exit 0
+fi
+
+# The helper only: the app, profiles and preferences stay (uninstall.sh removes
+# everything). The rule goes first, since it is the part that grants root.
+if [ "${1:-}" = "--remove" ]; then
+    [ "$(id -u)" -eq 0 ] || die "run this with sudo"
+    if [ -x "$DEST/menfez-route" ] && [ "$(stat -f %u "$DEST/menfez-route")" = 0 ]; then
+        "$DEST/menfez-route" down >/dev/null 2>&1 || echo "warning: could not take the tunnel down" >&2
+        # Only with a record: without one Menfez never changed DNS.
+        if [ -f "/Library/Application Support/Menfez/dns-state.json" ] \
+            || [ -f /var/run/menfez/dns-state.json ]; then
+            "$DEST/menfez-route" dns auto >/dev/null 2>&1 || echo "warning: could not restore DNS" >&2
+        fi
+    fi
+    echo "==> removing $SUDOERS and $DEST"
+    rm -f "$SUDOERS"
+    [ ! -e "$SUDOERS" ] || die "could not remove $SUDOERS"
+    visudo -c >/dev/null 2>&1 || echo "warning: sudo reports a problem; check with: sudo visudo -c" >&2
+    rm -rf "$DEST"
+    echo "==> done"
     exit 0
 fi
 

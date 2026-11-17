@@ -27,7 +27,7 @@ app loses its connection.
 
 ### Why a proxy and not the utun design
 
-`DESIGN.md` describes a utun + pf NAT + raw-socket engine that needs an
+An earlier design used a utun + pf NAT + raw-socket engine that needs an
 administrator password, a launch daemon and a network extension. The measured
 result makes all of that unnecessary: the block can be defeated by changing a
 5-byte header in a byte stream that a userspace process already owns. Shipping

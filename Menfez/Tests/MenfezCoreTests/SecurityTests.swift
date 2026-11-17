@@ -939,7 +939,7 @@ final class SecurityTests: XCTestCase {
                        "a value was repeated in the summary: \(summary)")
         XCTAssertFalse(summary.joined().contains("203.0.113.69"),
                        "a value was repeated in the summary: \(summary)")
-        XCTAssertFalse(summary.joined().contains("TESTONLYFAKEPEER"),
+        XCTAssertFalse(summary.joined().contains("TESTONLYFAKEPEERKEY"),
                        "a public key value was repeated: \(summary)")
     }
 

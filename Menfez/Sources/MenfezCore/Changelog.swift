@@ -19,6 +19,21 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.1",
+            date: "2026-11-17",
+            tr: [
+                "Tüneli kur düğmesi: macOS şifre penceresiyle kurulur, Terminal gerekmez.",
+                "Tüneli Ayarlar'dan tek düğmeyle kaldırabilirsin.",
+                "Discord ayrıntı penceresi hemen açılıyor ve DPI yolundan güncelleniyor.",
+                "Menfez, Discord'un ayar dosyasına en fazla bir kez dokunuyor. Tam Disk Erişimi istemiyor.",
+            ],
+            en: [
+                "Set up tunnel button: macOS asks for your password, no Terminal needed.",
+                "You can remove the tunnel from Settings with one button.",
+                "The Discord details window opens at once and refreshes through DPI.",
+                "Menfez touches Discord's settings file at most once and no longer asks for Full Disk Access.",
+            ]),
+        ChangelogEntry(
             version: "1.0.0",
             date: "2026-11-17",
             tr: [

@@ -56,6 +56,7 @@ ya da **Sistem Ayarları > Gizlilik ve Güvenlik > Yine de Aç**.
 - **Doğrudan:** Menfez devrede değil, ağın olduğu gibi çalışır.
 - **DPI:** Discord'u yerel bir proxy ile açar; bağlantının ilk mesajını bölerek engelleyen cihazdan Discord'un adını gizler. Önce Discord'u kapat.
 - **Tünel:** İsteğe bağlı. Discord'u ya da tüm trafiği kendi WireGuard sunucun üzerinden geçirir.
+  Bir kerelik kurulum: `brew install wireguard-tools wireguard-go bash`, sonra uygulamada **Tüneli kur**'a bas (macOS yönetici şifreni sorar).
 
 ### Kendi WireGuard sunucun
 
@@ -73,7 +74,7 @@ dosyasını **Sunucu ekle…** ile ekle ya da `~/Library/Application Support/Men
 
 #### Tünel kurulumu
 
-Bir kerelik; Menfez ya da WireGuard güncellenince tekrar çalıştır. Aynı komut uygulamanın Yardım panelinde de var.
+Normalde uygulamadaki **Tüneli kur** düğmesi bunu yapar. Elle yapmak istersen (Menfez ya da WireGuard güncellenince tekrar çalıştır):
 
 ```sh
 brew install wireguard-tools wireguard-go bash
@@ -132,6 +133,7 @@ or **System Settings > Privacy & Security > Open Anyway**.
 - **Direct:** Menfez is off; your network works as usual.
 - **DPI:** opens Discord through a local proxy that splits the first message of each connection, so the blocking device cannot read Discord's name. Quit Discord first.
 - **Tunnel:** optional. Sends Discord, or all traffic, through your own WireGuard server.
+  One-time setup: `brew install wireguard-tools wireguard-go bash`, then press **Set up tunnel** in the app (macOS asks for your administrator password).
 
 ### Your own WireGuard server
 
@@ -149,7 +151,7 @@ with **Add server…**, or put it in `~/Library/Application Support/Menfez/wireg
 
 #### Tunnel setup
 
-One time; run again after updating Menfez or WireGuard. The app's Help panel shows the same command.
+The app's **Set up tunnel** button does this for you. To do it by hand instead (run again after updating Menfez or WireGuard):
 
 ```sh
 brew install wireguard-tools wireguard-go bash

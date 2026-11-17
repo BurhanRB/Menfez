@@ -29,12 +29,14 @@
 # part of the Command Line Tools, so building against them fails with
 # "macro implementation type ... not found".
 #
-# Signing is ad-hoc. That runs locally without an Apple Developer account; it is
-# not notarised, so another Mac needs a right-click Open the first time.
+# Signing is ad-hoc unless MENFEZ_SIGN_IDENTITY is set (see tools/sign.sh and
+# docs/SIGNING.md). Ad-hoc runs without an Apple Developer account; it is not
+# notarised, so another Mac needs a right-click Open the first time.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 APP="$DIR/Menfez.app"
+. "$DIR/tools/sign.sh"
 # The binary products live here after a universal build. This used to point at
 # a local `build/` staging directory that a previous script created; it went
 # stale and the app shipped a binary without the latest changes while every
@@ -45,7 +47,7 @@ BUILD="$DIR/Menfez/.build/out/Products/Release"
 # that rm -rf and by assert_universal checking the freshly fused binaries.
 # Every release bumps the patch number (1.0.0 → 1.0.1 → 1.0.2 …) and adds an
 # entry to Menfez/Sources/MenfezCore/Changelog.swift; ChangelogTests checks both.
-VERSION="1.0.0"
+VERSION="1.0.1"
 MIN_MINOS="13.0"
 ARCHS="x86_64 arm64"
 XCODE="/Applications/Xcode.app/Contents/Developer"
@@ -205,10 +207,10 @@ elif [ -f "$DIR/icon.png" ] && command -v iconutil >/dev/null 2>&1; then
     rm -rf "$TMP"
 fi
 
-echo "==> signing (ad-hoc)"
-codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || \
-    echo "    warning: ad-hoc signing failed; right-click Open may be needed"
+# Ad-hoc unless MENFEZ_SIGN_IDENTITY names a Developer ID (tools/sign.sh).
+echo "==> signing (${SIGN_IDENTITY:-ad-hoc})"
 xattr -cr "$APP" 2>/dev/null || true
+sign_app "$APP"
 
 # LaunchServices registers every bundle it sees, so the build copy and the
 # /Applications copy of the same bundle id both show up in Launchpad. Unregister

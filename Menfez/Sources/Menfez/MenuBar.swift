@@ -49,6 +49,10 @@ struct MenuBarContent: View {
                 set: { on in if on { m.setMode(MenuBarModes.path(mode)) } }))
                 .disabled(m.busy || (mode == .tunnel && !m.capabilities.tunnelAvailable))
         }
+        if !m.capabilities.tunnelAvailable && m.canRunTunnelInstaller {
+            Button(m.l.t("tunnel_install")) { m.runTunnelInstaller(.install) }
+                .disabled(m.tunnelInstall.isRunning)
+        }
 
         Divider()
 
@@ -126,6 +130,21 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            // The one-time setup, both ways, through macOS's password dialog.
+            if m.canRunTunnelInstaller {
+                let available = m.capabilities.tunnelAvailable
+                Button(m.l.t(available ? "tunnel_remove" : "tunnel_install")) {
+                    m.runTunnelInstaller(available ? .remove : .install)
+                }
+                .disabled(m.tunnelInstall.isRunning || (available && m.runMode == .tunnel))
+                if let note = available && m.runMode == .tunnel
+                    ? m.l.t("tunnel_remove_leave_first") : m.tunnelInstallMessage {
+                    Text(note)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
         .padding(Space.l)

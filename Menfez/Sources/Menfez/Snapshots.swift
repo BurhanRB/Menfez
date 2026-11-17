@@ -68,8 +68,29 @@ enum Snapshots {
 
         // The three panels, Turkish, light: help, about, and the IP popup with
         // the helper's English rows fed in as they arrive from the backend.
-        renderView(HelpSheet(lang: .tr, helperPath: "/Applications/Menfez.app/Contents/MacOS/menfez-route"),
+        renderView(HelpSheet(lang: .tr, helperPath: "/Applications/Menfez.app/Contents/MacOS/menfez-route",
+                             onInstall: {}, showSetup: true),
                    .light, to: "\(dir)/help.png")
+        renderView(HelpSheet(lang: .tr, helperPath: "/Applications/Menfez.app/Contents/MacOS/menfez-route",
+                             installRunning: true, installMessage: m.l.t("tunnel_install_running"),
+                             onInstall: {}, showSetup: true),
+                   .light, to: "\(dir)/help-running.png")
+
+        // The tunnel-setup row on a machine without the helper: idle, running,
+        // failed, then the Settings window after a successful setup.
+        m.installerHelper = "/Applications/Menfez.app/Contents/MacOS/menfez-route"
+        m.capabilities = .dpiOnly(reason: TunnelSetup.notPermittedReason)
+        render(m, .light, to: "\(dir)/tunnel-setup.png")
+        m.tunnelInstall = .running(.install)
+        render(m, .light, to: "\(dir)/tunnel-setup-running.png")
+        m.tunnelInstall = .failed(.install, "WireGuard tools not found. Install them first: "
+                                  + "brew install wireguard-tools wireguard-go bash")
+        render(m, .light, to: "\(dir)/tunnel-setup-failed.png")
+        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-setup.png")
+        m.capabilities = Capabilities(tunnelAvailable: true)
+        m.tunnelInstall = .succeeded(.install)
+        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-remove.png")
+        m.tunnelInstall = .idle
         renderView(AboutSheet(lang: .tr) {}, .light, to: "\(dir)/info.png")
         // A made-up older release, here only, to show the collapsed row.
         let older = ChangelogEntry(version: "0.9.9", date: "2026-10-01",

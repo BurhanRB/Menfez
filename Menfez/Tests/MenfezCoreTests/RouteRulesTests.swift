@@ -47,7 +47,7 @@ final class RouteRulesTests: XCTestCase {
     /// space, so the endpoint is necessarily swallowed — which is exactly the
     /// failure that was observed before the pin was introduced.
     func testAllModeRangesSwallowTheEndpoint() {
-        // 203.0.113.69 is a ProtonVPN endpoint seen in this project's profiles.
+        // 203.0.113.69 is a documentation address (RFC 5737) standing in for a VPN endpoint.
         let endpoint = "203.0.113.69"
         let covered = RouteManager.ranges(for: .all).contains {
             cidrCovers($0, address: endpoint)

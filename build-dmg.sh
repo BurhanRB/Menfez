@@ -17,6 +17,9 @@ set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 APP="$DIR/Menfez.app"
+# Ad-hoc by default; Developer ID and notarisation from MENFEZ_SIGN_IDENTITY
+# and MENFEZ_NOTARY_PROFILE (see tools/sign.sh).
+. "$DIR/tools/sign.sh"
 VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
            "$APP/Contents/Info.plist" 2>/dev/null || echo "1.0.0")"
 STAGE="$(mktemp -d)"
@@ -53,23 +56,28 @@ normally on every Intel Mac that runs a supported macOS.
 '
     fi
 
+    local steps='2. Open Menfez. macOS will refuse the first time, because this build is not yet
+   signed by Apple. Click Done.
+
+3. Open System Settings -> Privacy & Security and scroll down to Security.
+   Click "Open Anyway", then "Open".
+
+If macOS says "Menfez is damaged and can'"'"'t be opened", that message is
+misleading: the file is fine, macOS simply does not trust it. Open Terminal,
+paste this line, press Return, then open Menfez normally:
+
+    xattr -dr com.apple.quarantine /Applications/Menfez.app'
+    # A notarised image opens like any other app.
+    [ -n "$NOTARY_PROFILE" ] && steps='2. Open Menfez. macOS asks once whether to open an app downloaded from the
+   internet; click Open.'
+
     cat <<TXT
 Menfez ($flavour)
 ==================
 
 1. Drag Menfez into your Applications folder.
 
-2. Open Menfez. macOS will refuse the first time, because this build is not yet
-   signed by Apple. Click Done.
-
-3. Open System Settings -> Privacy & Security and scroll down to Security.
-   Click "Open Anyway", then "Open".
-
-If macOS says "Menfez is damaged and can't be opened", that message is
-misleading: the file is fine, macOS simply does not trust it. Open Terminal,
-paste this line, press Return, then open Menfez normally:
-
-    xattr -dr com.apple.quarantine /Applications/Menfez.app
+$steps
 
 Menfez needs no administrator password to bypass DPI. The optional tunnel mode
 asks for a one-time setup; the app explains it when you open that mode.
@@ -99,10 +107,9 @@ build_image() {
         chmod 0755 "$target"
     done
 
-    # Ad-hoc sign after thinning: the old signature covered the fat binary and
-    # is invalid once the file changes.
-    codesign --force --deep --sign - "$work/Menfez.app" >/dev/null 2>&1 || \
-        echo "    warning: ad-hoc signing failed"
+    # Sign after thinning: the old signature covered the fat binary and is
+    # invalid once the file changes.
+    sign_app "$work/Menfez.app"
 
     ln -s /Applications "$work/Applications"
     install_text "$flavour" > "$work/INSTALL.txt"
@@ -111,7 +118,9 @@ build_image() {
     hdiutil create -volname "Menfez" -srcfolder "$work" -ov -format UDZO \
         -fs HFS+ "$out" >/dev/null 2>&1
 
-    codesign --force --sign - "$out" >/dev/null 2>&1 || true
+    sign_dmg "$out"
+    # Stapling changes the file, so the sha256 below is taken after it.
+    notarise_dmg "$out" "$work/Menfez.app"
 
     local size sha
     size="$(du -h "$out" | cut -f1)"

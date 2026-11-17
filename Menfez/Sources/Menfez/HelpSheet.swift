@@ -29,6 +29,12 @@ struct HelpSheet: View {
     /// again — the "it opens again every time" report. A callback keeps the one
     /// owner of presentation in charge; this view does not know how it was shown.
     /// Opens the .conf picker; the tunnel needs the user's own server.
+    /// The "Set up tunnel" button: runs the bundled installer through macOS's
+    /// password dialog. nil outside a bundle, where only the command is shown.
+    var installRunning = false
+    var installMessage: String?
+    var onInstall: (() -> Void)?
+
     var onImport: () -> Void = {}
 
     /// Saves a masked diagnostic file (`LogExport`) for a bug report.
@@ -37,7 +43,8 @@ struct HelpSheet: View {
     var onClose: () -> Void = {}
 
     @State private var copied = false
-    @State private var showSetup = false
+    /// Not private, so a snapshot can render it open.
+    @State var showSetup = false
 
     private var l: L { L(lang: lang) }
 
@@ -128,6 +135,34 @@ struct HelpSheet: View {
                     .font(.system(size: 11))
                     .foregroundStyle(Palette.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+
+                if let onInstall {
+                    HStack(spacing: 7) {
+                        Button(action: onInstall) {
+                            HStack(spacing: 5) {
+                                if installRunning { ProgressView().controlSize(.mini) }
+                                Text(l.t("tunnel_install"))
+                            }
+                            .font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, 9).padding(.vertical, 4)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .modifier(Chip())
+                        .foregroundStyle(Palette.accent)
+                        .disabled(installRunning)
+                        if let installMessage {
+                            Text(installMessage)
+                                .font(.system(size: 10.5))
+                                .foregroundStyle(Palette.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    Text(l.t("help_setup_terminal"))
+                        .font(.system(size: 10.5))
+                        .foregroundStyle(Palette.secondary)
+                        .padding(.top, 2)
+                }
 
                 // Selectable, monospaced, wrapped: the user has to be able to
                 // read every character of a command that edits sudoers before

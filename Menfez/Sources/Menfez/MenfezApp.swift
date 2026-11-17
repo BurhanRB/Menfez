@@ -64,6 +64,18 @@ struct L {
             "tunnel_ready_add": "Tünel hazır, sunucu eklemen gerekiyor.",
             "direct_tunnel_present": "WireGuard tüneli açık, DPI kapalı",
             "tunnel_setup": "Kur",
+            "tunnel_install": "Tüneli kur",
+            "tunnel_remove": "Tüneli kaldır",
+            "tunnel_install_running": "Kuruluyor. macOS yönetici şifreni soracak.",
+            "tunnel_remove_running": "Kaldırılıyor. macOS yönetici şifreni soracak.",
+            "tunnel_install_done": "Tünel kuruldu. Tünel modunu seçebilirsin.",
+            "tunnel_remove_done": "Tünel kaldırıldı. DPI çalışmaya devam eder.",
+            "tunnel_install_cancelled": "İptal edildi. Hiçbir şey değişmedi.",
+            "tunnel_install_failed": "Kurulum tamamlanmadı: {detail}",
+            "tunnel_remove_failed": "Kaldırma tamamlanmadı: {detail}",
+            "tunnel_remove_leave_first": "Kaldırmadan önce Tünel modundan çık.",
+            "help_setup_terminal": "Terminal'i tercih edersen:",
+            "tunnel_install_need_wg": "Önce WireGuard araçları gerekiyor. Terminal'de çalıştır: brew install wireguard-tools wireguard-go bash",
             "tunnel_needs_setup": "Tüneli kullanmak için bir kez kurulum yapman gerekiyor.",
             "help_copy_command": "Komutu kopyala",
             "dpi_title": "DPI",
@@ -228,7 +240,7 @@ struct L {
             "help_discord": "Discord'u Cmd+Q ile tamamen kapat ve Menfez'deki düğmeyle yeniden aç. Olmazsa DNS'i 1.1.1.1 yap. Yine olmazsa tüneli dene.",
             "help_discord_wait": "Discord yaklaşık 10 saniye bekleyip yüklü sürümüyle açılabilir. Güncellemeler engel olmayan bir ağdayken ya da kendi sunucunu eklediğinde gelir.",
             "help_setup_title": "Tünel kurulumu (bir kez)",
-            "help_setup": "Yalnızca tünel için gerekir. Terminal'de önce şunu çalıştır: brew install wireguard-tools wireguard-go bash. Sonra aşağıdaki komutu yapıştır. Menfez'i güncelleyince komutu tekrar çalıştır.",
+            "help_setup": "Yalnızca tünel için gerekir. Önce Terminal'de WireGuard araçlarını kur: brew install wireguard-tools wireguard-go bash. Sonra Tüneli kur'a bas, macOS yönetici şifreni sorar. Menfez'i güncelleyince yeniden bas.",
             "help_log": "Sorun sürerse hata kaydını kaydet ve GitHub'da bildirirken ekle. Kayıtta IP adresin ve anahtarların gizlenir.",
             "about_author": "Yapan",
             "about_web": "Web sitesi",
@@ -294,6 +306,18 @@ struct L {
             "tunnel_ready_add": "Tunnel ready, add a server.",
             "direct_tunnel_present": "WireGuard tunnel up, DPI off",
             "tunnel_setup": "Set up",
+            "tunnel_install": "Set up tunnel",
+            "tunnel_remove": "Remove tunnel",
+            "tunnel_install_running": "Setting up. macOS will ask for your administrator password.",
+            "tunnel_remove_running": "Removing. macOS will ask for your administrator password.",
+            "tunnel_install_done": "Tunnel set up. You can pick Tunnel mode now.",
+            "tunnel_remove_done": "Tunnel removed. DPI keeps working.",
+            "tunnel_install_cancelled": "Cancelled. Nothing changed.",
+            "tunnel_install_failed": "Setup didn't finish: {detail}",
+            "tunnel_remove_failed": "Removal didn't finish: {detail}",
+            "tunnel_remove_leave_first": "Leave Tunnel mode before removing it.",
+            "help_setup_terminal": "If you prefer Terminal:",
+            "tunnel_install_need_wg": "The WireGuard tools are needed first. In Terminal, run: brew install wireguard-tools wireguard-go bash",
             "tunnel_needs_setup": "To use the tunnel you need to set it up once.",
             "help_copy_command": "Copy command",
             "dpi_title": "DPI",
@@ -458,7 +482,7 @@ struct L {
             "help_discord": "Quit Discord with Cmd+Q and open it again with the button in Menfez. If that fails, set DNS to 1.1.1.1. If it still fails, try the tunnel.",
             "help_discord_wait": "Discord may wait about 10 seconds and then open with the version you have. Updates arrive when you're on a network that doesn't block, or once you add your own server.",
             "help_setup_title": "Tunnel setup (once)",
-            "help_setup": "Only the tunnel needs this. In Terminal, first run: brew install wireguard-tools wireguard-go bash. Then paste the command below. Run it again after you update Menfez.",
+            "help_setup": "Only the tunnel needs this. First install the WireGuard tools in Terminal: brew install wireguard-tools wireguard-go bash. Then press Set up tunnel and macOS will ask for your administrator password. Press it again after you update Menfez.",
             "help_log": "If the problem stays, save the debug log and attach it when you report on GitHub. The log hides your IP and keys.",
             "about_author": "Made by",
             "about_web": "Website",
@@ -675,6 +699,12 @@ final class Backend: @unchecked Sendable {
     let dnsCache = DNSInfoCache()
 
     /// The three network-backed rows, with no local pass around them.
+    /// The Discord popup's fresh rows, without the helper: on the same path as
+    /// the card's Discord row (proxy and DoH in DPI mode), a few seconds at most.
+    func discordDetail(proxyPort: Int?) -> [DetailItem] {
+        Details.discordLive(proxyPort: proxyPort, using: localRunner())
+    }
+
     func probes(discordProxyPort: Int?) -> ReportBuilder.ProbeResult {
         ReportBuilder.probes(discordProxyPort: discordProxyPort, using: localRunner())
     }
@@ -1142,6 +1172,57 @@ final class Model: ObservableObject {
         }
     }
 
+    /// The "Set up tunnel" / "Remove tunnel" buttons.
+    @Published var tunnelInstall: TunnelInstallState = .idle
+
+    /// The bundled helper the installer copies. A var only so a snapshot can
+    /// draw the buttons outside a bundle.
+    lazy var installerHelper = backend.bundledHelper
+
+    /// The bundle's helper and script exist, so the buttons have something to run.
+    var canRunTunnelInstaller: Bool {
+        !installerHelper.isEmpty
+            && TunnelInstaller.appleScript(.remove, helper: installerHelper, user: "") != nil
+    }
+
+    /// One line for the buttons' state, or nil when there is nothing to say.
+    var tunnelInstallMessage: String? {
+        switch tunnelInstall {
+        case .idle: return nil
+        case .running(let a): return l.t(a == .install ? "tunnel_install_running" : "tunnel_remove_running")
+        case .succeeded(let a): return l.t(a == .install ? "tunnel_install_done" : "tunnel_remove_done")
+        case .cancelled: return l.t("tunnel_install_cancelled")
+        case .failed(.install, let detail) where detail.hasPrefix("WireGuard tools not found"):
+            // The usual first-time failure; the script's sentence is English.
+            return l.t("tunnel_install_need_wg")
+        case .failed(let a, let detail):
+            return l.t(a == .install ? "tunnel_install_failed" : "tunnel_remove_failed", ["detail": detail])
+        }
+    }
+
+    /// Run the bundled installer through macOS's password dialog, off the main
+    /// actor, then ask again whether the tunnel is usable so Tunnel mode lights
+    /// up (or locks) without a relaunch.
+    func runTunnelInstaller(_ action: TunnelInstallAction) {
+        guard let next = tunnelInstall.starting(action) else { return }
+        // `down` would pull the tunnel out from under the active mode; the
+        // Settings button is disabled then and says so.
+        if action == .remove && runMode == .tunnel { return }
+        tunnelInstall = next
+        let helper = installerHelper
+        let user = NSUserName()
+        Task {
+            let outcome = await Task.detached(priority: .userInitiated) {
+                TunnelInstaller.run(action, helper: helper, user: user)
+            }.value
+            DebugLog.log("tunnel installer \(action): \(outcome)", to: "trace.log")
+            self.tunnelInstall = .finished(action, outcome)
+            guard outcome == .succeeded else { return }
+            self.capabilitiesProbed = false
+            self.probeCapabilities()
+        }
+    }
+
     deinit {
         // Block observers are keyed by their token, not by `self`.
         observers.forEach(NotificationCenter.default.removeObserver)
@@ -1284,6 +1365,9 @@ final class Model: ObservableObject {
         report = r
     }
 
+    /// In DPI mode Discord goes through the proxy, so the probes do too.
+    var probeProxyPort: Int? { runMode == .dpi && dpi.running ? dpi.port : nil }
+
     /// Refresh the rows that need the network: the egress address (with its
     /// country) and whether Discord is reachable.
     ///
@@ -1295,8 +1379,7 @@ final class Model: ObservableObject {
                                               force: force) else { return }
         Model.trace("refreshProbes-enter gen=\(token)")
         let backend = self.backend
-        // In DPI mode Discord goes through the proxy, so the probe does too.
-        let proxyPort = runMode == .dpi && dpi.running ? dpi.port : nil
+        let proxyPort = probeProxyPort
         Task {
             let probed = await Task.detached(priority: .utility) {
                 backend.probes(discordProxyPort: proxyPort)
@@ -2521,6 +2604,9 @@ struct ContentView: View {
             // The helper path is passed in so the setup command names this
             // bundle's own binary rather than a path from documentation.
             HelpSheet(lang: m.lang, helperPath: m.backend.bundledHelper,
+                      installRunning: m.tunnelInstall.isRunning,
+                      installMessage: m.tunnelInstallMessage,
+                      onInstall: m.canRunTunnelInstaller ? { m.runTunnelInstaller(.install) } : nil,
                       onImport: { close(.help); importConfig() },
                       onExportLog: { m.exportDebugLog() }) { close(.help) }
         case .about:
@@ -2840,7 +2926,9 @@ struct ContentView: View {
                     .foregroundStyle(Palette.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(m.tunnelReason)
+                // The installer's progress or result replaces the reason while
+                // there is one: it is the newer news.
+                Text(m.tunnelInstallMessage ?? m.tunnelReason)
                     .font(.system(size: 11))
                     .foregroundStyle(Palette.secondary)
                     .lineLimit(3)
@@ -2849,17 +2937,25 @@ struct ContentView: View {
             Spacer(minLength: 4)
             if !m.capabilities.tunnelAvailable {
                 Button {
-                    show(.help)
+                    // Without a bundled installer (a `swift run`), Help still
+                    // has the Terminal route.
+                    if m.canRunTunnelInstaller { m.runTunnelInstaller(.install) } else { show(.help) }
                 } label: {
-                    Text(m.l.t("tunnel_setup"))
-                        .font(.system(size: 11, weight: .medium))
-                        .padding(.horizontal, Space.s + 2)
-                        .padding(.vertical, Space.xs + 1)
-                        .contentShape(Rectangle())
+                    HStack(spacing: 5) {
+                        if m.tunnelInstall.isRunning {
+                            ProgressView().controlSize(.mini)
+                        }
+                        Text(m.l.t(m.canRunTunnelInstaller ? "tunnel_install" : "tunnel_setup"))
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .padding(.horizontal, Space.s + 2)
+                    .padding(.vertical, Space.xs + 1)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .modifier(Chip())
                 .foregroundStyle(Palette.accent)
+                .disabled(m.tunnelInstall.isRunning)
             }
         }
     }
@@ -3619,8 +3715,17 @@ struct ContentView: View {
     /// reading it at click time is what gets the value that is on screen.
     private func detailSheetData(_ what: String) -> DetailSheet {
         let value = what == "ip" ? m.cardIdentity.ip : nil
-        return DetailSheet(title: m.l.t("det_" + what), what: what, value: value,
-                           backend: m.backend)
+        var sheet = DetailSheet(title: m.l.t("det_" + what), what: what, value: value,
+                                backend: m.backend)
+        if what == "discord" {
+            // Shown at once from the card's last probe, then refreshed on the
+            // same path the card uses; see `Details.discordLive`.
+            sheet.initial = Details.discordRows(probe: m.report?.discord ?? DiscordProbe(), names: nil)
+            let backend = m.backend
+            let port = m.probeProxyPort
+            sheet.refresh = { backend.discordDetail(proxyPort: port) }
+        }
+        return sheet
     }
 }
 
@@ -3650,6 +3755,10 @@ struct DetailSheet: Identifiable {
     let what: String
     let value: String?
     let backend: Backend
+    /// Rows to show before `refresh` answers; with `refresh`, replaces the
+    /// helper call.
+    var initial: [DetailItem]? = nil
+    var refresh: (@Sendable () -> [DetailItem])? = nil
 }
 
 extension DetailSheet: Equatable {
@@ -3670,6 +3779,7 @@ struct DetailView: View {
     var preview: [DetailItem]? = nil
     @State private var items: [DetailItem] = []
     @State private var loading = true
+    @State private var refreshing = false
     @State private var copied = false
 
     var body: some View {
@@ -3711,6 +3821,9 @@ struct DetailView: View {
                         .font(.system(size: 10))
                         .foregroundStyle(Palette.success)
                 }
+                if refreshing {
+                    ProgressView().controlSize(.mini)
+                }
                 Spacer()
                 Button(L(lang: lang).t("close")) { onClose() }
                 .buttonStyle(.plain)
@@ -3728,6 +3841,15 @@ struct DetailView: View {
         .background(Palette.bg)
         .task {
             guard preview == nil else { return }
+            if let refresh = sheet.refresh {
+                items = sheet.initial ?? []
+                loading = false
+                refreshing = true
+                let fresh = await Task.detached(priority: .userInitiated) { refresh() }.value
+                if !fresh.isEmpty { items = fresh }
+                refreshing = false
+                return
+            }
             let backend = sheet.backend
             let what = sheet.what
             let value = sheet.value
