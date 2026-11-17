@@ -1,0 +1,8 @@
+# SwiftPM / app build output
+Menfez/.build/
+build/
+Menfez.app/
+*.dmg
+__pycache__/
+.DS_Store
+.claude/
