@@ -95,21 +95,29 @@ public final class DoHResolver: HostResolver, @unchecked Sendable {
     }
 
     public func resolve(_ host: String, completion: @escaping @Sendable ([String]?) -> Void) {
+        resolve(host, ipv6: false, completion: completion)
+    }
+
+    /// `ipv6` asks for AAAA records instead of A (chosen sites route both).
+    public func resolve(_ host: String, ipv6: Bool,
+                        completion: @escaping @Sendable ([String]?) -> Void) {
         let name = host.lowercased()
+        let key = ipv6 ? name + "|aaaa" : name
         lock.lock()
-        if let hit = cache[name], hit.expires > Date() {
+        if let hit = cache[key], hit.expires > Date() {
             lock.unlock()
             completion(hit.addresses)
             return
         }
         lock.unlock()
-        query(name, endpoints: provider().endpoints, index: 0, completion: completion)
+        query(name, key: key, type: ipv6 ? 28 : 1, endpoints: provider().endpoints, index: 0,
+              completion: completion)
     }
 
-    private func query(_ name: String, endpoints: [String], index: Int,
+    private func query(_ name: String, key: String, type: UInt8, endpoints: [String], index: Int,
                        completion: @escaping @Sendable ([String]?) -> Void) {
         guard index < endpoints.count,
-              let message = Self.message(for: name),
+              let message = Self.message(for: name, type: type),
               var parts = URLComponents(string: endpoints[index]) else {
             completion(nil)
             return
@@ -126,23 +134,23 @@ public final class DoHResolver: HostResolver, @unchecked Sendable {
         session.dataTask(with: request) { [weak self] data, response, _ in
             guard let self else { completion(nil); return }
             if (response as? HTTPURLResponse)?.statusCode == 200,
-               let data, let answer = Self.parse(data) {
+               let data, let answer = Self.parse(data, type: type) {
                 let ttl = min(max(answer.ttl, 0), Self.maxCacheSeconds)
                 self.lock.lock()
-                self.cache[name] = (answer.addresses, Date().addingTimeInterval(TimeInterval(ttl)))
+                self.cache[key] = (answer.addresses, Date().addingTimeInterval(TimeInterval(ttl)))
                 self.lock.unlock()
                 completion(answer.addresses)
             } else {
-                self.query(name, endpoints: endpoints, index: index + 1, completion: completion)
+                self.query(name, key: key, type: type, endpoints: endpoints, index: index + 1,
+                           completion: completion)
             }
         }.resume()
     }
 
-    /// An RFC 8484 query for the A record of `name`, or nil for a name that
-    /// cannot be one (empty or over-long label, over 253 bytes).
-    ///
-    /// shortcut: A records only; Discord's edges all have IPv4. Add AAAA if an IPv6-only network matters.
-    static func message(for name: String) -> Data? {
+    /// An RFC 8484 query for the A (type 1) or AAAA (type 28) record of
+    /// `name`, or nil for a name that cannot be one (empty or over-long label,
+    /// over 253 bytes). The proxy asks A only; chosen sites ask both.
+    static func message(for name: String, type: UInt8 = 1) -> Data? {
         var trimmed = name
         while trimmed.hasSuffix(".") { trimmed.removeLast() }
         let labels = trimmed.split(separator: ".", omittingEmptySubsequences: false)
@@ -155,13 +163,14 @@ public final class DoHResolver: HostResolver, @unchecked Sendable {
             out.append(UInt8(bytes.count))
             out.append(contentsOf: bytes)
         }
-        out.append(contentsOf: [0, 0, 1, 0, 1])   // root, QTYPE A, QCLASS IN
+        out.append(contentsOf: [0, 0, type, 0, 1])   // root, QTYPE, QCLASS IN
         return out
     }
 
-    /// The A records and the lowest TTL of a wire-format answer, or nil when
-    /// there is no usable A record (NXDOMAIN, CNAME only, truncated, junk).
-    static func parse(_ data: Data) -> (addresses: [String], ttl: Int)? {
+    /// The A (or AAAA, `type` 28) records and the lowest TTL of a wire-format
+    /// answer, or nil when there is no usable one (NXDOMAIN, CNAME only,
+    /// truncated, junk).
+    static func parse(_ data: Data, type wanted: UInt8 = 1) -> (addresses: [String], ttl: Int)? {
         let b = [UInt8](data)
         guard b.count >= 12, b[3] & 0x0f == 0 else { return nil }
         let questions = Int(b[4]) << 8 | Int(b[5])
@@ -192,12 +201,25 @@ public final class DoHResolver: HostResolver, @unchecked Sendable {
             let length = Int(b[at + 8]) << 8 | Int(b[at + 9])
             at += 10
             guard at + length <= b.count else { return nil }
-            if type == 1, length == 4 {
+            if wanted == 1, type == 1, length == 4 {
                 addresses.append(b[at..<at + 4].map(String.init).joined(separator: "."))
+                ttl = min(ttl, recordTTL)
+            } else if wanted == 28, type == 28, length == 16,
+                      let text = Self.ipv6Text(Array(b[at..<at + 16])) {
+                addresses.append(text)
                 ttl = min(ttl, recordTTL)
             }
             at += length
         }
         return addresses.isEmpty ? nil : (addresses, ttl)
+    }
+
+    /// Sixteen bytes in canonical text ("2606:4700::1111").
+    static func ipv6Text(_ bytes: [UInt8]) -> String? {
+        var addr = in6_addr()
+        withUnsafeMutableBytes(of: &addr) { $0.copyBytes(from: bytes) }
+        var buffer = [CChar](repeating: 0, count: Int(INET6_ADDRSTRLEN))
+        guard inet_ntop(AF_INET6, &addr, &buffer, socklen_t(INET6_ADDRSTRLEN)) != nil else { return nil }
+        return String(cString: buffer)
     }
 }

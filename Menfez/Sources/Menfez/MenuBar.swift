@@ -50,11 +50,11 @@ struct MenuBarContent: View {
                 .disabled(m.busy || (mode == .tunnel && !m.capabilities.tunnelAvailable))
             // Under Tunnel: what it carries.
             if mode == .tunnel && m.capabilities.tunnelAvailable {
-                ForEach([Mode.discord, Mode.all], id: \.self) { scope in
+                ForEach(TunnelScope.Choice.allCases, id: \.self) { scope in
                     Toggle("    " + m.l.t("m_" + scope.rawValue), isOn: Binding(
-                        get: { m.tunnelScope == scope },
+                        get: { m.scopeChoice == scope },
                         set: { on in if on { m.setTunnelScope(scope) } }))
-                        .disabled(m.busy)
+                        .disabled(m.busy || (scope == .sites && !m.sitesAvailable))
                 }
             }
         }
@@ -155,14 +155,15 @@ struct SettingsView: View {
             }
             if m.capabilities.tunnelAvailable {
                 Picker(m.l.t("scope_label"), selection: Binding(
-                    get: { m.tunnelScope },
+                    get: { m.scopeChoice },
                     set: { m.setTunnelScope($0) })) {
-                    Text(m.l.t("m_discord")).tag(Mode.discord)
-                    Text(m.l.t("m_all")).tag(Mode.all)
+                    ForEach(TunnelScope.Choice.allCases, id: \.self) { scope in
+                        Text(m.l.t("m_" + scope.rawValue)).tag(scope)
+                    }
                 }
                 .pickerStyle(.radioGroup)
                 .disabled(m.busy)
-                Text(m.l.t("scope_" + m.tunnelScope.rawValue + "_hint"))
+                Text(m.l.t("scope_" + m.scopeChoice.rawValue + "_hint"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

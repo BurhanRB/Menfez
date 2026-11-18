@@ -119,6 +119,22 @@ public struct RouteManager {
         publicHostRoutes(argument: raw, max: maxHostRoutes)
     }
 
+    /// The `--site-routes` value as /32 and /128 prefixes, or nil when any
+    /// entry is not a public address (`SiteRoutes.publicAddress`: no private,
+    /// loopback, CGNAT, link-local, multicast; IPv6 global unicast only) or
+    /// there are more than `SiteRoutes.maxRoutes`. One bad entry refuses all.
+    public static func siteRoutes(argument raw: String) -> [String]? {
+        let items = raw.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+        guard !items.isEmpty, items.count <= SiteRoutes.maxRoutes else { return nil }
+        var out: [String] = []
+        for item in items {
+            guard let ip = SiteRoutes.publicAddress(item) else { return nil }
+            let cidr = SiteRoutes.prefix(ip)
+            if !out.contains(cidr) { out.append(cidr) }
+        }
+        return out
+    }
+
     static func publicHostRoutes(argument raw: String, max: Int) -> [String]? {
         let items = raw.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
         guard !items.isEmpty, items.count <= max else { return nil }
@@ -227,6 +243,10 @@ public struct RouteManager {
     /// The /32s `updates` mode carries (`--host-routes`), already validated by
     /// `hostRoutes(argument:)`. Ignored in every other mode.
     public var hostRoutes: [String] = []
+
+    /// The chosen sites' prefixes (`--site-routes`), already validated by
+    /// `siteRoutes(argument:)`. Joins Discord mode only; ignored in the others.
+    public var siteRoutes: [String] = []
 
     /// Runner for the one command `up` starts directly.
     ///
@@ -931,12 +951,24 @@ public struct RouteManager {
     /// The prefixes this run installs for `mode`: the mode's ranges, plus the
     /// resolver /32s in Discord mode (in all mode the halves cover them); in
     /// updates mode only the host and resolver /32s.
-    func wanted(_ mode: Mode) -> [String] {
+    ///
+    /// In Discord mode the chosen sites join too. A site prefix that is the
+    /// endpoint itself is left out: it would route the tunnel's own transport
+    /// into the tunnel (the user listed their server's name).
+    func wanted(_ mode: Mode, endpoint: String? = nil) -> [String] {
         let base = mode == .updates ? hostRoutes : RouteManager.ranges(for: mode)
         guard mode == .discord || mode == .updates else { return base }
         var out = base
         for cidr in dnsRoutes where !out.contains(cidr) { out.append(cidr) }
+        guard mode == .discord else { return out }
+        let pin = endpoint.map(SiteRoutes.prefix)
+        for cidr in siteRoutes where !out.contains(cidr) && cidr != pin { out.append(cidr) }
         return out
+    }
+
+    /// The site prefixes among `live`, for `RouteState.sites`.
+    func liveSites(_ mode: Mode, _ live: [String]) -> [String]? {
+        mode == .discord && !siteRoutes.isEmpty ? siteRoutes.filter(live.contains) : nil
     }
 
     // MARK: - Rollback
@@ -1068,7 +1100,8 @@ public struct RouteManager {
                              gateway: previous.gateway,
                              profile: previous.profile,
                              pending: false,
-                             generation: previous.generation))
+                             generation: previous.generation,
+                             sites: previous.sites?.filter(survivingRoutes.contains)))
         note("  kept \(survivingRoutes.count) route(s) and \(survivingHosts.count) host(s) in state for cleanup")
     }
 
@@ -1218,7 +1251,7 @@ public struct RouteManager {
     /// switch gets the same crash and partial-failure guarantees.
     func apply(mode: Mode, iface: String, gateway: String, endpoint: String,
                revertAfter: Int?) -> ActionResult {
-        let ranges = wanted(mode)
+        let ranges = wanted(mode, endpoint: endpoint)
 
         // Taken before anything changes, so the post-change check can ask
         // "did the transport move" rather than "is its age under a ceiling".
@@ -1315,7 +1348,8 @@ public struct RouteManager {
                              gateway: gateway,
                              profile: previous.profile,
                              pending: false,
-                             generation: generation))
+                             generation: generation,
+                             sites: liveSites(mode, addedNets + extraRoutes)))
         // Armed after the success, not before: a timer from a run that failed
         // must not fire later and tear down a tunnel that now works.
         if let warning = armedRevert(seconds: revertAfter ?? 0, generation: generation) {
@@ -1561,7 +1595,7 @@ public struct RouteManager {
         }
 
         let oldNets = Set(state.routes)
-        let newNets = Set(wanted(mode))
+        var newNets = Set(wanted(mode))
 
         if dryRun {
             let remove = oldNets.subtracting(newNets).sorted()
@@ -1580,6 +1614,7 @@ public struct RouteManager {
             return .failure("the tunnel reports no endpoint; refusing to change routes",
                             notes: journal.lines)
         }
+        newNets = Set(wanted(mode, endpoint: endpoint))
 
         // H2: the pin is probed, never taken from the state file.
         //
@@ -1671,6 +1706,7 @@ public struct RouteManager {
         state.mode = mode.rawValue
         state.iface = iface
         state.routes = live
+        state.sites = liveSites(mode, live)
         state.pending = false
         state.generation += 1
         saveState(state)
@@ -1820,7 +1856,8 @@ public enum RouteStateStore {
                           gateway: stored.gateway,
                           profile: stored.profile,
                           pending: stored.pending ?? false,
-                          generation: stored.generation ?? 0), false)
+                          generation: stored.generation ?? 0,
+                          sites: stored.sites), false)
     }
 
     @discardableResult
@@ -1844,6 +1881,7 @@ public enum RouteStateStore {
         var profile: String?
         var pending: Bool?
         var generation: Int?
+        var sites: [String]?
     }
 }
 

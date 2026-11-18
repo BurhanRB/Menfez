@@ -1,6 +1,8 @@
-// TunnelScope.swift — what Tunnel mode carries: Discord only, or the whole internet.
+// TunnelScope.swift — what Tunnel mode carries: Discord only, Discord + chosen
+// sites, or the whole internet.
 //
-// The route sets themselves are `Mode.discord` and `Mode.all` in RouteManager.
+// The route sets themselves are `Mode.discord` and `Mode.all` in RouteManager;
+// chosen sites are Discord mode plus `--site-routes` (`SiteRoutes`).
 // This file holds the stored choice and the one extra thing Whole internet
 // needs: the system resolver moved onto the tunnel. Without it, lookups go to
 // the router (a LAN address, more specific than the /1 halves) and from there
@@ -12,13 +14,34 @@ public enum TunnelScope {
 
     public static let defaultsKey = "tunnelScope"
 
+    /// The three choices the picker shows. Raw values are what is saved (the
+    /// 1.0.2 values `discord` and `all` stay as they were) and the suffix of
+    /// the `m_` / `scope_…_hint` / `ks_hint_` strings.
+    public enum Choice: String, CaseIterable, Sendable {
+        case discord, sites, all
+
+        /// The helper mode the choice runs in.
+        public var mode: Mode { self == .all ? .all : .discord }
+
+        public init(_ mode: Mode) { self = mode == .all ? .all : .discord }
+    }
+
     /// The saved choice; Discord only when unset or unknown.
+    public static func choice(_ defaults: UserDefaults = .standard) -> Choice {
+        defaults.string(forKey: defaultsKey).flatMap(Choice.init(rawValue:)) ?? .discord
+    }
+
+    public static func save(choice: Choice, _ defaults: UserDefaults = .standard) {
+        defaults.set(choice.rawValue, forKey: defaultsKey)
+    }
+
+    /// The saved choice's helper mode; Discord only when unset or unknown.
     public static func current(_ defaults: UserDefaults = .standard) -> Mode {
-        defaults.string(forKey: defaultsKey) == Mode.all.rawValue ? .all : .discord
+        choice(defaults).mode
     }
 
     public static func save(_ scope: Mode, _ defaults: UserDefaults = .standard) {
-        defaults.set(scope == .all ? Mode.all.rawValue : Mode.discord.rawValue, forKey: defaultsKey)
+        save(choice: Choice(scope), defaults)
     }
 
     /// True when a scope change must re-route the live tunnel (`mode <scope>`):
@@ -26,6 +49,15 @@ public enum TunnelScope {
     public static func needsReroute(inTunnel: Bool, routeMode: String, to scope: Mode) -> Bool {
         inTunnel && routeMode != scope.rawValue
             && (routeMode == Mode.discord.rawValue || routeMode == Mode.all.rawValue)
+    }
+
+    /// The same for a picker change: Discord only and Discord + chosen sites
+    /// share the helper mode, so moving between them re-sends `mode discord`
+    /// with or without `--site-routes`.
+    public static func needsReroute(inTunnel: Bool, routeMode: String,
+                                    from old: Choice, to new: Choice) -> Bool {
+        needsReroute(inTunnel: inTunnel, routeMode: routeMode, to: new.mode)
+            || (inTunnel && old != new && new.mode == .discord && routeMode == Mode.discord.rawValue)
     }
 
     /// Whole internet's resolvers: the profile's own `DNS =` line when it has

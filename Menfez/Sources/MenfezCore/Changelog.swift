@@ -19,6 +19,21 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.5",
+            date: "2026-11-18",
+            tr: [
+                "Tünelde yeni seçenek: Discord + siteler. Discord'un yanında listene eklediğin siteler de tünelden gider, gerisi normal internetinden.",
+                "Siteleri tünel kartındaki Siteler düğmesinden ekle ya da sil. Her sitenin yanında kaç adres bulunduğu yazar, bulunamazsa söyler.",
+                "Sitelerin adresleri değişirse Menfez kendisi yeniler. Tünel düşerse interneti kes açıksa bu siteler de kesilir.",
+                "Bu seçenek için tünel bileşenini güncellemen gerekir. Menfez'deki Güncelle düğmesine bas.",
+            ],
+            en: [
+                "New tunnel option: Discord + sites. The sites on your list go through the tunnel along with Discord; everything else uses your normal internet.",
+                "Add or remove sites with the Sites button on the tunnel card. Each site shows how many addresses were found, or says if none were.",
+                "If a site's addresses change, Menfez updates them by itself. With Block internet if the tunnel drops on, these sites are cut too.",
+                "This option needs an updated tunnel component. Press Update in Menfez.",
+            ]),
+        ChangelogEntry(
             version: "1.0.4",
             date: "2026-11-18",
             tr: [

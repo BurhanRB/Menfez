@@ -171,7 +171,7 @@ enum Snapshots {
                             RouteInfo(cidr: "66.22.192.0/18", present: true)]
         m.report?.transfer = Transfer(rx: 48_300_000, tx: 3_100_000)
         m.report?.discord = DiscordProbe(code: 200, ms: 84)
-        m.tunnelScope = .discord
+        m.scopeChoice = .discord
         render(m, .dark, to: "\(dir)/dark-tunnel.png")
         render(m, .light, to: "\(dir)/tunnel.png")
 
@@ -179,7 +179,7 @@ enum Snapshots {
         // shows the egress lookup, which now leaves through the server.
         let saved = m.report
         render(m, .light, to: "\(dir)/tunnel-scope-discord.png")
-        m.tunnelScope = .all
+        m.scopeChoice = .all
         m.report?.mode = "all"
         m.report?.routes = ["0.0.0.0/1", "128.0.0.0/1", "::/1", "8000::/1"]
             .map { RouteInfo(cidr: $0, present: true) }
@@ -191,7 +191,23 @@ enum Snapshots {
         sideBySide("\(dir)/tunnel-scope-discord.png", "\(dir)/tunnel-scope-all.png",
                    to: "\(dir)/tunnel-scope.png")
         m.report = saved
-        m.tunnelScope = .discord
+
+        // Discord + sites: the three-way picker with the Sites chip, and the
+        // list with a resolved, an unresolved and a still-unknown entry.
+        m.helperVersion = HelperVersion.current
+        m.scopeChoice = .sites
+        m.sites = ["reddit.com", "archive.org", "pastebin.com"]
+        m.siteCounts = ["reddit.com": 8, "archive.org": 0]
+        m.sitesResolvedAt = Date().addingTimeInterval(-180)
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(dir)/sites-scope.png")
+        renderWindow(SitesSheet(m: m), title: "Menfez", .light, to: "\(dir)/sites-editor.png")
+        renderWindow(SitesSheet(m: m), title: "Menfez", .dark, to: "\(dir)/sites-editor-dark.png")
+        m.sites = []
+        renderWindow(SitesSheet(m: m), title: "Menfez", .light, to: "\(dir)/sites-editor-empty.png")
+        m.siteCounts = [:]
+        m.sitesResolvedAt = nil
+        m.scopeChoice = .discord
+        m.helperVersion = 0
 
         // Kill switch on under the scope picker, then the tunnel dropped with
         // the block holding. A window: the switch is AppKit.

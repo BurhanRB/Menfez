@@ -479,11 +479,15 @@ public struct RouteState: Codable, Sendable {
     /// the generation it was armed with, so a timer left over from an earlier
     /// run cannot tear down a tunnel that a later run installed.
     public var generation: Int
+    /// The chosen sites' /32s and /128s among `routes` (`--site-routes`, 1.0.5),
+    /// so the kill switch blocks them with Discord's ranges. Nil in every mode
+    /// but Discord, and in files written by older helpers.
+    public var sites: [String]?
 
     public init(mode: String = "off", iface: String? = nil,
                 routes: [String] = [], hosts: [String] = [],
                 gateway: String? = nil, profile: String? = nil,
-                pending: Bool = false, generation: Int = 0) {
+                pending: Bool = false, generation: Int = 0, sites: [String]? = nil) {
         self.mode = mode
         self.iface = iface
         self.routes = routes
@@ -492,6 +496,7 @@ public struct RouteState: Codable, Sendable {
         self.profile = profile
         self.pending = pending
         self.generation = generation
+        self.sites = sites
     }
 
     public static let empty = RouteState()

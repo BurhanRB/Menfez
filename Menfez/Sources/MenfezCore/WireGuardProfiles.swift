@@ -580,7 +580,8 @@ public enum WireGuardProfiles {
     /// healthy, everything is removed and the state says "off" — a tunnel that
     /// looks configured but carries nothing is the failure mode this exists to
     /// prevent.
-    public static func switchTo(name: String, dnsRoutes: [String] = []) -> ActionResult {
+    public static func switchTo(name: String, dnsRoutes: [String] = [],
+                                siteRoutes: [String] = []) -> ActionResult {
         // The picker only ever produces a stem from `list()`, but this entry
         // point takes a string from the CLI. A name containing "/" or ".." is
         // refused before it is compared with a listing: `list()` would never
@@ -677,10 +678,13 @@ public enum WireGuardProfiles {
         // profile is usable.
         var manager = RouteManager()
         manager.dnsRoutes = dnsRoutes
+        manager.siteRoutes = siteRoutes
         // Updates mode keeps its host /32s: they came from the root-owned
         // state file, which only ever records validated prefixes.
         if mode == .updates {
-            manager.hostRoutes = previousRoutes.filter { $0.hasSuffix("/32") && !dnsRoutes.contains($0) }
+            manager.hostRoutes = previousRoutes.filter {
+                $0.hasSuffix("/32") && !dnsRoutes.contains($0) && !(state.sites ?? []).contains($0)
+            }
         }
         let applied = manager.apply(mode: mode, iface: iface, gateway: gateway,
                                            endpoint: endpoint, revertAfter: nil)

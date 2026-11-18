@@ -20,6 +20,7 @@
 //     version           protocol version, for the app's update notice
 //     mode <discord|all>
 //     switch <profile>
+//     --site-routes IP,IP   (up/mode/switch) chosen sites' addresses, Discord mode only
 //     dns status | set <preset-id|ip> | auto
 //     detail <ip|routes|dns|tunnel|discord> [--value V]
 //     profiles
@@ -83,10 +84,12 @@ func usage() -> Never {
       up [--mode discord|all|off|updates] [--revert-after N] [--dry-run] [--dns-routes IP,IP]
          [--host-routes IP,IP]   (updates mode only, and required there)
          [--tunnel-dns IP,IP]    (resolvers the system uses while mode is all)
+         [--site-routes IP,IP]   (chosen sites, public IPv4/IPv6; used in discord mode only)
       down [--if-generation N]
       teardown          down, then stop the tunnel interface and delete its config
       mode <discord|all|updates> [--dry-run] [--dns-routes IP,IP] [--host-routes IP,IP] [--tunnel-dns IP,IP]
-      switch <profile-name> [--dns-routes IP,IP] [--tunnel-dns IP,IP]
+           [--site-routes IP,IP]
+      switch <profile-name> [--dns-routes IP,IP] [--tunnel-dns IP,IP] [--site-routes IP,IP]
       dns status | set <preset-id|address> | auto
       detail <ip|routes|dns|tunnel|discord> [--value V]
       profiles
@@ -273,6 +276,21 @@ func hostRoutes(for mode: Mode) -> [String] {
     return routes
 }
 
+/// `--site-routes`: the chosen sites' addresses as /32 and /128 prefixes.
+/// Public addresses only, at most `SiteRoutes.maxRoutes`; any other entry
+/// refuses the command. Accepted with every mode, used by Discord mode only
+/// (`RouteManager.wanted`), so a scope change never needs a different flag set.
+func siteRoutes() -> [String] {
+    let problem = "--site-routes needs a comma-separated list of at most "
+        + "\(SiteRoutes.maxRoutes) public IPv4 or IPv6 addresses"
+    guard let raw = args.value("site-routes") else {
+        if args.has("site-routes") { fail(problem, exit: 2) }
+        return []
+    }
+    guard let routes = RouteManager.siteRoutes(argument: raw) else { fail(problem, exit: 2) }
+    return routes
+}
+
 /// After a command that may move the interface, endpoint or scope: rebuild
 /// the kill switch rules if the block is on. A failure is a note, not an error.
 func withKillSwitch(_ result: ActionResult) -> ActionResult {
@@ -303,6 +321,7 @@ case "up":
     var manager = RouteManager()
     manager.dnsRoutes = dnsRoutes()
     manager.hostRoutes = hostRoutes(for: mode)
+    manager.siteRoutes = siteRoutes()
     let servers = tunnelDNS()
     // A previous run that did not finish is repaired before a new one starts:
     // otherwise its route set is merged with this one and neither `down` nor
@@ -358,6 +377,7 @@ case "mode":
     var manager = RouteManager()
     manager.dnsRoutes = dnsRoutes()
     manager.hostRoutes = hostRoutes(for: mode)
+    manager.siteRoutes = siteRoutes()
     let servers = tunnelDNS()
     reconcileOrFail(manager)
     let dryRun = args.has("dry-run")
@@ -369,9 +389,11 @@ case "switch":
     requireRoot()
     guard let name = args.first else { fail("switch needs a profile name", exit: 2) }
     let routes = dnsRoutes()
+    let sites = siteRoutes()
     let servers = tunnelDNS()
     reconcileOrFail(RouteManager())
-    let result = withKillSwitch(withTunnelDNS(WireGuardProfiles.switchTo(name: name, dnsRoutes: routes),
+    let result = withKillSwitch(withTunnelDNS(WireGuardProfiles.switchTo(name: name, dnsRoutes: routes,
+                                                                         siteRoutes: sites),
                                               servers: servers))
     emit(result, exit: result.ok ? 0 : 1)
 

@@ -21,7 +21,9 @@
 // Whole internet: loopback, the tunnel interface, the WireGuard endpoint, DHCP
 // and the local network stay open; DNS anywhere but through the tunnel and
 // everything else outbound is dropped. Discord only: Discord's ranges are
-// dropped unless they leave through the tunnel; nothing else changes.
+// dropped unless they leave through the tunnel; nothing else changes. Discord
+// + chosen sites: the same, plus the sites' /32s and /128s the helper recorded
+// in its own state file (`RouteState.sites`).
 //
 // The rules are built here from values the helper read itself (its own state
 // file and `wg show`), never from the app's arguments: the app only says on or
@@ -70,14 +72,20 @@ public enum KillSwitch {
 
     /// pf rules for the anchor, or nil when any input is not what it claims to
     /// be (the text goes to pfctl as root).
-    public static func rules(scope: Mode, iface: String, endpoints: [String]) -> String? {
+    public static func rules(scope: Mode, iface: String, endpoints: [String],
+                             sites: [String] = []) -> String? {
         guard isTunnelInterface(iface) else { return nil }
         let header = "# Menfez kill switch (\(scope.rawValue)). Remove: sudo \(terminalOff)\n"
         switch scope {
         case .discord:
-            let nets = RouteManager.discordRanges
+            let nets = RouteManager.discordRanges + sites
             guard nets.allSatisfy({ Validate.network($0) != nil }) else { return nil }
-            return header + "block drop out quick on ! \(iface) inet to { \(nets.joined(separator: ", ")) }\n"
+            let v4 = nets.filter { !$0.contains(":") }, v6 = nets.filter { $0.contains(":") }
+            var text = header + "block drop out quick on ! \(iface) inet to { \(v4.joined(separator: ", ")) }\n"
+            if !v6.isEmpty {
+                text += "block drop out quick on ! \(iface) inet6 to { \(v6.joined(separator: ", ")) }\n"
+            }
+            return text
         case .all:
             let ips = endpoints.compactMap(Validate.ipAddress)
             guard !ips.isEmpty, ips.count == endpoints.count else { return nil }
@@ -153,7 +161,8 @@ public enum KillSwitch {
         guard let endpoint = RouteManager.endpoint(iface: iface, using: runner) else {
             return .failure("the tunnel reports no endpoint")
         }
-        guard let text = rules(scope: scope, iface: iface, endpoints: [endpoint]) else {
+        guard let text = rules(scope: scope, iface: iface, endpoints: [endpoint],
+                               sites: route.sites ?? []) else {
             return .failure("could not build the kill switch rules")
         }
         let previous = load()

@@ -48,14 +48,15 @@ brew trust burhanrb/menfez
 brew install --cask menfez
 ```
 
-**İlk açılış:** Bu sürüm Apple tarafından imzalı değil. Menfez'e **sağ tıkla > Aç**
-ya da **Sistem Ayarları > Gizlilik ve Güvenlik > Yine de Aç**.
+**İlk açılış:** 1.0.5'ten itibaren sürümler Developer ID ile imzalı ve Apple
+tarafından notarize; Menfez her uygulama gibi açılır. 1.0.4 ve öncesi imzasızdı:
+onlarda **Sistem Ayarları > Gizlilik ve Güvenlik > Yine de Aç** gerekir.
 
 ### Modlar
 
 - **Doğrudan:** Menfez devrede değil, ağın olduğu gibi çalışır.
 - **DPI:** Discord'u yerel bir proxy ile açar; bağlantının ilk mesajını bölerek engelleyen cihazdan Discord'un adını gizler. Önce Discord'u kapat.
-- **Tünel:** İsteğe bağlı. Kendi WireGuard sunucun üzerinden seçtiğin kapsamı geçirir: **Sadece Discord** ya da **Tüm internet**.
+- **Tünel:** İsteğe bağlı. Kendi WireGuard sunucun üzerinden seçtiğin kapsamı geçirir: **Sadece Discord**, **Discord + siteler** (seçtiğin siteler de tünelden) ya da **Tüm internet**.
   Bir kerelik kurulum: `brew install wireguard-tools wireguard-go bash`, sonra uygulamada **Tüneli kur**'a bas (macOS yönetici şifreni sorar).
 
 ### Kendi WireGuard sunucun
@@ -93,7 +94,7 @@ Kural `visudo -c` ile denetlenir, hatalıysa silinir.
 
 #### Sorun giderme
 
-- "Menfez hasarlı" diyorsa dosya bozuk değil: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
+- (1.0.4 ve öncesi) "Menfez hasarlı" diyorsa dosya bozuk değil: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
 - İndirmeyi doğrulamak için: `shasum -a 256 Menfez-*.dmg` ve `SHA256SUMS` ile karşılaştır.
 - DPI çalışmıyorsa Discord'u tamamen kapatıp Menfez'den aç.
 
@@ -125,14 +126,15 @@ brew trust burhanrb/menfez
 brew install --cask menfez
 ```
 
-**First open:** this build is not signed by Apple. **Right-click Menfez > Open**,
-or **System Settings > Privacy & Security > Open Anyway**.
+**First open:** from 1.0.5 on, builds are signed with a Developer ID and
+notarised by Apple, so Menfez opens like any other app. 1.0.4 and older were
+unsigned and need **System Settings > Privacy & Security > Open Anyway**.
 
 ### Modes
 
 - **Direct:** Menfez is off; your network works as usual.
 - **DPI:** opens Discord through a local proxy that splits the first message of each connection, so the blocking device cannot read Discord's name. Quit Discord first.
-- **Tunnel:** optional. Sends traffic through your own WireGuard server, with the scope you pick: **Discord only** or **Whole internet**.
+- **Tunnel:** optional. Sends traffic through your own WireGuard server, with the scope you pick: **Discord only**, **Discord + sites** (sites you choose go through the tunnel too) or **Whole internet**.
   One-time setup: `brew install wireguard-tools wireguard-go bash`, then press **Set up tunnel** in the app (macOS asks for your administrator password).
 
 ### Your own WireGuard server
@@ -170,7 +172,7 @@ The rule is checked with `visudo -c` and removed if invalid.
 
 #### Troubleshooting
 
-- "Menfez is damaged" means macOS does not trust it, not that it is broken: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
+- (1.0.4 and older) "Menfez is damaged" means macOS does not trust it, not that it is broken: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
 - To verify a download: `shasum -a 256 Menfez-*.dmg` and compare with `SHA256SUMS`.
 - If DPI does not work, quit Discord fully and open it from Menfez.
 
@@ -198,7 +200,7 @@ Xcode gerekir / Needs Xcode (the SwiftUI macro plugin is not in the Command Line
 ```sh
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 (cd Menfez && swift test)   # tests
-./build-app.sh              # Menfez.app, universal (arm64 + x86_64), ad-hoc signed
+./build-app.sh              # Menfez.app, universal (arm64 + x86_64); ad-hoc signed unless MENFEZ_SIGN_IDENTITY is set (docs/SIGNING.md)
 ./build-dmg.sh              # Menfez-<version>-arm64.dmg, Menfez-<version>-intel.dmg
 ./install.sh                # installs to /Applications (--tunnel also runs the tunnel setup)
 ```

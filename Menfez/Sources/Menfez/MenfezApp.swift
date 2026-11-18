@@ -344,6 +344,30 @@ struct L {
             "ks_hint_discord": "Tünel düşerse Discord kesilir, diğer siteler normal açılır.",
             "ks_blocked": "Tünel düştü, internet kapalı.",
             "ks_blocked_discord": "Tünel düştü, Discord kapalı.",
+            "ks_blocked_sites": "Tünel düştü, Discord ve siteler kapalı.",
+            "ks_hint_sites": "Tünel düşerse Discord ve listendeki siteler kesilir, gerisi normal açılır.",
+            "m_sites": "Discord + siteler",
+            "scope_sites_hint": "Discord ve listendeki siteler tünelden, gerisi normal internetten.",
+            "sites_needs_update": "Seçili siteler için tünel bileşenini güncelle.",
+            "sites_edit": "Siteler ({what})",
+            "sites_title": "Tünelden geçen siteler",
+            "sites_intro": "Bu siteler Discord'la birlikte tünelden gider, adları da tünelden çözülür. www. kendiliğinden eklenir; başka alt alan adlarını ayrı ekle.",
+            "sites_placeholder": "ornek.com",
+            "sites_add": "Ekle",
+            "sites_remove": "Kaldır",
+            "sites_empty": "Henüz site yok. Bir site adı yaz ve Ekle'ye bas.",
+            "sites_invalid": "Bu bir site adı değil.",
+            "sites_full": "Liste dolu (en çok {what} site).",
+            "sites_save_failed": "Site listesi kaydedilemedi.",
+            "sites_recovered": "Site listesi okunamadı; boş başlandı, eskisi sites.json.bak olarak duruyor.",
+            "sites_updated": "Site adresleri güncellendi.",
+            "sites_count": "{what} adres",
+            "sites_unresolved": "Bu ad çözülemedi",
+            "sites_checking": "Bakılıyor…",
+            "sites_ago_now": "Güncellendi: az önce",
+            "sites_ago_min": "Güncellendi: {what} dk önce",
+            "sites_dns_outside": "Mac'in DNS'i ev ağında (modem), o yüzden site adları tünelden çözülemiyor. DNS ayarından herkese açık bir DNS seç.",
+            "sites_not_active": "Kapsam Discord + siteler olunca bu siteler tünelden gider.",
             "ks_reconnect": "Yeniden bağlan",
             "ks_unblock": "Engeli kaldır",
             "ks_on_done": "Tünel düşerse internet kesilecek",
@@ -710,6 +734,30 @@ struct L {
             "ks_hint_discord": "If the tunnel drops, Discord is cut. Other sites open as usual.",
             "ks_blocked": "Tunnel dropped, internet blocked.",
             "ks_blocked_discord": "Tunnel dropped, Discord blocked.",
+            "ks_blocked_sites": "Tunnel dropped, Discord and your sites blocked.",
+            "ks_hint_sites": "If the tunnel drops, Discord and the sites on your list are cut. The rest opens as usual.",
+            "m_sites": "Discord + sites",
+            "scope_sites_hint": "Discord and the sites on your list go through the tunnel; the rest uses your normal internet.",
+            "sites_needs_update": "Update the tunnel component to use chosen sites.",
+            "sites_edit": "Sites ({what})",
+            "sites_title": "Sites through the tunnel",
+            "sites_intro": "These sites go through the tunnel with Discord, and their names are looked up through it too. www. is added for you; add other subdomains separately.",
+            "sites_placeholder": "example.com",
+            "sites_add": "Add",
+            "sites_remove": "Remove",
+            "sites_empty": "No sites yet. Type a site name and press Add.",
+            "sites_invalid": "That isn't a site name.",
+            "sites_full": "The list is full (at most {what} sites).",
+            "sites_save_failed": "Couldn't save the site list.",
+            "sites_recovered": "Couldn't read the site list, so it starts empty; the old one is kept as sites.json.bak.",
+            "sites_updated": "Site addresses updated.",
+            "sites_count": "{what} addresses",
+            "sites_unresolved": "Could not resolve this name",
+            "sites_checking": "Looking up…",
+            "sites_ago_now": "Updated: just now",
+            "sites_ago_min": "Updated: {what} min ago",
+            "sites_dns_outside": "Your Mac's DNS is on your home network (the router), so site names can't be looked up through the tunnel. Pick a public DNS in DNS settings.",
+            "sites_not_active": "These sites go through the tunnel when the scope is Discord + sites.",
             "ks_reconnect": "Reconnect",
             "ks_unblock": "Unblock",
             "ks_on_done": "Internet will be blocked if the tunnel drops",
@@ -1243,9 +1291,30 @@ final class Model: ObservableObject {
             lastProfile: UserDefaults.standard.string(forKey: lastProfileKey), available: list.map(\.name))
         let own = name.flatMap { n in list.first { $0.name == n }?.dns }
         let servers = TunnelScope.tunnelDNS(profileDNS: own, fallback: DoHProvider.current().addresses)
-        return RouteManager.dnsRouteArgs(enabled: DNSManager.routesDNSThroughTunnel(),
+        return RouteManager.dnsRouteArgs(enabled: dnsThroughTunnel(),
                                          resolvers: DNSManager.systemResolvers())
             + ["--tunnel-dns", servers.joined(separator: ",")]
+            + siteRouteArgs()
+    }
+
+    /// The DNS-through-tunnel toggle, or Discord + chosen sites, which always
+    /// routes the public resolvers in: a blocked site's name answered by the
+    /// ISP's resolver would point the browser somewhere else entirely.
+    nonisolated static func dnsThroughTunnel() -> Bool {
+        DNSManager.routesDNSThroughTunnel() || TunnelScope.choice() == .sites
+    }
+
+    /// `--site-routes` when Discord + chosen sites is the saved choice: the
+    /// last lookup (`SiteAddressCache`). Off the main thread with no lookup
+    /// yet (a tunnel start right after launch), it looks the sites up first;
+    /// on the main thread it never waits for the network.
+    nonisolated static func siteRouteArgs() -> [String] {
+        guard TunnelScope.choice() == .sites else { return [] }
+        if SiteAddressCache.shared.addresses.isEmpty, !Thread.isMainThread {
+            let sites = SiteList.load().list.sites
+            if !sites.isEmpty { SiteAddressCache.shared.addresses = SiteRoutes.resolve(sites).addresses }
+        }
+        return SiteRoutes.argument(SiteAddressCache.shared.addresses)
     }
 
     /// UserDefaults key: the profile last seen carrying the tunnel.
@@ -1374,6 +1443,7 @@ final class Model: ObservableObject {
                 Task { @MainActor in
                     try? await Task.sleep(nanoseconds: 3_000_000_000)
                     self.checkDNSRoutes()
+                    self.checkSiteRoutes()
                 }
             }
         })
@@ -1837,7 +1907,10 @@ final class Model: ObservableObject {
         dnsCheckTicks += 1
         if dnsCheckTicks >= 15 {
             dnsCheckTicks = 0
-            if mode == Mode.discord.rawValue { checkDNSRoutes() }
+            if mode == Mode.discord.rawValue {
+                checkDNSRoutes()
+                checkSiteRoutes()
+            }
         }
         noticeEvents()
     }
@@ -1874,7 +1947,7 @@ final class Model: ObservableObject {
     /// mode runs with the toggle on; see `DNSRouteRefresh`. One unprivileged
     /// `scutil --dns`, and a root call only on a confirmed change.
     func checkDNSRoutes() {
-        let enabled = DNSManager.routesDNSThroughTunnel()
+        let enabled = Model.dnsThroughTunnel()
         guard enabled else {
             dnsRefresh.reset()
             dnsStaysOutside = false
@@ -1893,8 +1966,10 @@ final class Model: ObservableObject {
             guard !self.busy,
                   let set = self.dnsRefresh.observe(RouteManager.publicResolvers(resolvers)) else { return }
             Model.trace("dns routes changed: \(set.joined(separator: ","))")
+            // The chosen sites ride along, or this `mode` would drop them.
             self.perform(self.l.t("working"),
-                         ["mode", Mode.discord.rawValue, "--dns-routes", set.joined(separator: ",")],
+                         ["mode", Mode.discord.rawValue, "--dns-routes", set.joined(separator: ",")]
+                            + Model.siteRouteArgs(),
                          self.l.t("dns_routes_updated"))
         }
     }
@@ -2293,24 +2368,127 @@ final class Model: ObservableObject {
         return true
     }
 
-    /// What Tunnel mode carries: Discord only or the whole internet. Saved.
-    @Published var tunnelScope: Mode = TunnelScope.current()
+    /// What Tunnel mode carries: Discord only, Discord + chosen sites, or the
+    /// whole internet. Saved.
+    @Published var scopeChoice: TunnelScope.Choice = TunnelScope.choice()
+    /// The helper mode of that choice (chosen sites run in Discord mode).
+    var tunnelScope: Mode { scopeChoice.mode }
 
-    /// Pick the scope. With the tunnel up in the other scope, its routes (and
+    /// Pick the scope. With the tunnel up in another scope, its routes (and
     /// for Whole internet the resolver) are swapped by `mode`, without
     /// restarting WireGuard. A failed swap puts the old choice back.
-    func setTunnelScope(_ scope: Mode) {
-        guard !busy, scope != tunnelScope else { return }
-        let previous = tunnelScope
-        TunnelScope.save(scope)
-        tunnelScope = scope
-        guard TunnelScope.needsReroute(inTunnel: runMode == .tunnel, routeMode: mode, to: scope) else { return }
-        let name = l.t("m_" + scope.rawValue)
-        perform(l.t("switching", ["what": name]), ["mode", scope.rawValue] + Model.dnsRouteArgs(),
-                l.t("mode_set", ["what": name])) { ok in
-            guard !ok else { return }
-            TunnelScope.save(previous)
-            self.tunnelScope = previous
+    func setTunnelScope(_ choice: TunnelScope.Choice) {
+        guard !busy, choice != scopeChoice else { return }
+        guard choice != .sites || sitesAvailable else {
+            status = l.t("sites_needs_update")
+            statusColor = Palette.warning
+            return
+        }
+        let previous = scopeChoice
+        TunnelScope.save(choice: choice)
+        scopeChoice = choice
+        guard TunnelScope.needsReroute(inTunnel: runMode == .tunnel, routeMode: mode,
+                                       from: previous, to: choice) else {
+            if choice == .sites { checkSiteRoutes() }
+            return
+        }
+        let name = l.t("m_" + choice.rawValue)
+        Task {
+            // The first pick of chosen sites may have no lookup yet.
+            if choice == .sites { await resolveSites() }
+            perform(l.t("switching", ["what": name]), ["mode", choice.mode.rawValue] + Model.dnsRouteArgs(),
+                    l.t("mode_set", ["what": name])) { ok in
+                if ok { self.siteRefresh.didSend(choice == .sites ? SiteAddressCache.shared.addresses : []) }
+                guard !ok else { return }
+                TunnelScope.save(choice: previous)
+                self.scopeChoice = previous
+            }
+        }
+    }
+
+    // MARK: - Chosen sites (Discord + chosen sites)
+
+    /// Helper 4 knows `--site-routes`; an older one ignores it.
+    var sitesAvailable: Bool { helperVersion >= 4 }
+    private static let loadedSites = SiteList.load()
+    /// The user's list (`sites.json`), as normalised entries.
+    @Published var sites: [String] = Model.loadedSites.list.sites
+    /// `sites.json` could not be read; it was kept as `.bak` (shown in the sheet).
+    let sitesRecovered = Model.loadedSites.recovered
+    /// Per entry, how many addresses the last lookup gave (0: did not resolve).
+    @Published var siteCounts: [String: Int] = [:]
+    @Published var sitesResolvedAt: Date?
+    @Published var sitesLookupRunning = false
+    private var siteRefresh = SiteRoutes.Refresh()
+
+    /// Add what the user typed. Returns the problem to show, or nil.
+    func addSite(_ raw: String) -> String? {
+        guard let entry = SiteRoutes.normalize(raw) else { return l.t("sites_invalid") }
+        guard !sites.contains(entry) else { return nil }
+        guard sites.count < SiteRoutes.maxSites else {
+            return l.t("sites_full", ["what": String(SiteRoutes.maxSites)])
+        }
+        sites.append(entry)
+        sitesEdited()
+        return nil
+    }
+
+    func removeSite(_ entry: String) {
+        sites.removeAll { $0 == entry }
+        siteCounts[entry] = nil
+        sitesEdited()
+    }
+
+    private func sitesEdited() {
+        guard SiteList(sites: sites).save() else {
+            status = l.t("sites_save_failed")
+            statusColor = Palette.danger
+            return
+        }
+        checkSiteRoutes(now: true)
+    }
+
+    /// Look the list up with DoH, off the main thread, and keep the answer.
+    func resolveSites() async {
+        let list = sites
+        sitesLookupRunning = true
+        let found = await Task.detached(priority: .utility) { SiteRoutes.resolve(list) }.value
+        sitesLookupRunning = false
+        guard list == sites else { return }   // edited meanwhile; the next check redoes it
+        SiteAddressCache.shared.addresses = found.addresses
+        siteCounts = found.counts
+        sitesResolvedAt = Date()
+    }
+
+    /// Every minute in Discord mode, after a network change, and after an
+    /// edit (`now`): look the sites up again and re-send `mode discord` when
+    /// the addresses moved (`SiteRoutes.Refresh`), or when the live routes
+    /// carry sites this choice does not want. Names never reach the helper
+    /// or the log; only counts are traced.
+    func checkSiteRoutes(now: Bool = false) {
+        guard sitesAvailable else { return }
+        Task {
+            if scopeChoice == .sites { await resolveSites() }
+            guard runMode == .tunnel, mode == Mode.discord.rawValue, tunnelCarriesTraffic, !busy else {
+                siteRefresh.reset()
+                return
+            }
+            let live = (RouteStateStore.load().sites ?? []).map { String($0.split(separator: "/")[0]) }
+            let resolved = SiteAddressCache.shared.addresses
+            let send: [String]?
+            if scopeChoice != .sites {
+                send = live.isEmpty ? nil : []
+            } else if now {
+                send = Set(resolved) == Set(live) ? nil : resolved
+                if send != nil { siteRefresh.didSend(resolved) }
+            } else {
+                send = siteRefresh.observe(resolved: resolved, live: live)
+            }
+            guard let send else { return }
+            Model.trace("site routes: \(send.count) address(es) for \(sites.count) site(s)")
+            var args = ["mode", Mode.discord.rawValue] + Model.dnsRouteArgs()
+            if let at = args.firstIndex(of: "--site-routes") { args.removeSubrange(at...(at + 1)) }
+            perform(l.t("working"), args + SiteRoutes.argument(send), l.t("sites_updated"))
         }
     }
 
@@ -3261,6 +3439,8 @@ struct ContentView: View {
                 .onDisappear { Onboarding.markSeen() }
         case .leakTest:
             LeakTestSheet(lang: m.lang, onRun: { await m.runLeakTest() }) { close(.leakTest) }
+        case .sites:
+            SitesSheet(m: m) { close(.sites) }
         case .siteTest:
             SiteTestSheet(lang: m.lang,
                           tunnelOnlyDiscord: m.runMode == .tunnel && !m.tunnelCarriesEverything,
@@ -3564,13 +3744,15 @@ struct ContentView: View {
         .modifier(Card())
     }
 
-    /// Discord only / Whole internet, with one line on what the choice means.
-    /// Drawn like the mode bar, one size down, so it reads as part of Tunnel.
+    /// Discord only / Discord + sites / Whole internet, with one line on what
+    /// the choice means. Drawn like the mode bar, one size down, so it reads
+    /// as part of Tunnel.
     private var scopeControl: some View {
         VStack(alignment: .leading, spacing: Space.xs) {
             HStack(spacing: Space.xs) {
-                ForEach([Mode.discord, Mode.all], id: \.self) { scope in
-                    let active = m.tunnelScope == scope
+                ForEach(TunnelScope.Choice.allCases, id: \.self) { scope in
+                    let active = m.scopeChoice == scope
+                    let available = scope != .sites || m.sitesAvailable
                     Button {
                         m.setTunnelScope(scope)
                     } label: {
@@ -3590,17 +3772,34 @@ struct ContentView: View {
                         }
                     }
                     .foregroundStyle(active ? Palette.text : Palette.secondary)
-                    .disabled(m.busy)
+                    .opacity(available ? 1 : 0.45)
+                    .disabled(m.busy || !available)
                     .accessibilityAddTraits(active ? .isSelected : [])
-                    .help(m.l.t("scope_" + scope.rawValue + "_hint"))
+                    .help(m.l.t(available ? "scope_" + scope.rawValue + "_hint" : "sites_needs_update"))
                 }
             }
             .padding(Space.xs - 1)
             .modifier(Card())
-            Text(m.l.t("scope_" + m.tunnelScope.rawValue + "_hint"))
-                .font(.system(size: 11))
-                .foregroundStyle(Palette.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+                Text(m.l.t("scope_" + m.scopeChoice.rawValue + "_hint"))
+                    .font(.system(size: 11))
+                    .foregroundStyle(Palette.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if m.scopeChoice == .sites {
+                    Spacer(minLength: 4)
+                    Button { show(.sites) } label: {
+                        Text(m.l.t("sites_edit", ["what": String(m.sites.count)]))
+                            .font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, Space.s + 2)
+                            .padding(.vertical, Space.xs + 1)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .modifier(Chip())
+                    .foregroundStyle(Palette.accent)
+                    .fixedSize()
+                }
+            }
         }
     }
 
@@ -3631,7 +3830,7 @@ struct ContentView: View {
                 .disabled(!m.tunnelCarriesTraffic)
             }
             if m.killSwitchAvailable {
-                Text(m.l.t("ks_hint_" + m.tunnelScope.rawValue))
+                Text(m.l.t("ks_hint_" + m.scopeChoice.rawValue))
                     .font(.system(size: 11))
                     .foregroundStyle(Palette.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -3646,7 +3845,7 @@ struct ContentView: View {
                 Image(systemName: "xmark.shield.fill")
                     .font(.system(size: 12))
                     .foregroundStyle(Palette.danger)
-                Text(m.l.t(m.tunnelScope == .discord ? "ks_blocked_discord" : "ks_blocked"))
+                Text(m.l.t(m.scopeChoice == .all ? "ks_blocked" : "ks_blocked_" + m.scopeChoice.rawValue))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Palette.danger)
                     .fixedSize(horizontal: false, vertical: true)
@@ -4554,6 +4753,7 @@ enum SheetRoute: Equatable {
     case whatsNew
     case siteTest
     case leakTest
+    case sites
     case onboarding
     case detail(DetailSheet)
 }
