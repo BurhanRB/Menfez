@@ -55,7 +55,7 @@ ya da **Sistem Ayarları > Gizlilik ve Güvenlik > Yine de Aç**.
 
 - **Doğrudan:** Menfez devrede değil, ağın olduğu gibi çalışır.
 - **DPI:** Discord'u yerel bir proxy ile açar; bağlantının ilk mesajını bölerek engelleyen cihazdan Discord'un adını gizler. Önce Discord'u kapat.
-- **Tünel:** İsteğe bağlı. Discord'u ya da tüm trafiği kendi WireGuard sunucun üzerinden geçirir.
+- **Tünel:** İsteğe bağlı. Kendi WireGuard sunucun üzerinden seçtiğin kapsamı geçirir: **Sadece Discord** ya da **Tüm internet**.
   Bir kerelik kurulum: `brew install wireguard-tools wireguard-go bash`, sonra uygulamada **Tüneli kur**'a bas (macOS yönetici şifreni sorar).
 
 ### Kendi WireGuard sunucun
@@ -132,7 +132,7 @@ or **System Settings > Privacy & Security > Open Anyway**.
 
 - **Direct:** Menfez is off; your network works as usual.
 - **DPI:** opens Discord through a local proxy that splits the first message of each connection, so the blocking device cannot read Discord's name. Quit Discord first.
-- **Tunnel:** optional. Sends Discord, or all traffic, through your own WireGuard server.
+- **Tunnel:** optional. Sends traffic through your own WireGuard server, with the scope you pick: **Discord only** or **Whole internet**.
   One-time setup: `brew install wireguard-tools wireguard-go bash`, then press **Set up tunnel** in the app (macOS asks for your administrator password).
 
 ### Your own WireGuard server

@@ -89,7 +89,7 @@ final class HybridUpdatesTests: XCTestCase {
             default: return CommandResult(status: 0, output: #"{"ok":true,"mode":"updates"}"#)
             }
         }
-        let tunnel = HelperTunnel(client: client, lastProfile: { "nl-1" }, profileNames: { ["nl-1"] })
+        let tunnel = HelperTunnel(client: client, interfaces: { [] }, lastProfile: { "nl-1" }, profileNames: { ["nl-1"] })
         let outcome = tunnel.startUpdates(UpdateRoutes(hosts: ["162.159.137.232", "104.18.48.115"],
                                                        resolvers: ["195.175.39.39"]))
         XCTAssertTrue(outcome.ok)

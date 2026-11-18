@@ -272,8 +272,12 @@ public enum WireGuardProfiles {
     ///     picker draws as "none highlighted" rather than a wrong highlight.
     ///   - resolveLiveHost: when true, `liveHost` is ignored and the endpoint
     ///     is probed here. Only safe for a caller that is already root.
+    ///   - livePeerKey: the live tunnel's peer public key, when known. It
+    ///     decides `active` on its own: an endpoint host can be a name the
+    ///     live IP never contains, and two files can share a host.
     public static func list(directory: String = Path.profiles,
                             liveHost: String?,
+                            livePeerKey: String? = nil,
                             resolveLiveHost: Bool = false,
                             using runner: CommandRunner = SystemRunner()) -> [Profile] {
         let names = (try? FileManager.default.contentsOfDirectory(atPath: directory)) ?? []
@@ -318,10 +322,15 @@ public enum WireGuardProfiles {
             // its endpoint string. String containment rather than equality
             // because wg reports a resolved host:port while the source file
             // sometimes carry a hostname.
-            let active = resolvedHost.map { live in
-                guard let endpoint else { return false }
-                return endpoint.contains(live)
-            } ?? false
+            let active: Bool
+            if let livePeerKey {
+                active = parsed.peerKey == livePeerKey
+            } else {
+                active = resolvedHost.map { live in
+                    guard let endpoint else { return false }
+                    return endpoint.contains(live)
+                } ?? false
+            }
 
             profiles.append(Profile(name: stem,
                                     file: file,
@@ -331,7 +340,9 @@ public enum WireGuardProfiles {
                                     display: ProfileNaming.displayName(
                                         stem: stem, configText: text),
                                     active: active,
-                                    error: problem))
+                                    error: problem,
+                                    peerKey: parsed.peerKey,
+                                    dns: parsed.dns))
         }
         return profiles
     }
@@ -340,9 +351,11 @@ public enum WireGuardProfiles {
     struct ParsedProfile {
         var address: String?
         var endpoint: String?
+        var peerKey: String?
+        var dns: [String]?
     }
 
-    /// Read `[Interface] Address` and `[Peer] Endpoint`, nothing else.
+    /// Read `[Interface] Address`, `[Peer] Endpoint` and `[Peer] PublicKey`, nothing else.
     ///
     /// Hand-rolled rather than pattern-matching the whole file: it guarantees
     /// that a `PrivateKey =` line is never even looked at, so there is no code
@@ -371,16 +384,29 @@ public enum WireGuardProfiles {
                 .trimmingCharacters(in: .whitespaces)
                 .lowercased()
 
-            // The switch lists exactly the two keys we are allowed to keep.
+            // The switch lists exactly the keys we are allowed to keep.
             // Everything else — including key material — matches neither branch
             // and its value is never sliced out of the line at all.
             switch (section, key) {
             case ("[interface]", "address"):
                 guard parsed.address == nil else { continue }
                 parsed.address = value(of: line, after: equals)
+            // Resolver addresses only; search domains and IPv6 entries are
+            // dropped (an IPv6 resolver is unreachable without a v6 Address).
+            case ("[interface]", "dns"):
+                guard parsed.dns == nil else { continue }
+                let v4 = value(of: line, after: equals).split(separator: ",")
+                    .compactMap { Validate.ipAddress($0.trimmingCharacters(in: .whitespaces)) }
+                    .filter { !$0.contains(":") }
+                parsed.dns = v4.isEmpty ? nil : v4
             case ("[peer]", "endpoint"):
                 guard parsed.endpoint == nil else { continue }
                 parsed.endpoint = value(of: line, after: equals)
+            // The server's public key, not key material: `privatekey` and
+            // `presharedkey` still match no branch.
+            case ("[peer]", "publickey"):
+                guard parsed.peerKey == nil else { continue }
+                parsed.peerKey = value(of: line, after: equals)
             default:
                 continue
             }

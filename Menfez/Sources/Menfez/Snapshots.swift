@@ -157,8 +157,27 @@ enum Snapshots {
                             RouteInfo(cidr: "66.22.192.0/18", present: true)]
         m.report?.transfer = Transfer(rx: 48_300_000, tx: 3_100_000)
         m.report?.discord = DiscordProbe(code: 200, ms: 84)
+        m.tunnelScope = .discord
         render(m, .dark, to: "\(dir)/dark-tunnel.png")
         render(m, .light, to: "\(dir)/tunnel.png")
+
+        // The scope control, both choices side by side. Whole internet's card
+        // shows the egress lookup, which now leaves through the server.
+        let saved = m.report
+        render(m, .light, to: "\(dir)/tunnel-scope-discord.png")
+        m.tunnelScope = .all
+        m.report?.mode = "all"
+        m.report?.routes = ["0.0.0.0/1", "128.0.0.0/1", "::/1", "8000::/1"]
+            .map { RouteInfo(cidr: $0, present: true) }
+        m.report?.egressIP = "185.65.134.77"
+        m.report?.geo = Geo(country: "NL", city: "Amsterdam",
+                            org: "AS39351 31173 Services AB", ispShort: "31173 Services")
+        m.report?.dns = ["10.64.0.1"]
+        render(m, .light, to: "\(dir)/tunnel-scope-all.png")
+        sideBySide("\(dir)/tunnel-scope-discord.png", "\(dir)/tunnel-scope-all.png",
+                   to: "\(dir)/tunnel-scope.png")
+        m.report = saved
+        m.tunnelScope = .discord
         let servers = m.profiles
         m.profiles += [Profile(name: "bg-sof", file: "bg-sof.conf", endpoint: "94.156.1.20:51820",
                                country: "BG", display: "Bulgaristan")]
@@ -183,6 +202,30 @@ enum Snapshots {
         renderWindow(SettingsView(m: m), title: "Menfez", .dark, to: "\(dir)/settings.png")
 
         exit(0)
+    }
+
+    /// Two shots in one PNG, left then right, tops aligned.
+    private static func sideBySide(_ left: String, _ right: String, to path: String) {
+        func load(_ p: String) -> CGImage? {
+            NSImage(contentsOfFile: p)?.cgImage(forProposedRect: nil, context: nil, hints: nil)
+        }
+        let gap = 48
+        guard let l = load(left), let r = load(right),
+              let ctx = CGContext(data: nil, width: l.width + gap + r.width, height: max(l.height, r.height),
+                                  bitsPerComponent: 8, bytesPerRow: 0,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            FileHandle.standardError.write("snapshot failed: \(path)\n".data(using: .utf8)!)
+            exit(1)
+        }
+        ctx.draw(l, in: CGRect(x: 0, y: ctx.height - l.height, width: l.width, height: l.height))
+        ctx.draw(r, in: CGRect(x: l.width + gap, y: ctx.height - r.height, width: r.width, height: r.height))
+        guard let image = ctx.makeImage(),
+              let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) else {
+            exit(1)
+        }
+        try? png.write(to: URL(fileURLWithPath: path))
+        print(path, image.width / 2, "x", image.height / 2, "pt")
     }
 
     private static func render(_ m: Model, _ scheme: ColorScheme, to path: String) {

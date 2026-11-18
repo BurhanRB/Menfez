@@ -16,6 +16,8 @@
 //     facts             the privileged half of a report: one wg read
 //     up [--mode M] [--revert-after N] [--dry-run]
 //     down
+//     teardown          down, then stop the interface and delete its config
+//     version           protocol version, for the app's update notice
 //     mode <discord|all>
 //     switch <profile>
 //     dns status | set <preset-id|ip> | auto
@@ -79,15 +81,18 @@ func usage() -> Never {
       facts
       up [--mode discord|all|off|updates] [--revert-after N] [--dry-run] [--dns-routes IP,IP]
          [--host-routes IP,IP]   (updates mode only, and required there)
+         [--tunnel-dns IP,IP]    (resolvers the system uses while mode is all)
       down [--if-generation N]
-      mode <discord|all|updates> [--dry-run] [--dns-routes IP,IP] [--host-routes IP,IP]
-      switch <profile-name> [--dns-routes IP,IP]
+      teardown          down, then stop the tunnel interface and delete its config
+      mode <discord|all|updates> [--dry-run] [--dns-routes IP,IP] [--host-routes IP,IP] [--tunnel-dns IP,IP]
+      switch <profile-name> [--dns-routes IP,IP] [--tunnel-dns IP,IP]
       dns status | set <preset-id|address> | auto
       detail <ip|routes|dns|tunnel|discord> [--value V]
       profiles
       status
       sanity
       repin
+      version           the helper's protocol version (no root needed)
 
     Exits: 0 ok, 1 failure, 2 usage error, 3 not root.
     """
@@ -136,7 +141,7 @@ struct Args {
 /// Commands that change routing or DNS. They serialize on one flock; a second
 /// invocation fails fast with a message naming the holder instead of
 /// interleaving read-modify-write cycles and corrupting the state file.
-let mutating: Set<String> = ["up", "down", "mode", "switch", "dns", "sanity", "repin"]
+let mutating: Set<String> = ["up", "down", "teardown", "mode", "switch", "dns", "sanity", "repin"]
 
 /// The lock for a mutating command, or nil for any other.
 ///
@@ -190,7 +195,7 @@ let args = Args(Array(raw.dropFirst()))
 // `dns status` and `report` are read-only; everything else mutates.
 let readOnly = (command == "report" || command == "detail"
                 || command == "profiles" || command == "status"
-                || command == "facts"
+                || command == "facts" || command == "version"
                 || (command == "dns" && (args.first ?? "status") == "status"))
 /// Held for the rest of the process lifetime when acquired.
 let routeLock = readOnly ? nil : acquireLockIfNeeded(command)
@@ -218,6 +223,36 @@ func dnsRoutes() -> [String] {
     }
     guard let routes = RouteManager.dnsRoutes(argument: raw) else { fail(problem, exit: 2) }
     return routes
+}
+
+/// `--tunnel-dns`: the resolvers Whole internet points the system at. 1 to 4
+/// IP addresses; anything else refuses the command before it runs.
+func tunnelDNS() -> [String] {
+    let problem = "--tunnel-dns needs 1 to \(TunnelScope.maxDNS) comma-separated IP addresses"
+    guard let raw = args.value("tunnel-dns") else {
+        if args.has("tunnel-dns") { fail(problem, exit: 2) }
+        return []
+    }
+    guard let servers = TunnelScope.dnsArgument(raw) else { fail(problem, exit: 2) }
+    return servers
+}
+
+/// Move the system resolver onto the tunnel in Whole internet, and give it
+/// back when any other mode settles. A DNS failure does not undo the routes;
+/// it is added to the result's notes so the user sees it.
+func withTunnelDNS(_ result: ActionResult, servers: [String]) -> ActionResult {
+    var result = result
+    let outcome: ActionResult?
+    switch TunnelScope.dnsStep(ok: result.ok, mode: result.mode,
+                               stateMode: RouteStateStore.load().mode, servers: servers) {
+    case .takeOver(let list): outcome = DNSManager().takeOverForTunnel(servers: list)
+    case .release: outcome = DNSManager().releaseFromTunnel()
+    case .none: outcome = nil
+    }
+    if let outcome, !outcome.ok {
+        result.notes.append("DNS: \(outcome.error ?? "could not be changed")")
+    }
+    return result
 }
 
 /// `--host-routes`: the /32s updates mode carries. Required in updates mode
@@ -255,13 +290,16 @@ case "up":
     var manager = RouteManager()
     manager.dnsRoutes = dnsRoutes()
     manager.hostRoutes = hostRoutes(for: mode)
+    let servers = tunnelDNS()
     // A previous run that did not finish is repaired before a new one starts:
     // otherwise its route set is merged with this one and neither `down` nor
     // the health check can tell which routes came from where.
     reconcileOrFail(manager)
-    let result = manager.up(mode: mode,
+    let dryRun = args.has("dry-run")
+    var result = manager.up(mode: mode,
                             revertAfter: args.int("revert-after"),
-                            dryRun: args.has("dry-run"))
+                            dryRun: dryRun)
+    if !dryRun { result = withTunnelDNS(result, servers: servers) }
     emit(result, exit: result.ok ? 0 : 1)
 
 case "down":
@@ -278,8 +316,21 @@ case "down":
         }
         ifGeneration = generation
     }
-    let result = RouteManager().down(ifGeneration: ifGeneration)
+    // A revert timer ends here too, so this is where a held resolver goes back.
+    let result = withTunnelDNS(RouteManager().down(ifGeneration: ifGeneration), servers: [])
     emit(result, exit: result.ok ? 0 : 1)
+
+case "teardown":
+    // For a deleted or orphaned server and for removal: unlike `down`, the
+    // interface goes too. Takes no arguments.
+    requireRoot()
+    guard args.positional.isEmpty else { fail("teardown takes no arguments", exit: 2) }
+    let result = withTunnelDNS(RouteManager().teardown(), servers: [])
+    emit(result, exit: result.ok ? 0 : 1)
+
+case "version":
+    // Read by the app as the user, to offer an update of an older helper.
+    emit(HelperVersion.Reply(version: HelperVersion.current))
 
 case "mode":
     requireRoot()
@@ -292,17 +343,21 @@ case "mode":
     var manager = RouteManager()
     manager.dnsRoutes = dnsRoutes()
     manager.hostRoutes = hostRoutes(for: mode)
+    let servers = tunnelDNS()
     reconcileOrFail(manager)
-    let result = manager.changeMode(to: mode,
-                                    dryRun: args.has("dry-run"))
+    let dryRun = args.has("dry-run")
+    var result = manager.changeMode(to: mode, dryRun: dryRun)
+    if !dryRun { result = withTunnelDNS(result, servers: servers) }
     emit(result, exit: result.ok ? 0 : 1)
 
 case "switch":
     requireRoot()
     guard let name = args.first else { fail("switch needs a profile name", exit: 2) }
     let routes = dnsRoutes()
+    let servers = tunnelDNS()
     reconcileOrFail(RouteManager())
-    let result = WireGuardProfiles.switchTo(name: name, dnsRoutes: routes)
+    let result = withTunnelDNS(WireGuardProfiles.switchTo(name: name, dnsRoutes: routes),
+                               servers: servers)
     emit(result, exit: result.ok ? 0 : 1)
 
 case "dns":
@@ -312,6 +367,8 @@ case "dns":
     case "status", "test":
         emit(DNSManager().report())
     case "auto":
+        // The user's own choice replaces a resolver Whole internet was holding.
+        DNSManager().forgetTunnelTakeover()
         emit(DNSManager().restoreAutomatic())
     case "set":
         guard let target = args.second else {
@@ -322,6 +379,7 @@ case "dns":
         if let problem = DNSManager.targetProblem(target) {
             fail(problem, exit: 2)
         }
+        DNSManager().forgetTunnelTakeover()
         emit(DNSManager().apply(target: target))
     default:
         fail("unknown dns action '\(action)'", exit: 2)
@@ -344,7 +402,8 @@ case "profiles":
 
 case "sanity":
     requireRoot()
-    let result = RouteManager().sanity()
+    // Off after a dead tunnel: a resolver still held for it is given back.
+    let result = withTunnelDNS(RouteManager().sanity(), servers: [])
     emit(result, exit: result.ok ? 0 : 1)
 
 case "repin":

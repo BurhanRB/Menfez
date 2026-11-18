@@ -430,6 +430,44 @@ public struct DNSManager {
         return ActionResult(ok: true, servers: active.flatMap { targets[$0] } ?? [], notes: notes)
     }
 
+    // MARK: - Whole internet
+
+    /// Point the system at the tunnel's resolvers, remembering what Menfez had
+    /// applied before so `releaseFromTunnel` can put it back. The marker is
+    /// saved before the write, so a crash in between still leaves a way back.
+    @discardableResult
+    public func takeOverForTunnel(servers: [String]) -> ActionResult {
+        let (state, corrupt) = DNSStateStore.loadChecked(path: statePath, legacy: legacyStatePath)
+        if corrupt { return apply(target: servers.joined(separator: ",")) }
+        if state.tunnelBefore == nil {
+            var marked = state
+            marked.tunnelBefore = state.applied
+            guard DNSStateStore.save(marked, path: statePath, legacy: legacyStatePath) else {
+                return .failure("could not save the current DNS before changing it; nothing was changed")
+            }
+        }
+        return apply(target: servers.joined(separator: ","))
+    }
+
+    /// Undo `takeOverForTunnel`: re-apply the user's earlier choice, or go back
+    /// to the original resolver. Nil when the tunnel never took it over.
+    @discardableResult
+    public func releaseFromTunnel() -> ActionResult? {
+        guard let before = DNSStateStore.loadChecked(path: statePath, legacy: legacyStatePath).state.tunnelBefore
+        else { return nil }
+        let result = before.isEmpty ? restoreAutomatic() : apply(target: before.joined(separator: ","))
+        if result.ok { forgetTunnelTakeover() }
+        return result
+    }
+
+    /// The user picked a resolver themselves: theirs wins, nothing to undo later.
+    public func forgetTunnelTakeover() {
+        var (state, corrupt) = DNSStateStore.loadChecked(path: statePath, legacy: legacyStatePath)
+        guard !corrupt, state.tunnelBefore != nil else { return }
+        state.tunnelBefore = nil
+        DNSStateStore.save(state, path: statePath, legacy: legacyStatePath)
+    }
+
     /// Preset id first, then literal addresses.
     ///
     /// Every literal must parse as an IP address. The old filter was a
@@ -513,7 +551,8 @@ public enum DNSStateStore {
             // `restoreAutomatic` must not do.
             return (DNSState(), true)
         }
-        return (DNSState(previous: stored.previous ?? [:], applied: stored.applied ?? []), false)
+        return (DNSState(previous: stored.previous ?? [:], applied: stored.applied ?? [],
+                         tunnelBefore: stored.tunnelBefore), false)
     }
 
     /// Write the state; once it is safely at `path`, drop the `legacy` copy.
@@ -533,6 +572,7 @@ public enum DNSStateStore {
     private struct Stored: Decodable {
         var previous: [String: [String]]?
         var applied: [String]?
+        var tunnelBefore: [String]?
     }
 }
 

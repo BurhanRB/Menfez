@@ -250,13 +250,22 @@ public struct Profile: Codable, Equatable, Sendable, Identifiable {
     public var display: String?
     public var active: Bool
     public var error: String?
+    /// The server's `[Peer] PublicKey` (public, not key material). What ties a
+    /// running tunnel to this file: it survives a rename and changes when the
+    /// config is replaced, which an endpoint string does not.
+    public var peerKey: String?
+    /// The config's `DNS =` addresses (IPv4 only), used by Whole internet.
+    public var dns: [String]?
 
     public var id: String { name }
 
     public init(name: String, file: String, endpoint: String? = nil,
                 host: String? = nil, country: String? = nil,
                 display: String? = nil,
-                active: Bool = false, error: String? = nil) {
+                active: Bool = false, error: String? = nil,
+                peerKey: String? = nil, dns: [String]? = nil) {
+        self.peerKey = peerKey
+        self.dns = dns
         self.name = name
         self.file = file
         self.endpoint = endpoint
@@ -492,10 +501,16 @@ public struct RouteState: Codable, Sendable {
 public struct DNSState: Codable, Sendable {
     public var previous: [String: [String]]
     public var applied: [String]
+    /// What Menfez had applied before "Whole internet" took the resolver over
+    /// ([] = nothing of ours), so leaving that scope puts it back. Nil when the
+    /// tunnel does not hold the resolver.
+    public var tunnelBefore: [String]?
 
-    public init(previous: [String: [String]] = [:], applied: [String] = []) {
+    public init(previous: [String: [String]] = [:], applied: [String] = [],
+                tunnelBefore: [String]? = nil) {
         self.previous = previous
         self.applied = applied
+        self.tunnelBefore = tunnelBefore
     }
 }
 

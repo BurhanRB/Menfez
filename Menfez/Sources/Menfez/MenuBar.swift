@@ -48,6 +48,15 @@ struct MenuBarContent: View {
                 get: { m.runMode == mode },
                 set: { on in if on { m.setMode(MenuBarModes.path(mode)) } }))
                 .disabled(m.busy || (mode == .tunnel && !m.capabilities.tunnelAvailable))
+            // Under Tunnel: what it carries.
+            if mode == .tunnel && m.capabilities.tunnelAvailable {
+                ForEach([Mode.discord, Mode.all], id: \.self) { scope in
+                    Toggle("    " + m.l.t("m_" + scope.rawValue), isOn: Binding(
+                        get: { m.tunnelScope == scope },
+                        set: { on in if on { m.setTunnelScope(scope) } }))
+                        .disabled(m.busy)
+                }
+            }
         }
         if !m.capabilities.tunnelAvailable && m.canRunTunnelInstaller {
             Button(m.l.t("tunnel_install")) { m.runTunnelInstaller(.install) }
@@ -97,6 +106,18 @@ struct MenuBarContent: View {
             NSApp.activate(ignoringOtherApps: true)
             openWindow(id: Self.mainWindowID)
         }
+        // "Remove tunnel" lives in Settings; a menu-bar app has no app menu
+        // to find Cmd-, in. macOS 14 ignores `showSettingsWindow:`.
+        if #available(macOS 14, *) {
+            SettingsLink { Text(m.l.t("menu_settings")) }
+                .keyboardShortcut(",")
+        } else {
+            Button(m.l.t("menu_settings")) {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
+            .keyboardShortcut(",")
+        }
 
         Divider()
 
@@ -118,6 +139,20 @@ struct SettingsView: View {
                 .disabled(!m.canLaunchAtLogin)
             if let hint = m.launchAtLoginHint {
                 Text(hint)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if m.capabilities.tunnelAvailable {
+                Picker(m.l.t("scope_label"), selection: Binding(
+                    get: { m.tunnelScope },
+                    set: { m.setTunnelScope($0) })) {
+                    Text(m.l.t("m_discord")).tag(Mode.discord)
+                    Text(m.l.t("m_all")).tag(Mode.all)
+                }
+                .pickerStyle(.radioGroup)
+                .disabled(m.busy)
+                Text(m.l.t("scope_" + m.tunnelScope.rawValue + "_hint"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

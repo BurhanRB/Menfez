@@ -19,6 +19,23 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.2",
+            date: "2026-11-18",
+            tr: [
+                "Silinen bir sunucunun tüneli artık açık kalmıyor. Menfez böyle bir tüneli kendisi kapatır ve haber verir.",
+                "Sunucunun adını ya da dosyasını değiştirince tünel doğru sunucuyu gösteriyor.",
+                "Tüneli kaldır düğmesi Yardım'da da var. Menü çubuğuna Ayarlar eklendi.",
+                "Tünelde Sadece Discord ya da Tüm internet seçilebilir. Tüm internet'te Safari ve diğer uygulamalar da sunucunun IP'siyle çıkar, DNS de tünelden gider.",
+                "Silinen sunucunun boşta kalan tüneli de tamamen kapanıyor. Tünel bileşeni eskiyse Menfez Güncelle düğmesi gösterir.",
+            ],
+            en: [
+                "A deleted server's tunnel no longer stays on. Menfez closes such a tunnel itself and tells you.",
+                "After you rename or replace a server, the tunnel shows the right server.",
+                "Remove tunnel is now in Help too, and the menu bar has Settings.",
+                "Tunnel can carry Discord only or the whole internet. With Whole internet, Safari and every other app go out with the server's IP, and DNS goes through the tunnel too.",
+                "A deleted server's idle tunnel now shuts down completely. If the tunnel component is out of date, Menfez shows an Update button.",
+            ]),
+        ChangelogEntry(
             version: "1.0.1",
             date: "2026-11-17",
             tr: [

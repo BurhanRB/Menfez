@@ -112,11 +112,49 @@ public enum TunnelRecovery {
 
     /// Pure decision. `available` is the profile names on disk now, so a
     /// remembered profile the user has since deleted is not retried.
+    /// `stale` means the running tunnel's server is gone from disk
+    /// (`isOrphan`): `up` would re-route through it, so it is treated like a
+    /// missing config and rebuilt from a profile that still exists.
     public static func plan(code: String?, lastProfile: String?,
-                            available: [String]) -> Plan {
-        guard code == ActionResult.configMissing else { return .none }
+                            available: [String], stale: Bool = false) -> Plan {
+        guard code == ActionResult.configMissing || stale else { return .none }
         guard let name = lastProfile, available.contains(name) else { return .chooseServer }
         return .switchTo(name)
+    }
+
+    /// A WireGuard interface Menfez brought up whose server is no longer in
+    /// the profile folder.
+    ///
+    /// Only our own interface counts: the route state names it, so another
+    /// client's utun is never judged. With no profile left at all nothing can
+    /// back it. Otherwise the live peer key decides; when it is unknown the
+    /// answer is "not orphaned", because a wrong yes tears down a working
+    /// tunnel. Matching by key keeps a renamed file attached to its tunnel.
+    public static func isOrphan(liveIface: String?, stateIface: String?,
+                                livePeerKey: String?, profiles: [Profile]) -> Bool {
+        guard let liveIface, liveIface == stateIface else { return false }
+        if profiles.isEmpty { return true }
+        guard let key = livePeerKey, !key.isEmpty else { return false }
+        return !profiles.contains { $0.peerKey == key }
+    }
+
+    /// After deleting a profile: stop our interface when it may belong to that
+    /// server (the active or last-used one) or when no server is left at all.
+    /// Deleting some other server leaves the tunnel alone.
+    public static func shouldTearDown(deletedActive: Bool, deletedLastUsed: Bool,
+                                      noProfilesLeft: Bool) -> Bool {
+        deletedActive || deletedLastUsed || noProfilesLeft
+    }
+
+    /// Release an orphan only while it moves our traffic (Tunnel mode or the
+    /// hybrid updates tunnel). An idle one carries nothing; starting through
+    /// it is refused by `HelperTunnel` instead.
+    public static func shouldRelease(liveIface: String?, state: RouteState,
+                                     livePeerKey: String?, profiles: [Profile]) -> Bool {
+        let carrying = state.mode != Mode.off.rawValue
+            && (!state.routes.isEmpty || !state.hosts.isEmpty)
+        return carrying && isOrphan(liveIface: liveIface, stateIface: state.iface,
+                                    livePeerKey: livePeerKey, profiles: profiles)
     }
 
     /// The tunnel only fetches Discord's updates beside DPI mode. That is an
@@ -247,6 +285,8 @@ public final class HelperTunnel: TunnelControl, @unchecked Sendable {
     private let lastProfile: @Sendable () -> String?
     private let profileNames: @Sendable () -> [String]
     private let dnsRouteArgs: @Sendable () -> [String]
+    private let profileList: @Sendable () -> [Profile]
+    private let livePeerKey: @Sendable () -> String?
 
     /// `interfaces` and `routeState` are injected for the same reason every other
     /// tunnel probe is: a test must be able to answer "is a tunnel up" and "is it
@@ -266,13 +306,32 @@ public final class HelperTunnel: TunnelControl, @unchecked Sendable {
                 profileNames: @escaping @Sendable () -> [String] = {
                     WireGuardProfiles.list(liveHost: nil).map(\.name)
                 },
-                dnsRouteArgs: @escaping @Sendable () -> [String] = { [] }) {
+                dnsRouteArgs: @escaping @Sendable () -> [String] = { [] },
+                profileList: @escaping @Sendable () -> [Profile] = {
+                    WireGuardProfiles.list(liveHost: nil)
+                },
+                livePeerKey: (@Sendable () -> String?)? = nil) {
         self.client = client
         self.interfaces = interfaces
         self.routeState = routeState
         self.lastProfile = lastProfile
         self.profileNames = profileNames
         self.dnsRouteArgs = dnsRouteArgs
+        self.profileList = profileList
+        // `wg show peers` needs root: one `facts` call, only when our own
+        // interface is up at a start.
+        self.livePeerKey = livePeerKey ?? { client.facts()?.peerPubkey }
+    }
+
+    /// Our interface is up but its server was deleted, renamed away or
+    /// replaced. `up` reuses a live interface as it is, so starting through
+    /// it would revive a server the user removed.
+    func runsOrphan() -> Bool {
+        guard let iface = interfaces().first, iface == routeState().iface else { return false }
+        let profiles = profileList()
+        return TunnelRecovery.isOrphan(liveIface: iface, stateIface: iface,
+                                       livePeerKey: profiles.isEmpty ? nil : livePeerKey(),
+                                       profiles: profiles)
     }
 
     public func isTunnelUp() -> Bool {
@@ -319,7 +378,10 @@ public final class HelperTunnel: TunnelControl, @unchecked Sendable {
         // helper's own sentence ("cannot pin the endpoint") rather than an exit
         // code. A non-JSON reply means sudo never ran, and `act` surfaces the
         // tail of sudo's message for that case.
-        let result = client.act(["up", "--mode", mode.rawValue] + dns + extra)
+        let stale = runsOrphan()
+        let result = stale
+            ? ActionResult.failure("the running tunnel's server is no longer in your list; choose a server")
+            : client.act(["up", "--mode", mode.rawValue] + dns + extra)
         if result.ok {
             let note = result.notes.first
             var outcome = TunnelOutcome(ok: true,
@@ -330,8 +392,9 @@ public final class HelperTunnel: TunnelControl, @unchecked Sendable {
         let failed = TunnelOutcome(ok: false,
                                    message: result.error ?? "the helper refused to bring the tunnel up")
         // Only read the profile list when the code says it is needed.
-        let names = result.code == ActionResult.configMissing ? profileNames() : []
-        switch TunnelRecovery.plan(code: result.code, lastProfile: lastProfile(), available: names) {
+        let names = result.code == ActionResult.configMissing || stale ? profileNames() : []
+        switch TunnelRecovery.plan(code: result.code, lastProfile: lastProfile(),
+                                   available: names, stale: stale) {
         case .none:
             return failed
         case .chooseServer:
@@ -460,6 +523,28 @@ public final class ModeCoordinator {
         } else {
             mode = .direct
         }
+    }
+
+    /// Take down a tunnel whose server is gone (see `TunnelRecovery.isOrphan`)
+    /// or is about to be deleted. Tunnel mode becomes Direct; beside DPI only
+    /// the updates tunnel goes and the proxy keeps running. Queued like a
+    /// switch. `ok` is false when a tunnel still carries our traffic.
+    @discardableResult
+    public func releaseTunnel() async -> ModeState {
+        let previous = lastSwitch
+        let current = Task { @MainActor () -> ModeState in
+            _ = await previous?.value
+            if self.mode == .tunnel {
+                return await self.performSwitch(.direct, tunnelMode: .discord)
+            }
+            if self.tunnel.isCarryingTraffic() {
+                let stopped = await self.offMain { [tunnel] in tunnel.stop() }
+                return self.finish(mode: self.mode, ok: stopped.ok, message: stopped.message, [])
+            }
+            return self.finish(mode: self.mode, ok: true, message: "", [])
+        }
+        lastSwitch = current
+        return await current.value
     }
 
     // MARK: - Switching

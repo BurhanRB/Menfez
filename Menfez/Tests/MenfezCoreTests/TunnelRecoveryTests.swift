@@ -79,7 +79,7 @@ final class TunnelRecoveryTests: XCTestCase {
         let script = Script(["up": missingJSON,
                              "switch": #"{"ok":true,"mode":"discord"}"#,
                              "mode": #"{"ok":true,"mode":"all"}"#])
-        let tunnel = HelperTunnel(client: script.client(), lastProfile: { "nl-1" },
+        let tunnel = HelperTunnel(client: script.client(), interfaces: { [] }, lastProfile: { "nl-1" },
                                   profileNames: { ["nl-1"] })
         let outcome = tunnel.start(mode: .all)
         XCTAssertTrue(outcome.ok)
@@ -90,7 +90,7 @@ final class TunnelRecoveryTests: XCTestCase {
     func testFailedSwitchIsReportedNotRetried() {
         let script = Script(["up": missingJSON,
                              "switch": #"{"ok":false,"error":"tunnel did not come up"}"#])
-        let tunnel = HelperTunnel(client: script.client(), lastProfile: { "nl-1" },
+        let tunnel = HelperTunnel(client: script.client(), interfaces: { [] }, lastProfile: { "nl-1" },
                                   profileNames: { ["nl-1"] })
         let outcome = tunnel.start(mode: .discord)
         XCTAssertFalse(outcome.ok)
@@ -100,7 +100,7 @@ final class TunnelRecoveryTests: XCTestCase {
 
     func testNoLastProfileAsksForAServer() {
         let script = Script(["up": missingJSON])
-        let tunnel = HelperTunnel(client: script.client(), lastProfile: { nil },
+        let tunnel = HelperTunnel(client: script.client(), interfaces: { [] }, lastProfile: { nil },
                                   profileNames: { ["nl-1"] })
         let outcome = tunnel.start(mode: .discord)
         XCTAssertFalse(outcome.ok)

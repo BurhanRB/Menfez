@@ -273,6 +273,10 @@ public struct RouteManager {
     var addNet: (String, String) -> Mutation = { RouteManager.addRoute($0, iface: $1) }
     var addHost: (String, String) -> Mutation = { RouteManager.addHostRoute($0, gateway: $1) }
 
+    /// Stops the interface wg-quick started from the managed config. A hook so
+    /// `teardown` can be tested without a tunnel.
+    var stopTunnel: (String) -> Bool = { WireGuardProfiles.stopManagedTunnel(config: $0) }
+
     /// Tunnel-probe hooks.
     ///
     /// `up` cannot be exercised on a test machine because there is no tunnel to
@@ -1399,6 +1403,34 @@ public struct RouteManager {
         note("removed \(removed.count)/\(nets.count) route(s); \(failed.count) still installed")
         return .failure("could not remove \(failed.count) route(s) and \(hostsLeft.count) host rule(s); they are kept in the state file for the next attempt",
                         notes: journal.lines)
+    }
+
+    // MARK: - teardown
+
+    /// `down`, then stop Menfez's own WireGuard interface and delete the
+    /// managed config (a copy of the profile, private key included).
+    ///
+    /// For when the server behind the tunnel is gone: its profile was deleted,
+    /// the tunnel is an orphan, or the helper is being removed. `down` keeps
+    /// the interface on purpose (a mode switch re-routes at once, with no new
+    /// handshake), which left a deleted server's idle utun up forever.
+    ///
+    /// Only the managed interface is touched: `wg-quick down` is given the
+    /// managed config, so another WireGuard client's utun is never stopped.
+    @discardableResult
+    public func teardown() -> ActionResult {
+        let routes = down()
+        guard routes.ok else { return routes }
+        let stopped = stopTunnel(managedConfigPath)
+        var state = loadState()
+        if let ours = state.iface, probeInterfaces().contains(ours) {
+            return .failure("could not stop the tunnel interface \(ours)", notes: journal.lines)
+        }
+        unlink(managedConfigPath)
+        state.iface = nil
+        saveState(state)
+        note(stopped ? "tunnel interface stopped" : "no tunnel interface was running")
+        return ActionResult(ok: true, mode: Mode.off.rawValue, notes: journal.lines)
     }
 
     /// `down` with an unreadable state file.

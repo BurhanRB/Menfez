@@ -59,7 +59,10 @@ fi
 if [ "${1:-}" = "--remove" ]; then
     [ "$(id -u)" -eq 0 ] || die "run this with sudo"
     if [ -x "$DEST/menfez-route" ] && [ "$(stat -f %u "$DEST/menfez-route")" = 0 ]; then
-        "$DEST/menfez-route" down >/dev/null 2>&1 || echo "warning: could not take the tunnel down" >&2
+        # `teardown` also stops the interface; a helper older than it only knows `down`.
+        "$DEST/menfez-route" teardown >/dev/null 2>&1 \
+            || "$DEST/menfez-route" down >/dev/null 2>&1 \
+            || echo "warning: could not take the tunnel down" >&2
         # Only with a record: without one Menfez never changed DNS.
         if [ -f "/Library/Application Support/Menfez/dns-state.json" ] \
             || [ -f /var/run/menfez/dns-state.json ]; then

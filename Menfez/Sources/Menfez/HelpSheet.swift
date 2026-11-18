@@ -34,6 +34,12 @@ struct HelpSheet: View {
     var installRunning = false
     var installMessage: String?
     var onInstall: (() -> Void)?
+    /// The helper is installed: the row says so and offers removal instead.
+    /// Settings has the same button, but Help is where users look for it.
+    var installed = false
+    var onRemove: (() -> Void)?
+    /// Why removal is not possible now (Tunnel mode is on), or nil.
+    var removeBlockedReason: String?
 
     var onImport: () -> Void = {}
 
@@ -136,12 +142,17 @@ struct HelpSheet: View {
                     .foregroundStyle(Palette.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                if let onInstall {
+                if let action = installed ? onRemove : onInstall {
                     HStack(spacing: 7) {
-                        Button(action: onInstall) {
+                        if installed {
+                            Label(l.t("tunnel_installed"), systemImage: "checkmark.circle.fill")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Palette.success)
+                        }
+                        Button(action: action) {
                             HStack(spacing: 5) {
                                 if installRunning { ProgressView().controlSize(.mini) }
-                                Text(l.t("tunnel_install"))
+                                Text(l.t(installed ? "tunnel_remove" : "tunnel_install"))
                             }
                             .font(.system(size: 11, weight: .medium))
                             .padding(.horizontal, 9).padding(.vertical, 4)
@@ -150,9 +161,9 @@ struct HelpSheet: View {
                         .buttonStyle(.plain)
                         .modifier(Chip())
                         .foregroundStyle(Palette.accent)
-                        .disabled(installRunning)
-                        if let installMessage {
-                            Text(installMessage)
+                        .disabled(installRunning || (installed && removeBlockedReason != nil))
+                        if let note = installed ? removeBlockedReason ?? installMessage : installMessage {
+                            Text(note)
                                 .font(.system(size: 10.5))
                                 .foregroundStyle(Palette.secondary)
                                 .fixedSize(horizontal: false, vertical: true)

@@ -39,7 +39,12 @@ struct L {
             "app": "Menfez",
             "tagline": "Engelli ağda Discord'a bağlanmak için",
             "m_discord": "Sadece Discord",
-            "m_all": "Tüm trafik",
+            "m_all": "Tüm internet",
+            "scope_label": "Tünelden geçen",
+            "helper_outdated": "Tünel bileşeni bu sürümden eski. Yeni özellikler için güncelle.",
+            "helper_update": "Güncelle",
+            "scope_discord_hint": "Diğer uygulamalar normal internetini kullanır.",
+            "scope_all_hint": "Safari ve tüm uygulamalar sunucunun IP'siyle çıkar.",
             "m_dpi": "DPI",
             "m_off": "Kapalı",
             "m_updates": "Discord güncellemeleri",
@@ -66,6 +71,8 @@ struct L {
             "tunnel_setup": "Kur",
             "tunnel_install": "Tüneli kur",
             "tunnel_remove": "Tüneli kaldır",
+            "tunnel_installed": "Kurulu",
+            "menu_settings": "Ayarlar…",
             "tunnel_install_running": "Kuruluyor. macOS yönetici şifreni soracak.",
             "tunnel_remove_running": "Kaldırılıyor. macOS yönetici şifreni soracak.",
             "tunnel_install_done": "Tünel kuruldu. Tünel modunu seçebilirsin.",
@@ -142,6 +149,8 @@ struct L {
             "srv_delete_body": "Bu sunucunun ayar dosyası Çöp Sepeti'ne taşınır. Tünel şu an bu sunucuyu kullanıyorsa önce Doğrudan moda geçilir.",
             "srv_deleted": "Silindi: {name}",
             "srv_delete_failed": "Silinemedi: {name}",
+            "tunnel_orphan_closed": "Sunucu silindiği için tünel kapatıldı",
+            "srv_not_in_list": "listede yok",
             "srv_renamed": "Yeni adı: {name}",
             "srv_bad_name": "Bu ad olmaz. Harf, rakam, boşluk, - ya da _ kullan (en çok 64).",
             "srv_name_taken": "Bu adda bir sunucu zaten var.",
@@ -281,7 +290,12 @@ struct L {
             "app": "Menfez",
             "tagline": "Discord on blocked networks",
             "m_discord": "Discord only",
-            "m_all": "All traffic",
+            "m_all": "Whole internet",
+            "scope_label": "Through the tunnel",
+            "helper_outdated": "The tunnel component is older than this app. Update it to get the new features.",
+            "helper_update": "Update",
+            "scope_discord_hint": "Other apps use your normal internet.",
+            "scope_all_hint": "Safari and every app go out with the server's IP.",
             "m_dpi": "DPI",
             "m_off": "Off",
             "m_updates": "Discord updates",
@@ -308,6 +322,8 @@ struct L {
             "tunnel_setup": "Set up",
             "tunnel_install": "Set up tunnel",
             "tunnel_remove": "Remove tunnel",
+            "tunnel_installed": "Installed",
+            "menu_settings": "Settings…",
             "tunnel_install_running": "Setting up. macOS will ask for your administrator password.",
             "tunnel_remove_running": "Removing. macOS will ask for your administrator password.",
             "tunnel_install_done": "Tunnel set up. You can pick Tunnel mode now.",
@@ -384,6 +400,8 @@ struct L {
             "srv_delete_body": "This server's config file is moved to the Trash. If the tunnel is using it, the app switches to Direct first.",
             "srv_deleted": "Deleted: {name}",
             "srv_delete_failed": "Couldn't delete {name}",
+            "tunnel_orphan_closed": "Tunnel closed because its server was removed",
+            "srv_not_in_list": "not in your list",
             "srv_renamed": "Renamed to {name}",
             "srv_bad_name": "That name won't work. Use letters, digits, spaces, - or _ (up to 64).",
             "srv_name_taken": "A server with that name already exists.",
@@ -726,8 +744,9 @@ final class Backend: @unchecked Sendable {
     /// `liveHost` is passed in by the caller when it has one from `facts()`;
     /// without it no row is marked active, which the picker renders as "none
     /// highlighted" rather than a wrong highlight.
-    func profiles(liveHost: String?) -> [Profile] {
+    func profiles(liveHost: String?, livePeerKey: String? = nil) -> [Profile] {
         WireGuardProfiles.list(liveHost: liveHost,
+                               livePeerKey: livePeerKey,
                                resolveLiveHost: false,
                                using: localRunner())
     }
@@ -956,10 +975,17 @@ final class Model: ObservableObject {
     }
 
     /// `--dns-routes` for the helper: the system's public resolvers, when the
-    /// "route DNS through tunnel" setting is on.
-    nonisolated static func dnsRouteArgs() -> [String] {
-        RouteManager.dnsRouteArgs(enabled: DNSManager.routesDNSThroughTunnel(),
-                                  resolvers: DNSManager.systemResolvers())
+    /// "route DNS through tunnel" setting is on. Plus `--tunnel-dns`, which the
+    /// helper uses only in Whole internet: `profile`'s own `DNS =` line (the
+    /// last-used profile by default), else the public resolver picked in the
+    /// DNS sheet.
+    nonisolated static func dnsRouteArgs(profile: String? = nil) -> [String] {
+        let name = profile ?? UserDefaults.standard.string(forKey: lastProfileKey)
+        let own = name.flatMap { n in WireGuardProfiles.list(liveHost: nil).first { $0.name == n }?.dns }
+        let servers = TunnelScope.tunnelDNS(profileDNS: own, fallback: DoHProvider.current().addresses)
+        return RouteManager.dnsRouteArgs(enabled: DNSManager.routesDNSThroughTunnel(),
+                                         resolvers: DNSManager.systemResolvers())
+            + ["--tunnel-dns", servers.joined(separator: ",")]
     }
 
     /// UserDefaults key: the profile last seen carrying the tunnel.
@@ -1165,6 +1191,11 @@ final class Model: ObservableObject {
                 canManageTunnel: found.tunnelAvailable)
             self.refreshDPIStatus()
             if found.tunnelAvailable {
+                let installed = await Task.detached(priority: .utility) {
+                    HelperVersion.installed(helper: helper)
+                }.value
+                self.helperOutdated = HelperVersion.needsUpdate(installed: installed)
+                    && self.canRunTunnelInstaller
                 self.coordinator.updateRoutes = { Model.updateRoutes() }
                 // Removes an updates tunnel a quit app left behind.
                 await self.coordinator.syncUpdateTunnel()
@@ -1174,6 +1205,10 @@ final class Model: ObservableObject {
 
     /// The "Set up tunnel" / "Remove tunnel" buttons.
     @Published var tunnelInstall: TunnelInstallState = .idle
+
+    /// The installed helper is older than the one in this bundle. "Update"
+    /// runs the same installer as "Set up tunnel".
+    @Published var helperOutdated = false
 
     /// The bundled helper the installer copies. A var only so a snapshot can
     /// draw the buttons outside a bundle.
@@ -1542,7 +1577,69 @@ final class Model: ObservableObject {
                 // here is a directory read; no privileged call.
                 self.loadProfiles()
             }
+            self.checkOrphanTunnel(fresh)
         }
+    }
+
+    private var orphanCheckInFlight = false
+
+    /// At launch and on every facts refresh: a tunnel moving our traffic
+    /// through a server that is no longer in the list (deleted, replaced or
+    /// edited elsewhere) is taken down. See `TunnelRecovery.shouldRelease`.
+    /// An idle orphan (no routes) is not released, only stopped: `teardown`
+    /// takes its interface down, once per interface name.
+    private func checkOrphanTunnel(_ f: RouteManager.TunnelFacts) {
+        guard capabilities.tunnelAvailable, !busy, !orphanCheckInFlight,
+              let iface = f.tunnel, iface != orphanTeardownTried else { return }
+        orphanCheckInFlight = true
+        Task {
+            // A fresh listing: `profiles` is empty until the first load lands.
+            let (release, orphan) = await Task.detached(priority: .utility) {
+                let state = RouteStateStore.load()
+                let profiles = WireGuardProfiles.list(liveHost: nil)
+                return (TunnelRecovery.shouldRelease(liveIface: f.tunnel, state: state,
+                                                     livePeerKey: f.peerPubkey, profiles: profiles),
+                        TunnelRecovery.isOrphan(liveIface: f.tunnel, stateIface: state.iface,
+                                                livePeerKey: f.peerPubkey, profiles: profiles))
+            }.value
+            defer { self.orphanCheckInFlight = false }
+            guard orphan, !self.busy else { return }
+            if release {
+                Model.trace("orphan tunnel: its server is not in the profile folder; releasing")
+                guard await self.releaseTunnel() else { return self.refresh(announce: false) }
+                self.status = self.l.t("tunnel_orphan_closed")
+                self.statusColor = Palette.warning
+            }
+            self.orphanTeardownTried = iface
+            await self.teardownTunnel()
+            self.refresh(announce: false)
+        }
+    }
+
+    /// The interface the last orphan teardown was for, so a failing one is not
+    /// retried on every facts refresh.
+    private var orphanTeardownTried: String?
+
+    /// Stop our WireGuard interface and drop its config: its server is gone.
+    /// An older helper does not know `teardown`; that is what "Update" is for.
+    private func teardownTunnel() async {
+        let backend = self.backend
+        let result = await Task.detached(priority: .utility) {
+            backend.act(["teardown"])
+        }.value
+        Model.trace("teardown: \(result?.ok == true ? "ok" : (result?.error ?? "no reply"))")
+    }
+
+    /// Take the tunnel off our traffic before its server goes away: Tunnel
+    /// mode becomes Direct, beside DPI only the updates tunnel stops. True
+    /// when nothing carries our traffic any more.
+    private func releaseTunnel() async -> Bool {
+        beginPathChange()
+        busy = true
+        let state = await coordinator.releaseTunnel()
+        busy = false
+        apply(state)
+        return state.ok
     }
 
     /// Fold the cached privileged facts into a locally built report.
@@ -1656,9 +1753,12 @@ final class Model: ObservableObject {
         let generation = profilesGeneration
         let backend = self.backend
         let liveHost = report?.endpoint.flatMap(hostPart)
+        // The peer key ties a row to the live tunnel through a rename and a
+        // hostname endpoint; only from facts about the interface on screen.
+        let liveKey = facts.flatMap { $0.tunnel != nil && $0.tunnel == report?.tunnel ? $0.peerPubkey : nil }
         Task {
             let list = await Task.detached(priority: .userInitiated) {
-                backend.profiles(liveHost: liveHost)
+                backend.profiles(liveHost: liveHost, livePeerKey: liveKey)
             }.value
             guard generation == self.profilesGeneration else { return }
             // Remembered for the post-reboot auto-reconnect (see TunnelRecovery).
@@ -1762,13 +1862,34 @@ final class Model: ObservableObject {
         }
     }
 
+    /// What Tunnel mode carries: Discord only or the whole internet. Saved.
+    @Published var tunnelScope: Mode = TunnelScope.current()
+
+    /// Pick the scope. With the tunnel up in the other scope, its routes (and
+    /// for Whole internet the resolver) are swapped by `mode`, without
+    /// restarting WireGuard. A failed swap puts the old choice back.
+    func setTunnelScope(_ scope: Mode) {
+        guard !busy, scope != tunnelScope else { return }
+        let previous = tunnelScope
+        TunnelScope.save(scope)
+        tunnelScope = scope
+        guard TunnelScope.needsReroute(inTunnel: runMode == .tunnel, routeMode: mode, to: scope) else { return }
+        let name = l.t("m_" + scope.rawValue)
+        perform(l.t("switching", ["what": name]), ["mode", scope.rawValue] + Model.dnsRouteArgs(),
+                l.t("mode_set", ["what": name])) { ok in
+            guard !ok else { return }
+            TunnelScope.save(previous)
+            self.tunnelScope = previous
+        }
+    }
+
     /// Pick a mode from the bar: proxy, tunnel, or nothing.
     ///
     /// One entry point for all three so the ordering rule lives in one place
     /// (`ModeCoordinator`) instead of being re-derived here per button. The
     /// tunnel's own `Mode` (`discord`/`all`) is passed separately because it is
     /// a property of the tunnel, not of "which interception is live".
-    func setMode(_ path: String, tunnelMode: Mode = .discord) {
+    func setMode(_ path: String, tunnelMode: Mode? = nil) {
         guard !busy else { return }
         switch path {
         case "dpi":
@@ -1784,7 +1905,7 @@ final class Model: ObservableObject {
                 statusColor = Palette.warning
                 return
             }
-            let mode: Mode = path == "all" ? .all : tunnelMode
+            let mode: Mode = path == "all" ? .all : (tunnelMode ?? tunnelScope)
             beginPathChange()
             busy = true
             let message = l.t("switching", ["what": l.t("m_" + mode.rawValue)])
@@ -2065,6 +2186,14 @@ final class Model: ObservableObject {
                 self.status = self.l.t("srv_replaced", ["name": p.name])
                 self.statusColor = Palette.success
                 self.loadProfiles()
+                // The live tunnel still runs the old copy: re-point it.
+                guard p.active else { return }
+                if self.runMode == .tunnel {
+                    self.switchServer(p.name)
+                } else if self.tunnelCarriesTraffic, await self.releaseTunnel() {
+                    await self.coordinator.syncUpdateTunnel()
+                    self.refresh(announce: false)
+                }
             case .failure(let error):
                 self.status = self.l.t("failed", ["what": error.message])
                 self.statusColor = Palette.danger
@@ -2078,17 +2207,22 @@ final class Model: ObservableObject {
         guard !busy else { return }
         Task {
             // A live tunnel whose server could not be matched may be this one.
-            if p.active || (runMode == .tunnel && activeProfile == nil) {
-                beginPathChange()
-                busy = true
-                let state = await coordinator.switchTo(.direct)
-                busy = false
-                apply(state)
-                guard state.mode == .direct else { return }
+            // The hybrid updates tunnel counts too: it runs beside DPI mode.
+            let backs = p.active || activeProfile == nil
+            if backs, runMode == .tunnel || tunnelCarriesTraffic {
+                guard await releaseTunnel() else { return }
             }
-            let ok = await Task.detached(priority: .userInitiated) {
-                WireGuardProfiles.delete(p.name)
+            let wasLastUsed = UserDefaults.standard.string(forKey: Model.lastProfileKey) == p.name
+            let (ok, noneLeft) = await Task.detached(priority: .userInitiated) {
+                let ok = WireGuardProfiles.delete(p.name)
+                return (ok, WireGuardProfiles.list(liveHost: nil).isEmpty)
             }.value
+            // The interface (even idle) belonged to this server: stop it.
+            if ok, capabilities.tunnelAvailable,
+               TunnelRecovery.shouldTearDown(deletedActive: p.active, deletedLastUsed: wasLastUsed,
+                                             noProfilesLeft: noneLeft) {
+                await teardownTunnel()
+            }
             if ok, UserDefaults.standard.string(forKey: Model.lastProfileKey) == p.name {
                 UserDefaults.standard.removeObject(forKey: Model.lastProfileKey)
             }
@@ -2119,7 +2253,7 @@ final class Model: ObservableObject {
 
     func switchServer(_ name: String) {
         guard !busy else { return }
-        perform(l.t("switching", ["what": name]), ["switch", name] + Model.dnsRouteArgs(),
+        perform(l.t("switching", ["what": name]), ["switch", name] + Model.dnsRouteArgs(profile: name),
                 l.t("server_set", ["what": name]))
     }
 
@@ -2142,7 +2276,8 @@ final class Model: ObservableObject {
     /// `act` returns the helper's own ActionResult so the failure text is the
     /// message the routing layer produced ("cannot pin the endpoint", not
     /// "exit code 1"), which is what the user needs to act on.
-    private func perform(_ message: String, _ args: [String], _ done: String) {
+    private func perform(_ message: String, _ args: [String], _ done: String,
+                         completion: ((Bool) -> Void)? = nil) {
         beginPathChange()
         if args.contains("--dns-routes") { dnsRefresh.reset() }
         busy = true
@@ -2174,6 +2309,7 @@ final class Model: ObservableObject {
                 self.status = self.l.t("failed", ["what": String(reason.prefix(150))])
                 self.statusColor = Palette.danger
             }
+            completion?(result?.ok == true)
             self.refresh(announce: false)
         }
     }
@@ -2203,7 +2339,7 @@ final class Model: ObservableObject {
     /// address and geo in tunnel mode, this machine's exit otherwise.
     var cardIdentity: CardIdentity {
         let ip = serverHost.flatMap { serverAddr[$0] }
-        return CardIdentity.choose(runMode: runMode,
+        return CardIdentity.choose(runMode: runMode, routeMode: mode,
                                    egressIP: report?.egressIP, egressGeo: report?.geo,
                                    serverIP: ip, serverGeo: ip.flatMap { serverGeos[$0] })
     }
@@ -2211,7 +2347,8 @@ final class Model: ObservableObject {
     /// Look up the active server's address and geo once (DoH for a name,
     /// then the same ipinfo call the egress row uses). Tunnel mode only.
     func fillServerGeo() {
-        guard runMode == .tunnel, let host = serverHost else { return }
+        // Whole internet: the card shows the real egress lookup instead.
+        guard runMode == .tunnel, mode != Mode.all.rawValue, let host = serverHost else { return }
         if let ip = serverAddr[host], serverGeos[ip] != nil { return }
         if let last = serverTried[host], Date().timeIntervalSince(last) < 60 { return }
         serverTried[host] = Date()
@@ -2607,6 +2744,9 @@ struct ContentView: View {
                       installRunning: m.tunnelInstall.isRunning,
                       installMessage: m.tunnelInstallMessage,
                       onInstall: m.canRunTunnelInstaller ? { m.runTunnelInstaller(.install) } : nil,
+                      installed: m.capabilities.tunnelAvailable,
+                      onRemove: m.canRunTunnelInstaller ? { m.runTunnelInstaller(.remove) } : nil,
+                      removeBlockedReason: m.runMode == .tunnel ? m.l.t("tunnel_remove_leave_first") : nil,
                       onImport: { close(.help); importConfig() },
                       onExportLog: { m.exportDebugLog() }) { close(.help) }
         case .about:
@@ -2631,6 +2771,7 @@ struct ContentView: View {
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: Space.m) {
+            if m.helperOutdated { helperUpdateRow }
             primaryAction
             modeBar
             // The server picker only configures the tunnel; in DPI and direct
@@ -2641,6 +2782,7 @@ struct ContentView: View {
             if TunnelRecovery.showsServerRow(inTunnel: m.runMode == .tunnel, routeMode: m.mode,
                                              carrying: m.tunnelCarriesTraffic) {
                 pickers.transition(reveal)
+                if m.runMode == .tunnel { scopeControl.transition(reveal) }
             } else if m.runMode != .direct {
                 // Direct mode: the DNS row in the card opens the same sheet.
                 dnsButton(labelled: true)
@@ -2906,6 +3048,76 @@ struct ContentView: View {
         .modifier(Card())
     }
 
+    /// Discord only / Whole internet, with one line on what the choice means.
+    /// Drawn like the mode bar, one size down, so it reads as part of Tunnel.
+    private var scopeControl: some View {
+        VStack(alignment: .leading, spacing: Space.xs) {
+            HStack(spacing: Space.xs) {
+                ForEach([Mode.discord, Mode.all], id: \.self) { scope in
+                    let active = m.tunnelScope == scope
+                    Button {
+                        m.setTunnelScope(scope)
+                    } label: {
+                        Text(m.l.t("m_" + scope.rawValue))
+                            .font(.system(size: 11, weight: active ? .semibold : .medium))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Space.xs + 2)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .background {
+                        if active {
+                            RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
+                                .fill(Palette.accent.opacity(0.14))
+                                .overlay(RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
+                                    .strokeBorder(Palette.accent, lineWidth: 1))
+                        }
+                    }
+                    .foregroundStyle(active ? Palette.text : Palette.secondary)
+                    .disabled(m.busy)
+                    .accessibilityAddTraits(active ? .isSelected : [])
+                    .help(m.l.t("scope_" + scope.rawValue + "_hint"))
+                }
+            }
+            .padding(Space.xs - 1)
+            .modifier(Card())
+            Text(m.l.t("scope_" + m.tunnelScope.rawValue + "_hint"))
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// The installed helper is older than this app's. One line and a button
+    /// that reruns the setup (macOS asks for the password).
+    private var helperUpdateRow: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.warning)
+            Text(m.tunnelInstallMessage ?? m.l.t("helper_outdated"))
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            Button {
+                m.runTunnelInstaller(.install)
+            } label: {
+                HStack(spacing: 5) {
+                    if m.tunnelInstall.isRunning { ProgressView().controlSize(.mini) }
+                    Text(m.l.t("helper_update")).font(.system(size: 11, weight: .medium))
+                }
+                .padding(.horizontal, Space.s + 2)
+                .padding(.vertical, Space.xs + 1)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .modifier(Chip())
+            .foregroundStyle(Palette.accent)
+            .disabled(m.tunnelInstall.isRunning)
+        }
+    }
+
     // --- secondary tunnel row --------------------------------------------
 
     /// The optional extra, stated once and quietly.
@@ -3087,6 +3299,16 @@ struct ContentView: View {
                 out.append(("shield.lefthalf.filled", m.l.t("f_server"),
                             "\(ProfileNaming.flag(p.country) ?? "") \(p.display ?? Countries.name(p.country, lang: m.lang))",
                             nil, nil))
+            } else if m.tunnelCarriesTraffic {
+                // A tunnel is up but no file matches it: name it from the live
+                // endpoint, the source of the rows above, never "none".
+                let place = inTunnel
+                    ? [geo?.city, geo?.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+                    : ""
+                let flag = inTunnel ? ProfileNaming.flag(geo?.country).map { $0 + " " } ?? "" : ""
+                out.append(("shield.lefthalf.filled", m.l.t("f_server"),
+                            "\(flag)\(place.isEmpty ? (r.endpoint ?? "—") : place) · \(m.l.t("srv_not_in_list"))",
+                            Palette.warning, nil))
             } else {
                 out.append(("shield.lefthalf.filled", m.l.t("f_server"), m.l.t("none"), Palette.secondary, nil))
             }
