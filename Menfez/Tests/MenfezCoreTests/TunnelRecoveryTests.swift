@@ -16,11 +16,14 @@ final class TunnelRecoveryTests: XCTestCase {
 
     func testPlanAsksForAServerWithoutAUsableLastProfile() {
         XCTAssertEqual(TunnelRecovery.plan(code: ActionResult.configMissing,
-                                           lastProfile: nil, available: ["nl-1"]),
+                                           lastProfile: nil, available: ["nl-1", "de-1"]),
                        .chooseServer)
         XCTAssertEqual(TunnelRecovery.plan(code: ActionResult.configMissing,
-                                           lastProfile: "gone", available: ["nl-1"]),
+                                           lastProfile: "gone", available: ["nl-1", "de-1"]),
                        .chooseServer, "a deleted profile is not retried")
+        XCTAssertEqual(TunnelRecovery.plan(code: ActionResult.configMissing,
+                                           lastProfile: "gone", available: ["nl-1"]),
+                       .switchTo("nl-1"), "the only server is the selection")
     }
 
     func testServerRowShowsOnlyInTunnelOrHybridUpdates() {
@@ -101,7 +104,7 @@ final class TunnelRecoveryTests: XCTestCase {
     func testNoLastProfileAsksForAServer() {
         let script = Script(["up": missingJSON])
         let tunnel = HelperTunnel(client: script.client(), interfaces: { [] }, lastProfile: { nil },
-                                  profileNames: { ["nl-1"] })
+                                  profileNames: { ["nl-1", "de-1"] })
         let outcome = tunnel.start(mode: .discord)
         XCTAssertFalse(outcome.ok)
         XCTAssertEqual(outcome.recovery, .chooseServer)

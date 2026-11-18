@@ -26,6 +26,7 @@
 //     status            human-readable, for the shell
 //     sanity            remove routes left behind by a dead tunnel
 //     repin             move the endpoint pin to the current physical gateway
+//     killswitch on|off|status   block traffic outside the tunnel (pf anchor)
 //
 // `facts` exists because the app's periodic refresh used to ask for a whole
 // `report --fast` just to learn four numbers about the tunnel. Those four
@@ -92,6 +93,7 @@ func usage() -> Never {
       status
       sanity
       repin
+      killswitch on|off|status   block traffic outside the tunnel if it drops
       version           the helper's protocol version (no root needed)
 
     Exits: 0 ok, 1 failure, 2 usage error, 3 not root.
@@ -141,7 +143,8 @@ struct Args {
 /// Commands that change routing or DNS. They serialize on one flock; a second
 /// invocation fails fast with a message naming the holder instead of
 /// interleaving read-modify-write cycles and corrupting the state file.
-let mutating: Set<String> = ["up", "down", "teardown", "mode", "switch", "dns", "sanity", "repin"]
+let mutating: Set<String> = ["up", "down", "teardown", "mode", "switch", "dns", "sanity", "repin",
+                              "killswitch"]
 
 /// The lock for a mutating command, or nil for any other.
 ///
@@ -196,7 +199,8 @@ let args = Args(Array(raw.dropFirst()))
 let readOnly = (command == "report" || command == "detail"
                 || command == "profiles" || command == "status"
                 || command == "facts" || command == "version"
-                || (command == "dns" && (args.first ?? "status") == "status"))
+                || (command == "dns" && (args.first ?? "status") == "status")
+                || (command == "killswitch" && args.first == "status"))
 /// Held for the rest of the process lifetime when acquired.
 let routeLock = readOnly ? nil : acquireLockIfNeeded(command)
 
@@ -269,6 +273,15 @@ func hostRoutes(for mode: Mode) -> [String] {
     return routes
 }
 
+/// After a command that may move the interface, endpoint or scope: rebuild
+/// the kill switch rules if the block is on. A failure is a note, not an error.
+func withKillSwitch(_ result: ActionResult) -> ActionResult {
+    guard result.ok, let note = KillSwitch.refreshIfOn() else { return result }
+    var result = result
+    result.notes.append(note)
+    return result
+}
+
 switch command {
 
 case "report":
@@ -299,7 +312,7 @@ case "up":
     var result = manager.up(mode: mode,
                             revertAfter: args.int("revert-after"),
                             dryRun: dryRun)
-    if !dryRun { result = withTunnelDNS(result, servers: servers) }
+    if !dryRun { result = withKillSwitch(withTunnelDNS(result, servers: servers)) }
     emit(result, exit: result.ok ? 0 : 1)
 
 case "down":
@@ -325,6 +338,8 @@ case "teardown":
     // interface goes too. Takes no arguments.
     requireRoot()
     guard args.positional.isEmpty else { fail("teardown takes no arguments", exit: 2) }
+    // The server is gone or the helper is being removed: nothing left to protect.
+    KillSwitch.off()
     let result = withTunnelDNS(RouteManager().teardown(), servers: [])
     emit(result, exit: result.ok ? 0 : 1)
 
@@ -347,7 +362,7 @@ case "mode":
     reconcileOrFail(manager)
     let dryRun = args.has("dry-run")
     var result = manager.changeMode(to: mode, dryRun: dryRun)
-    if !dryRun { result = withTunnelDNS(result, servers: servers) }
+    if !dryRun { result = withKillSwitch(withTunnelDNS(result, servers: servers)) }
     emit(result, exit: result.ok ? 0 : 1)
 
 case "switch":
@@ -356,8 +371,8 @@ case "switch":
     let routes = dnsRoutes()
     let servers = tunnelDNS()
     reconcileOrFail(RouteManager())
-    let result = withTunnelDNS(WireGuardProfiles.switchTo(name: name, dnsRoutes: routes),
-                               servers: servers)
+    let result = withKillSwitch(withTunnelDNS(WireGuardProfiles.switchTo(name: name, dnsRoutes: routes),
+                                              servers: servers))
     emit(result, exit: result.ok ? 0 : 1)
 
 case "dns":
@@ -413,8 +428,26 @@ case "repin":
     guard args.positional.isEmpty else { fail("repin takes no arguments", exit: 2) }
     let manager = RouteManager()
     reconcileOrFail(manager)
-    let result = manager.repin()
+    let result = withKillSwitch(manager.repin())
     emit(result, exit: result.ok ? 0 : 1)
+
+case "killswitch":
+    // Only on or off comes from the caller; the rules are built from this
+    // helper's own state and `wg show`, never from arguments.
+    requireRoot()
+    switch args.first {
+    case "on":
+        let result = KillSwitch.on()
+        emit(result, exit: result.ok ? 0 : 1)
+    case "off":
+        let result = KillSwitch.off()
+        emit(result, exit: result.ok ? 0 : 1)
+    case "status":
+        emit(KillSwitch.load().map { ActionResult(ok: true, mode: $0.scope, iface: $0.iface) }
+             ?? ActionResult(ok: true, mode: Mode.off.rawValue))
+    default:
+        fail("killswitch needs on, off or status", exit: 2)
+    }
 
 case "status":
     // Human-readable, for a terminal; the app never calls this.

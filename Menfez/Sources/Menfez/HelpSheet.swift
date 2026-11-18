@@ -76,6 +76,10 @@ struct HelpSheet: View {
             section(l.t("help_discord_title"), [l.t("help_discord"), l.t("help_discord_wait")])
             section(l.t("help_sitetest_title"), [l.t("help_sitetest")],
                     button: (l.t("sitetest_open"), onSiteTest))
+            if installed {
+                section(l.t("help_ks_title"), [l.t("help_ks"), "sudo " + KillSwitch.terminalOff])
+                    .textSelection(.enabled)
+            }
 
             tunnelSetup
 

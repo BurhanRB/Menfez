@@ -58,6 +58,9 @@ struct MenuBarContent: View {
                 }
             }
         }
+        if let combo = m.hotKey {
+            Text(m.l.t("hotkey_menu", ["what": combo.display])).disabled(true)
+        }
         if !m.capabilities.tunnelAvailable && m.canRunTunnelInstaller {
             Button(m.l.t("tunnel_install")) { m.runTunnelInstaller(.install) }
                 .disabled(m.tunnelInstall.isRunning)
@@ -85,7 +88,7 @@ struct MenuBarContent: View {
         } else {
             ForEach(m.profiles) { p in
                 Toggle(p.display ?? Countries.name(p.country, lang: m.lang), isOn: Binding(
-                    get: { p.active },
+                    get: { m.isChosen(p) },
                     set: { on in if on { m.switchServer(p.name) } }))
                     .disabled(m.busy)
             }
@@ -134,6 +137,9 @@ struct SettingsView: View {
     @AppStorage(NotificationEvent.serverRemoved.defaultsKey) private var notifyServer = true
     @AppStorage(NotificationEvent.dpiStopped.defaultsKey) private var notifyDPI = true
     @AppStorage(NotificationEvent.helperUpdate.defaultsKey) private var notifyHelper = true
+    @State var recording = false
+    @State var needsModifier = false
+    @State var monitor: Any?
 
     var body: some View {
         Form {
@@ -186,6 +192,7 @@ struct SettingsView: View {
                 }
             }
             notifications
+            shortcut
         }
         .padding(Space.l)
         .frame(width: 320)
@@ -196,6 +203,63 @@ struct SettingsView: View {
 }
 
 extension SettingsView {
+    /// Record a global shortcut. A local key monitor sees only keys pressed in
+    /// this window while recording, so it needs no permission either.
+    @ViewBuilder var shortcut: some View {
+        Text(m.l.t("hotkey_title"))
+            .font(.headline)
+            .padding(.top, Space.s)
+        HStack(spacing: Space.s) {
+            Text(m.hotKey?.display ?? m.l.t("hotkey_none"))
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .accessibilityLabel(m.l.t("hotkey_title") + ": " + (m.hotKey?.display ?? m.l.t("hotkey_none")))
+            Spacer()
+            Button(m.l.t(recording ? "hotkey_recording" : "hotkey_record")) { startRecording() }
+                .disabled(recording)
+            if m.hotKey != nil {
+                Button(m.l.t("hotkey_clear")) { m.setHotKey(nil) }
+            }
+        }
+        if let hint = shortcutHint {
+            Text(hint)
+                .font(.caption)
+                .foregroundStyle(Palette.warning)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        Text(m.l.t("hotkey_note"))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var shortcutHint: String? {
+        if needsModifier { return m.l.t("hotkey_needs_modifier") }
+        return m.hotKeyRefused ? m.l.t("hotkey_taken") : nil
+    }
+
+    private func startRecording() {
+        recording = true
+        needsModifier = false
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { stopRecording(); return nil } // Esc
+            let mods = HotKeyCombo.carbonModifiers(cocoa: event.modifierFlags.rawValue)
+            guard let combo = HotKeyCombo(keyCode: UInt32(event.keyCode), modifiers: mods,
+                                          key: event.charactersIgnoringModifiers ?? "") else {
+                needsModifier = true
+                return nil
+            }
+            m.setHotKey(combo)
+            stopRecording()
+            return nil
+        }
+    }
+
+    private func stopRecording() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+        recording = false
+    }
+
     /// One switch per event; all on by default (see `NotificationEvent`).
     @ViewBuilder var notifications: some View {
         Text(m.l.t("notify_title"))

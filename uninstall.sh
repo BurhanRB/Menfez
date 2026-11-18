@@ -67,6 +67,8 @@ if [ -n "$HELPER" ]; then
     # `down` removes exactly the routes recorded in the state file. If the
     # helper is already gone, fall through to the manual cleanup below.
     # Best effort: a failure here must not stop the rule from being removed.
+    # The kill switch (1.0.4+) goes first so nothing stays blocked.
+    run sudo "$HELPER" killswitch off >/dev/null 2>&1 || true
     run sudo "$HELPER" down >/dev/null 2>&1 || say "    warning: helper 'down' failed"
     # `dns auto` puts back the resolvers recorded in dns-state.json, which is
     # why that file must outlive this step. Without a record Menfez never
@@ -87,6 +89,10 @@ done
 for cidr in ::/1 8000::/1; do
     run sudo -n /sbin/route -n delete -inet6 "$cidr" >/dev/null 2>&1 || true
 done
+
+# Menfez's kill switch anchor, if the helper could not lift it. Only this
+# anchor is flushed; the main pf ruleset is never touched.
+run sudo -n /sbin/pfctl -a com.apple/250.Menfez -F all >/dev/null 2>&1 || true
 
 # The helper's `down` removes routes but not the WireGuard interface. Stop
 # Menfez's own tunnels by removing their control socket, which makes

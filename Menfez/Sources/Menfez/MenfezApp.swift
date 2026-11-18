@@ -107,6 +107,7 @@ struct L {
             "st_dpi_on": "DPI açık (127.0.0.1:{port})",
             "st_tunnel_on": "Tünel açık",
             "tunnel_lost": "Tünel koptu. Trafiğin şu an şifresiz gidiyor olabilir.",
+            "tunnel_lost_blocked": "Tünel koptu. Engel açık, trafik dışarı çıkmıyor.",
             "tunnel_helper_missing": "Tünel için bir kez kurulum gerekiyor. DPI kurulumsuz çalışır.",
             "helper_no_reply": "yardımcı program yanıt vermedi",
             "launch_proxyNotRunning": "Önce DPI'ı aç. Proxy çalışmıyor.",
@@ -329,6 +330,58 @@ struct L {
             "sitetest_tunnel_discord_only": "Tünel şu an yalnız Discord'u taşıyor, bu yüzden site tünelle denenmedi.",
             "help_sitetest_title": "Bir site açılmıyorsa",
             "help_sitetest": "Menfez'e sor: site adını yaz, engelli mi, hangi yolla açılıyor söylesin.",
+            "hotkey_title": "Kısayol",
+            "hotkey_none": "Yok",
+            "hotkey_record": "Kaydet",
+            "hotkey_recording": "Tuşlara bas…",
+            "hotkey_clear": "Sil",
+            "hotkey_note": "Doğrudan ile son kullandığın mod arasında geçer. Hiçbir izin istemez. Esc vazgeçer.",
+            "hotkey_needs_modifier": "⌘, ⌥ ya da ⌃ ile birlikte bas.",
+            "hotkey_taken": "Bu kısayol başka bir uygulamada kullanılıyor. Başka bir tane dene.",
+            "hotkey_menu": "Kısayol: {what}",
+            "ks_toggle": "Tünel düşerse interneti kes",
+            "ks_hint_all": "Tünel düşerse hiçbir şey tünel dışından çıkmaz. Ev ağın (yazıcı, AirPlay) açık kalır.",
+            "ks_hint_discord": "Tünel düşerse Discord kesilir, diğer siteler normal açılır.",
+            "ks_blocked": "Tünel düştü, internet kapalı.",
+            "ks_blocked_discord": "Tünel düştü, Discord kapalı.",
+            "ks_reconnect": "Yeniden bağlan",
+            "ks_unblock": "Engeli kaldır",
+            "ks_on_done": "Tünel düşerse internet kesilecek",
+            "ks_off_done": "Engel kalktı",
+            "ks_failed": "İnternet kesme açılamadı: {what}",
+            "ks_waits": "Tünel açılınca devreye girer.",
+            "help_ks_title": "İnternet kesildi ve geri gelmiyorsa",
+            "help_ks": "Menfez'de Engeli kaldır'a bas ya da Doğrudan'a geç. Menfez'i kapatmak ve bilgisayarı yeniden başlatmak da engeli kaldırır. Menfez açılmıyorsa Terminal'e şunu yaz:",
+            "leak_open": "Sızıntı testi",
+            "leak_title": "Sızıntı testi",
+            "leak_intro": "Trafiğin gerçekten tünelden mi gidiyor, bakıyorum. Sonuç saklanmaz.",
+            "leak_running": "Bakılıyor…",
+            "leak_again": "Yeniden test et",
+            "leak_webrtc": "Tarayıcılar WebRTC ile yerel adresini sitelere gösterebilir. Bunu Menfez kapatamaz.",
+            "leak_row_ip": "IP adresi",
+            "leak_row_dns": "DNS",
+            "leak_row_ipv6": "IPv6",
+            "leak_row_killSwitch": "İnternet kesme",
+            "leak_off": "Tünel açık değil, test edilecek bir şey yok.",
+            "leak_ip_server": "Sunucunun adresi görünüyor",
+            "leak_ip_exit": "Tünelin çıkış adresi görünüyor",
+            "leak_ip_tunnel": "Trafik tünelden gidiyor",
+            "leak_ip_leak": "Trafik tünel dışından gidiyor",
+            "leak_ip_discord": "Discord tünelden gidiyor. Diğer siteler gerçek IP'ni görür.",
+            "leak_ip_discord_leak": "Discord tünel dışından gidiyor",
+            "leak_dns_tunnel": "Tünelden gidiyor",
+            "leak_dns_leak": "Tünel dışından gidiyor. Sağlayıcın baktığın adları görebilir.",
+            "leak_dns_discord": "Tünel dışından gidiyor. Sadece Discord'da bu olağan; sağlayıcın Discord'a baktığını görebilir.",
+            "leak_dns_local": "Bu Mac'teki bir çözücü kullanılıyor, nereye gittiğini göremiyorum.",
+            "leak_dns_unknown": "Çözücü bulunamadı",
+            "leak_v6_none": "Bu ağda IPv6 yok, sızamaz",
+            "leak_v6_tunnel": "Tünelden gidiyor",
+            "leak_v6_blocked": "Engelli, sızmıyor",
+            "leak_v6_leak": "Tünel dışından gidiyor",
+            "leak_v6_discord": "Doğrudan gidiyor. Discord IPv6 kullanırsa tünel dışından gider.",
+            "leak_ks_on": "Açık",
+            "leak_ks_off": "Kapalı. Tünel düşerse trafik doğrudan gider.",
+            "leak_ks_unknown": "Bilinmiyor: önce tünel yardımcısını güncelle.",
             "onb1_title": "Menfez ne yapar?",
             "onb1_1": "İnternet sağlayıcın bağlantıların içine bakıp bazılarını kesebiliyor. Buna DPI deniyor; Discord'un açılmamasının sebebi bu.",
             "onb1_2": "Menfez, Discord'un bağlantısını bu kontrole takılmayacak şekilde gönderir. Hesap, sunucu ya da ücret gerekmez; her şey bu Mac'te olur.",
@@ -420,6 +473,7 @@ struct L {
             "st_dpi_on": "DPI is on (127.0.0.1:{port})",
             "st_tunnel_on": "Tunnel is on",
             "tunnel_lost": "The tunnel dropped. Your traffic may be going out unencrypted.",
+            "tunnel_lost_blocked": "The tunnel dropped. Blocking is on, nothing goes out.",
             "tunnel_helper_missing": "The tunnel needs a one-time setup. DPI works without it.",
             "helper_no_reply": "the helper did not answer",
             "launch_proxyNotRunning": "Turn on DPI first. The proxy isn't running.",
@@ -642,6 +696,58 @@ struct L {
             "sitetest_tunnel_discord_only": "The tunnel only carries Discord right now, so the site wasn't tried through it.",
             "help_sitetest_title": "If a site won't open",
             "help_sitetest": "Ask Menfez: type the site name and it tells you whether it's blocked and which way it opens.",
+            "hotkey_title": "Shortcut",
+            "hotkey_none": "None",
+            "hotkey_record": "Record",
+            "hotkey_recording": "Press keys…",
+            "hotkey_clear": "Clear",
+            "hotkey_note": "Switches between Direct and the mode you used last. Needs no permission. Esc cancels.",
+            "hotkey_needs_modifier": "Press it together with ⌘, ⌥ or ⌃.",
+            "hotkey_taken": "Another app already uses this shortcut. Try a different one.",
+            "hotkey_menu": "Shortcut: {what}",
+            "ks_toggle": "Block internet if the tunnel drops",
+            "ks_hint_all": "If the tunnel drops, nothing leaves outside it. Your home network (printer, AirPlay) still works.",
+            "ks_hint_discord": "If the tunnel drops, Discord is cut. Other sites open as usual.",
+            "ks_blocked": "Tunnel dropped, internet blocked.",
+            "ks_blocked_discord": "Tunnel dropped, Discord blocked.",
+            "ks_reconnect": "Reconnect",
+            "ks_unblock": "Unblock",
+            "ks_on_done": "Internet will be blocked if the tunnel drops",
+            "ks_off_done": "Unblocked",
+            "ks_failed": "Couldn't turn on blocking: {what}",
+            "ks_waits": "It kicks in when the tunnel is on.",
+            "help_ks_title": "If the internet is blocked and won't come back",
+            "help_ks": "Press Unblock in Menfez, or switch to Direct. Quitting Menfez or restarting the Mac also lifts it. If Menfez won't open, type this in Terminal:",
+            "leak_open": "Leak test",
+            "leak_title": "Leak test",
+            "leak_intro": "Checking that your traffic really goes through the tunnel. Nothing is saved.",
+            "leak_running": "Checking…",
+            "leak_again": "Test again",
+            "leak_webrtc": "Browsers can show your local address to sites through WebRTC. Menfez can't turn that off.",
+            "leak_row_ip": "IP address",
+            "leak_row_dns": "DNS",
+            "leak_row_ipv6": "IPv6",
+            "leak_row_killSwitch": "Blocking",
+            "leak_off": "The tunnel isn't on, so there's nothing to test.",
+            "leak_ip_server": "Sites see the server's address",
+            "leak_ip_exit": "Sites see the tunnel's exit address",
+            "leak_ip_tunnel": "Traffic goes through the tunnel",
+            "leak_ip_leak": "Traffic goes outside the tunnel",
+            "leak_ip_discord": "Discord goes through the tunnel. Other sites see your real IP.",
+            "leak_ip_discord_leak": "Discord goes outside the tunnel",
+            "leak_dns_tunnel": "Goes through the tunnel",
+            "leak_dns_leak": "Goes outside the tunnel. Your provider can see the names you look up.",
+            "leak_dns_discord": "Goes outside the tunnel. That's normal with Discord only; your provider can see you look up Discord.",
+            "leak_dns_local": "A resolver on this Mac is in use; I can't see where it goes.",
+            "leak_dns_unknown": "No resolver found",
+            "leak_v6_none": "No IPv6 on this network, nothing to leak",
+            "leak_v6_tunnel": "Goes through the tunnel",
+            "leak_v6_blocked": "Blocked, doesn't leak",
+            "leak_v6_leak": "Goes outside the tunnel",
+            "leak_v6_discord": "Goes direct. If Discord uses IPv6, it skips the tunnel.",
+            "leak_ks_on": "On",
+            "leak_ks_off": "Off. If the tunnel drops, traffic goes direct.",
+            "leak_ks_unknown": "Unknown: update the tunnel helper first.",
             "onb1_title": "What Menfez does",
             "onb1_1": "Your internet provider can look inside your connections and cut some of them. This is called DPI, and it's why Discord won't open.",
             "onb1_2": "Menfez sends Discord's connection in a way that slips past this check. No account, server or payment needed; it all happens on this Mac.",
@@ -1132,8 +1238,10 @@ final class Model: ObservableObject {
     /// last-used profile by default), else the public resolver picked in the
     /// DNS sheet.
     nonisolated static func dnsRouteArgs(profile: String? = nil) -> [String] {
-        let name = profile ?? UserDefaults.standard.string(forKey: lastProfileKey)
-        let own = name.flatMap { n in WireGuardProfiles.list(liveHost: nil).first { $0.name == n }?.dns }
+        let list = WireGuardProfiles.list(liveHost: nil)
+        let name = profile ?? TunnelRecovery.selection(
+            lastProfile: UserDefaults.standard.string(forKey: lastProfileKey), available: list.map(\.name))
+        let own = name.flatMap { n in list.first { $0.name == n }?.dns }
         let servers = TunnelScope.tunnelDNS(profileDNS: own, fallback: DoHProvider.current().addresses)
         return RouteManager.dnsRouteArgs(enabled: DNSManager.routesDNSThroughTunnel(),
                                          resolvers: DNSManager.systemResolvers())
@@ -1279,6 +1387,8 @@ final class Model: ObservableObject {
         })
 
         Notifier.shared.start()
+        HotKey.shared.action = { [weak self] in self?.toggleLastMode() }
+        if let hotKey { hotKeyRefused = !HotKey.shared.register(hotKey) }
         scheduleTimer()
         // The proxy must not outlive the app. A process that quit leaves its
         // listener gone with it anyway, but a Discord launched with
@@ -1296,6 +1406,8 @@ final class Model: ObservableObject {
             object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated {
+                // A block with no app to lift it would strand the user.
+                if KillSwitch.load() != nil { self?.backend.act(["killswitch", "off"], timeout: 5) }
                 self?.coordinator.shutdownForQuit()
             }
         })
@@ -1347,6 +1459,7 @@ final class Model: ObservableObject {
                 let installed = await Task.detached(priority: .utility) {
                     HelperVersion.installed(helper: helper)
                 }.value
+                self.helperVersion = installed
                 self.helperOutdated = HelperVersion.needsUpdate(installed: installed)
                     && self.canRunTunnelInstaller
                 if self.helperOutdated { Notifier.shared.post(.helperUpdate, lang: self.lang) }
@@ -1363,6 +1476,111 @@ final class Model: ObservableObject {
     /// The installed helper is older than the one in this bundle. "Update"
     /// runs the same installer as "Set up tunnel".
     @Published var helperOutdated = false
+    /// What `menfez-route version` answered; 0 until asked or when too old.
+    @Published var helperVersion = 0
+
+    // MARK: - Shortcut
+
+    /// The global shortcut (`HotKeyCombo`, Carbon via `HotKey`); none by default.
+    @Published var hotKey: HotKeyCombo? = HotKeyCombo.load()
+    /// macOS refused the last combination: another app holds it.
+    @Published var hotKeyRefused = false
+
+    /// Register first, save only what macOS accepted; a refusal keeps the old one.
+    func setHotKey(_ combo: HotKeyCombo?) {
+        hotKeyRefused = !HotKey.shared.register(combo)
+        if hotKeyRefused {
+            HotKey.shared.register(hotKey)
+            return
+        }
+        hotKey = combo
+        HotKeyCombo.save(combo)
+    }
+
+    /// The shortcut's action: what the mode bar does, with the target from
+    /// `HotKeyCombo.toggleTarget`. The menu-bar icon shows the new mode.
+    func toggleLastMode() {
+        let last = UserDefaults.standard.string(forKey: HotKeyCombo.lastModeKey).flatMap(RunMode.init)
+        setMode(MenuBarModes.path(HotKeyCombo.toggleTarget(current: runMode, last: last)))
+    }
+
+    // MARK: - Kill switch
+
+    nonisolated static let killSwitchKey = "killSwitch.enabled"
+    /// The user's wish: block when the tunnel drops. Saved; applied at every
+    /// tunnel start, lifted (but kept) when leaving tunnel mode or quitting.
+    @Published var killSwitchWanted = UserDefaults.standard.bool(forKey: Model.killSwitchKey)
+    /// The block is loaded right now (the helper's world-readable record).
+    @Published var killSwitchActive = KillSwitch.load() != nil
+    /// How the tick reads it; a snapshot swaps in a fixed answer.
+    var killSwitchProbe: () -> Bool = { KillSwitch.load() != nil }
+    /// Helper 3 knows `killswitch`; an older one gets the Update row instead.
+    var killSwitchAvailable: Bool { helperVersion >= 3 }
+
+    func setKillSwitch(_ on: Bool) {
+        guard !busy else { return }
+        killSwitchWanted = on
+        UserDefaults.standard.set(on, forKey: Model.killSwitchKey)
+        let live = runMode == .tunnel && tunnelCarriesTraffic
+        if on && !live {
+            status = l.t("ks_waits")
+            statusColor = Palette.secondary
+            return
+        }
+        guard on || killSwitchActive else { return }
+        perform(l.t("working"), ["killswitch", on ? "on" : "off"],
+                l.t(on ? "ks_on_done" : "ks_off_done")) { ok in
+            self.killSwitchActive = KillSwitch.load() != nil
+            if on && !ok {
+                self.killSwitchWanted = false
+                UserDefaults.standard.set(false, forKey: Model.killSwitchKey)
+            }
+        }
+    }
+
+    /// "Unblock": lift the block now and keep the setting for the next start.
+    func unblock() {
+        guard !busy, killSwitchActive else { return }
+        perform(l.t("working"), ["killswitch", "off"], l.t("ks_off_done")) { _ in
+            self.killSwitchActive = KillSwitch.load() != nil
+        }
+    }
+
+    /// After a tunnel start: put the block on when the user asked for it.
+    private func applyKillSwitchAfterStart() async {
+        guard killSwitchWanted, killSwitchAvailable else { return }
+        let backend = self.backend
+        let result = await Task.detached(priority: .userInitiated) {
+            backend.act(["killswitch", "on"], timeout: 30)
+        }.value
+        killSwitchActive = KillSwitch.load() != nil
+        if result?.ok != true {
+            status = l.t("ks_failed", ["what": String((result?.error ?? l.t("helper_no_reply")).prefix(150))])
+            statusColor = Palette.warning
+        }
+    }
+
+    /// The leak test (`LeakTest`), off the main thread. Reads only.
+    func runLeakTest() async -> [LeakTest.Line] {
+        let scope: Mode? = runMode == .tunnel && tunnelCarriesTraffic ? Mode(rawValue: mode) : nil
+        let iface = report?.tunnel
+        let endpoint = report?.endpoint.flatMap(hostPart)
+        let killSwitch: Bool? = killSwitchAvailable ? KillSwitch.load() != nil : nil
+        return await Task.detached(priority: .userInitiated) {
+            LeakTest.classify(LeakTest.gather(scope: scope, tunnelIface: iface,
+                                              endpoint: endpoint, killSwitch: killSwitch))
+        }.value
+    }
+
+    /// Before DPI or Direct: a block left on would cut the new mode off.
+    private func releaseKillSwitch() async {
+        guard KillSwitch.load() != nil else { return }
+        let backend = self.backend
+        _ = await Task.detached(priority: .userInitiated) {
+            backend.act(["killswitch", "off"], timeout: 30)
+        }.value
+        killSwitchActive = KillSwitch.load() != nil
+    }
 
     /// The bundled helper the installer copies. A var only so a snapshot can
     /// draw the buttons outside a bundle.
@@ -1610,6 +1828,7 @@ final class Model: ObservableObject {
     /// re-paid.
     private func tick() {
         refreshLocal()
+        killSwitchActive = killSwitchProbe()
         refreshDPIStatus()
         maybeRefreshFacts()
         // A probe owed by a mode or server change starts once it has settled.
@@ -1940,8 +2159,10 @@ final class Model: ObservableObject {
             }.value
             guard generation == self.profilesGeneration else { return }
             // Remembered for the post-reboot auto-reconnect (see TunnelRecovery).
-            if let live = list.first(where: { $0.active })?.name {
-                UserDefaults.standard.set(live, forKey: Model.lastProfileKey)
+            // Only in Tunnel mode: elsewhere an idle interface's server is not
+            // the selection, which a pick there saves on its own.
+            if self.runMode == .tunnel, let live = list.first(where: { $0.active })?.name {
+                self.selectedProfile = live
             }
             self.profiles = self.withCountries(list)
             self.fillCountries()
@@ -2009,6 +2230,7 @@ final class Model: ObservableObject {
         guard !busy else { return }
         beginPathChange()
         Task {
+            await self.releaseKillSwitch()
             let state = await coordinator.switchTo(.dpi)
             self.apply(state)
             guard state.ok else { return }
@@ -2021,6 +2243,7 @@ final class Model: ObservableObject {
         guard !busy else { return }
         beginPathChange()
         Task {
+            await self.releaseKillSwitch()
             let state = await coordinator.switchTo(.dpi)
             self.apply(state)
         }
@@ -2033,11 +2256,41 @@ final class Model: ObservableObject {
         busy = true
         let from = runMode, port = dpi.port
         Task {
+            await self.releaseKillSwitch()
             let state = await coordinator.switchTo(.direct)
             self.busy = false
             self.apply(state)
             self.offerDiscordRestart(from: from, to: state.mode, port: port)
         }
+    }
+
+    /// A Tunnel click found no server and opened the picker: the server the
+    /// user then adds or picks finishes that click. Cleared by any other mode
+    /// click and when the picker closes.
+    var pendingTunnelStart = false
+
+    /// Bumped when a Tunnel click finished from the server sheet went
+    /// through; the window closes the sheet. A failure leaves it open.
+    @Published var serverSheetCloses = 0
+
+    /// The chosen server (`lastProfileKey`): what a tunnel start uses.
+    @Published var selectedProfile: String? = UserDefaults.standard.string(forKey: Model.lastProfileKey) {
+        didSet { UserDefaults.standard.set(selectedProfile, forKey: Model.lastProfileKey) }
+    }
+
+    /// Whether a server row shows as chosen (see `TunnelRecovery.isChosen`).
+    func isChosen(_ p: Profile) -> Bool {
+        TunnelRecovery.isChosen(name: p.name, active: p.active, inTunnel: runMode == .tunnel,
+                                selection: selectedProfile)
+    }
+
+    /// Make `name` the chosen server and finish the Tunnel click that asked
+    /// for one. False when no such click is waiting.
+    private func continueTunnelStart(with name: String) -> Bool {
+        guard pendingTunnelStart else { return false }
+        selectedProfile = name
+        setMode("tunnel", closesServerSheet: true)
+        return true
     }
 
     /// What Tunnel mode carries: Discord only or the whole internet. Saved.
@@ -2067,8 +2320,9 @@ final class Model: ObservableObject {
     /// (`ModeCoordinator`) instead of being re-derived here per button. The
     /// tunnel's own `Mode` (`discord`/`all`) is passed separately because it is
     /// a property of the tunnel, not of "which interception is live".
-    func setMode(_ path: String, tunnelMode: Mode? = nil) {
+    func setMode(_ path: String, tunnelMode: Mode? = nil, closesServerSheet: Bool = false) {
         guard !busy else { return }
+        pendingTunnelStart = false
         switch path {
         case "dpi":
             enableDPI()
@@ -2097,8 +2351,15 @@ final class Model: ObservableObject {
                 self.settlingUntil = Date().addingTimeInterval(self.settleWindow)
                 self.scheduleTimer()
                 self.apply(state)
+                if state.ok && state.mode == .tunnel {
+                    if closesServerSheet { self.serverSheetCloses += 1 }
+                    await self.applyKillSwitchAfterStart()
+                }
                 if state.ok { self.refresh(announce: false) }
-                if state.recovery == .chooseServer { self.serverRequests += 1 }
+                if state.recovery == .chooseServer {
+                    self.pendingTunnelStart = true
+                    self.serverRequests += 1
+                }
             }
         default:
             break
@@ -2113,6 +2374,9 @@ final class Model: ObservableObject {
     /// mode with a dead port.
     private func apply(_ state: ModeState) {
         dpi = state.proxy
+        if state.ok && state.mode != .direct {
+            UserDefaults.standard.set(state.mode.rawValue, forKey: HotKeyCombo.lastModeKey)
+        }
         probe = state.mode == .dpi ? probe : nil
         status = l.modeState(state, hasProfiles: !profiles.isEmpty)
         if state.portChanged { status += " · " + l.t("dpi_port_changed") }
@@ -2290,6 +2554,7 @@ final class Model: ObservableObject {
             case .success(let profile):
                 self.status = self.l.t("import_ok", ["what": profile.name])
                 self.statusColor = Palette.success
+                self.selectImported(profile.name)
                 self.refresh(announce: false)
             case .failure(let error):
                 if replaced {
@@ -2302,6 +2567,19 @@ final class Model: ObservableObject {
                 }
             }
         }
+    }
+
+    /// A new server becomes the selection when none is chosen. A waiting
+    /// Tunnel click then goes on with it; in Tunnel mode it is switched to,
+    /// as picking it would. Elsewhere nothing connects.
+    private func selectImported(_ name: String) {
+        let last = selectedProfile
+        let available = WireGuardProfiles.list(liveHost: nil).map(\.name)
+        let chosen = TunnelRecovery.selectionAfterImport(name, lastProfile: last, available: available)
+        if continueTunnelStart(with: chosen) { return }
+        guard chosen != last else { return }
+        selectedProfile = chosen
+        if runMode == .tunnel, chosen == name { switchServer(name) }
     }
 
     func chooseAndImportConfig() {
@@ -2330,8 +2608,8 @@ final class Model: ObservableObject {
         switch WireGuardProfiles.rename(p.name, to: newName) {
         case .success(let renamed):
             // The post-reboot reconnect remembers the profile by name.
-            if UserDefaults.standard.string(forKey: Model.lastProfileKey) == p.name {
-                UserDefaults.standard.set(renamed.name, forKey: Model.lastProfileKey)
+            if selectedProfile == p.name {
+                selectedProfile = renamed.name
             }
             status = l.t("srv_renamed", ["name": renamed.name])
             statusColor = Palette.success
@@ -2401,8 +2679,8 @@ final class Model: ObservableObject {
                                              noProfilesLeft: noneLeft) {
                 await teardownTunnel()
             }
-            if ok, UserDefaults.standard.string(forKey: Model.lastProfileKey) == p.name {
-                UserDefaults.standard.removeObject(forKey: Model.lastProfileKey)
+            if ok, self.selectedProfile == p.name {
+                self.selectedProfile = nil
             }
             self.status = self.l.t(ok ? "srv_deleted" : "srv_delete_failed", ["name": p.name])
             self.statusColor = ok ? Palette.secondary : Palette.danger
@@ -2431,6 +2709,15 @@ final class Model: ObservableObject {
 
     func switchServer(_ name: String) {
         guard !busy else { return }
+        if continueTunnelStart(with: name) { return }
+        // Outside Tunnel mode a pick only selects: no `switch`, no tunnel.
+        // The next Tunnel click starts this server (`runsStaleServer`).
+        guard runMode == .tunnel else {
+            selectedProfile = name
+            status = l.t("server_set", ["what": name])
+            statusColor = Palette.secondary
+            return
+        }
         perform(l.t("switching", ["what": name]), ["switch", name] + Model.dnsRouteArgs(profile: name),
                 l.t("server_set", ["what": name]))
     }
@@ -2633,7 +2920,7 @@ final class Model: ObservableObject {
         // tunnel state is genuinely unknown. Saying "tunnel down" is a claim
         // the app cannot support, and it is the single most alarming thing this
         // line can say.
-        if tunnelLost { return l.t("tunnel_lost") }
+        if tunnelLost { return l.t(killSwitchActive ? "tunnel_lost_blocked" : "tunnel_lost") }
         if r.health.code == .unknown { return l.t("checking") }
         guard r.tunnel != nil else { return l.t("down") }
         if mode == "off" { return l.t("off_state") }
@@ -2857,6 +3144,7 @@ struct ContentView: View {
         }
         .onChange(of: appearanceRaw) { _ in NSApp.appearance = appearance.nsAppearance }
         .onChange(of: m.serverRequests) { _ in show(.servers) }
+        .onChange(of: m.serverSheetCloses) { _ in close(.servers) }
         .onChange(of: m.siteTestRequests) { _ in show(.siteTest) }
         .alert(m.l.t("discord_restart_title"),
                isPresented: Binding(get: { m.discordRestartPID != nil },
@@ -2926,6 +3214,8 @@ struct ContentView: View {
                 // and the country lookup behind an unnamed profile is a network
                 // request the timer must not make on the user's behalf.
                 .onAppear { m.loadProfiles() }
+                // Closed without a pick: a later import must not start the tunnel.
+                .onDisappear { m.pendingTunnelStart = false }
         case .dns:
             dnsSheet
                 // The resolver sheet costs ~21 `dig` queries. It used to be
@@ -2969,6 +3259,8 @@ struct ContentView: View {
                             onSkip: { close(.onboarding) })
                 // However it closed (button, Escape), it does not come back by itself.
                 .onDisappear { Onboarding.markSeen() }
+        case .leakTest:
+            LeakTestSheet(lang: m.lang, onRun: { await m.runLeakTest() }) { close(.leakTest) }
         case .siteTest:
             SiteTestSheet(lang: m.lang,
                           tunnelOnlyDiscord: m.runMode == .tunnel && !m.tunnelCarriesEverything,
@@ -2992,6 +3284,7 @@ struct ContentView: View {
     private var controls: some View {
         VStack(alignment: .leading, spacing: Space.m) {
             if m.helperOutdated { helperUpdateRow }
+            if m.tunnelLost && m.killSwitchActive { blockedRow }
             primaryAction
             modeBar
             // The server picker only configures the tunnel; in DPI and direct
@@ -3002,7 +3295,10 @@ struct ContentView: View {
             if TunnelRecovery.showsServerRow(inTunnel: m.runMode == .tunnel, routeMode: m.mode,
                                              carrying: m.tunnelCarriesTraffic) {
                 pickers.transition(reveal)
-                if m.runMode == .tunnel { scopeControl.transition(reveal) }
+                if m.runMode == .tunnel {
+                    scopeControl.transition(reveal)
+                    tunnelSafetyRow.transition(reveal)
+                }
             } else if m.runMode != .direct {
                 // Direct mode: the DNS row in the card opens the same sheet.
                 dnsButton(labelled: true)
@@ -3306,6 +3602,77 @@ struct ContentView: View {
                 .foregroundStyle(Palette.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    /// Kill switch and leak test, under the scope picker in Tunnel mode.
+    private var tunnelSafetyRow: some View {
+        VStack(alignment: .leading, spacing: Space.xs) {
+            HStack(spacing: Space.s) {
+                if m.killSwitchAvailable {
+                    Toggle(isOn: Binding(get: { m.killSwitchActive },
+                                         set: { m.setKillSwitch($0) })) {
+                        Text(m.l.t("ks_toggle")).font(.system(size: 11.5))
+                    }
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .disabled(m.busy)
+                }
+                Spacer(minLength: 4)
+                Button { show(.leakTest) } label: {
+                    Text(m.l.t("leak_open"))
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, Space.s + 2)
+                        .padding(.vertical, Space.xs + 1)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .modifier(Chip())
+                .foregroundStyle(Palette.accent)
+                .disabled(!m.tunnelCarriesTraffic)
+            }
+            if m.killSwitchAvailable {
+                Text(m.l.t("ks_hint_" + m.tunnelScope.rawValue))
+                    .font(.system(size: 11))
+                    .foregroundStyle(Palette.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// The tunnel is down and the kill switch is holding traffic back.
+    private var blockedRow: some View {
+        VStack(alignment: .leading, spacing: Space.s) {
+            HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+                Image(systemName: "xmark.shield.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Palette.danger)
+                Text(m.l.t(m.tunnelScope == .discord ? "ks_blocked_discord" : "ks_blocked"))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Palette.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(spacing: Space.s) {
+                ForEach([("ks_reconnect", true), ("ks_unblock", false)], id: \.0) { key, reconnect in
+                    Button {
+                        if reconnect { m.setMode("tunnel") } else { m.unblock() }
+                    } label: {
+                        Text(m.l.t(key))
+                            .font(.system(size: 11, weight: .medium))
+                            .padding(.horizontal, Space.s + 2)
+                            .padding(.vertical, Space.xs + 1)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .modifier(Chip())
+                    .foregroundStyle(reconnect ? Palette.accent : Palette.text)
+                    .disabled(m.busy)
+                }
+            }
+        }
+        .padding(Space.s + 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Palette.danger.opacity(0.1),
+                    in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
     }
 
     /// The installed helper is older than this app's. One line and a button
@@ -3917,23 +4284,23 @@ struct ContentView: View {
                     Spacer()
                     Text((p.endpoint ?? "—").split(separator: ":").first.map(String.init) ?? "—")
                         .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(p.active ? Palette.accentText.opacity(0.8) : Palette.secondary)
+                        .foregroundStyle(m.isChosen(p) ? Palette.accentText.opacity(0.8) : Palette.secondary)
                 }
                 .padding(.leading, 11)
                 .padding(.vertical, 8)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            rowIcon("pencil", m.l.t("srv_edit"), active: p.active) {
+            rowIcon("pencil", m.l.t("srv_edit"), active: m.isChosen(p)) {
                 editName = p.name
                 editError = nil
                 editing = p.name
             }
-            rowIcon("trash", m.l.t("srv_delete"), active: p.active) { pendingDelete = p }
+            rowIcon("trash", m.l.t("srv_delete"), active: m.isChosen(p)) { pendingDelete = p }
         }
         .padding(.trailing, 4)
-        .background(p.active ? Palette.accent : Palette.card)
-        .foregroundStyle(p.active ? Palette.accentText : Palette.text)
+        .background(m.isChosen(p) ? Palette.accent : Palette.card)
+        .foregroundStyle(m.isChosen(p) ? Palette.accentText : Palette.text)
         .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
         .padding(.bottom, 3)
     }
@@ -4186,6 +4553,7 @@ enum SheetRoute: Equatable {
     case about
     case whatsNew
     case siteTest
+    case leakTest
     case onboarding
     case detail(DetailSheet)
 }

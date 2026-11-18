@@ -59,6 +59,8 @@ fi
 if [ "${1:-}" = "--remove" ]; then
     [ "$(id -u)" -eq 0 ] || die "run this with sudo"
     if [ -x "$DEST/menfez-route" ] && [ "$(stat -f %u "$DEST/menfez-route")" = 0 ]; then
+        # 1.0.4+: lift the kill switch first (an older helper has none).
+        "$DEST/menfez-route" killswitch off >/dev/null 2>&1 || true
         # `teardown` also stops the interface; a helper older than it only knows `down`.
         "$DEST/menfez-route" teardown >/dev/null 2>&1 \
             || "$DEST/menfez-route" down >/dev/null 2>&1 \
@@ -69,6 +71,9 @@ if [ "${1:-}" = "--remove" ]; then
             "$DEST/menfez-route" dns auto >/dev/null 2>&1 || echo "warning: could not restore DNS" >&2
         fi
     fi
+    # Whatever the helper could not do: Menfez's pf anchor only, never the main ruleset.
+    pfctl -a com.apple/250.Menfez -F all >/dev/null 2>&1 || true
+    rm -f /var/run/menfez/killswitch.json /var/run/menfez/killswitch.conf
     echo "==> removing $SUDOERS and $DEST"
     rm -f "$SUDOERS"
     [ ! -e "$SUDOERS" ] || die "could not remove $SUDOERS"

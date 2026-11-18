@@ -118,8 +118,28 @@ public enum TunnelRecovery {
     public static func plan(code: String?, lastProfile: String?,
                             available: [String], stale: Bool = false) -> Plan {
         guard code == ActionResult.configMissing || stale else { return .none }
-        guard let name = lastProfile, available.contains(name) else { return .chooseServer }
+        guard let name = selection(lastProfile: lastProfile, available: available) else { return .chooseServer }
         return .switchTo(name)
+    }
+
+    /// The server a tunnel start uses: the last one chosen while it still
+    /// exists, else the only one there is. Nil when the user has to pick.
+    public static func selection(lastProfile: String?, available: [String]) -> String? {
+        if let name = lastProfile, available.contains(name) { return name }
+        return available.count == 1 ? available[0] : nil
+    }
+
+    /// The server row shown as chosen: in Tunnel mode the one the tunnel runs,
+    /// elsewhere the selection, which a pick there only saves.
+    public static func isChosen(name: String, active: Bool, inTunnel: Bool, selection: String?) -> Bool {
+        inTunnel ? active : name == selection
+    }
+
+    /// After adding `imported`: the selection it leaves. A server that is
+    /// already chosen stays chosen; with none, the new one is.
+    public static func selectionAfterImport(_ imported: String, lastProfile: String?,
+                                            available: [String]) -> String {
+        selection(lastProfile: lastProfile, available: available) ?? imported
     }
 
     /// A WireGuard interface Menfez brought up whose server is no longer in
@@ -136,6 +156,16 @@ public enum TunnelRecovery {
         if profiles.isEmpty { return true }
         guard let key = livePeerKey, !key.isEmpty else { return false }
         return !profiles.contains { $0.peerKey == key }
+    }
+
+    /// The live interface runs a server other than the selection. Unknown
+    /// keys answer false: a wrong yes restarts a working tunnel.
+    public static func runsOtherThanSelection(livePeerKey: String?, lastProfile: String?,
+                                              profiles: [Profile]) -> Bool {
+        guard let live = livePeerKey, !live.isEmpty,
+              let chosen = selection(lastProfile: lastProfile, available: profiles.map(\.name)),
+              let key = profiles.first(where: { $0.name == chosen })?.peerKey, !key.isEmpty else { return false }
+        return key != live
     }
 
     /// After deleting a profile: stop our interface when it may belong to that
@@ -243,6 +273,10 @@ public protocol TunnelControl: Sendable {
     func startUpdates(_ routes: UpdateRoutes) -> TunnelOutcome
     /// The tunnel carries only Discord's updater, beside DPI mode.
     func isUpdatesOnly() -> Bool
+    /// The route set the tunnel carries now (`discord`, `all`, `updates`, `off`).
+    func routeMode() -> String
+    /// Re-route a carrying tunnel to `mode` (`mode <scope>`), without a restart.
+    func changeMode(_ mode: Mode) -> TunnelOutcome
 }
 
 extension TunnelControl {
@@ -252,6 +286,10 @@ extension TunnelControl {
         TunnelOutcome(ok: false, message: "no tunnel for updates")
     }
     public func isUpdatesOnly() -> Bool { false }
+    public func routeMode() -> String { Mode.off.rawValue }
+    public func changeMode(_ mode: Mode) -> TunnelOutcome {
+        TunnelOutcome(ok: false, message: "no tunnel to re-route")
+    }
 }
 
 /// A tunnel that cannot exist. Used by tests and by a build with no helper.
@@ -324,14 +362,17 @@ public final class HelperTunnel: TunnelControl, @unchecked Sendable {
     }
 
     /// Our interface is up but its server was deleted, renamed away or
-    /// replaced. `up` reuses a live interface as it is, so starting through
-    /// it would revive a server the user removed.
-    func runsOrphan() -> Bool {
+    /// replaced, or is not the server chosen since (a pick outside Tunnel
+    /// mode only selects). `up` reuses a live interface as it is, so starting
+    /// through it would revive the wrong server.
+    func runsStaleServer() -> Bool {
         guard let iface = interfaces().first, iface == routeState().iface else { return false }
         let profiles = profileList()
+        let key = profiles.isEmpty ? nil : livePeerKey()
         return TunnelRecovery.isOrphan(liveIface: iface, stateIface: iface,
-                                       livePeerKey: profiles.isEmpty ? nil : livePeerKey(),
-                                       profiles: profiles)
+                                       livePeerKey: key, profiles: profiles)
+            || TunnelRecovery.runsOtherThanSelection(livePeerKey: key, lastProfile: lastProfile(),
+                                                     profiles: profiles)
     }
 
     public func isTunnelUp() -> Bool {
@@ -367,6 +408,18 @@ public final class HelperTunnel: TunnelControl, @unchecked Sendable {
         bringUp(mode, dns: dnsRouteArgs(), extra: [])
     }
 
+    public func routeMode() -> String { routeState().mode }
+
+    public func changeMode(_ mode: Mode) -> TunnelOutcome {
+        let result = client.act(["mode", mode.rawValue] + dnsRouteArgs())
+        guard result.ok else {
+            return TunnelOutcome(ok: false, message: result.error ?? "the helper could not change the mode")
+        }
+        var outcome = TunnelOutcome(ok: true, message: "tunnel re-routed to \(mode.rawValue)")
+        outcome.note = result.notes.first
+        return outcome
+    }
+
     public func startUpdates(_ routes: UpdateRoutes) -> TunnelOutcome {
         let dns = routes.resolvers.isEmpty ? [] : ["--dns-routes", routes.resolvers.joined(separator: ",")]
         return bringUp(.updates, dns: dns, extra: ["--host-routes", routes.hosts.joined(separator: ",")])
@@ -378,9 +431,9 @@ public final class HelperTunnel: TunnelControl, @unchecked Sendable {
         // helper's own sentence ("cannot pin the endpoint") rather than an exit
         // code. A non-JSON reply means sudo never ran, and `act` surfaces the
         // tail of sudo's message for that case.
-        let stale = runsOrphan()
+        let stale = runsStaleServer()
         let result = stale
-            ? ActionResult.failure("the running tunnel's server is no longer in your list; choose a server")
+            ? ActionResult.failure("the running tunnel's server is not the chosen one; choose a server")
             : client.act(["up", "--mode", mode.rawValue] + dns + extra)
         if result.ok {
             let note = result.notes.first
@@ -716,8 +769,19 @@ public final class ModeCoordinator {
             // is routed. `up` is safe to re-run: it sees the existing iface and
             // only adds the missing routes.
             if tunnel.isCarryingTraffic() {
-                return finish(mode: .tunnel, ok: true,
-                              message: "the tunnel was already carrying traffic", notes)
+                // Routes left by a server pick outside Tunnel mode (`switch`
+                // keeps the stored mode, Discord only after a teardown) are not
+                // necessarily the scope asked for: re-route them, and with it
+                // the resolver and the kill switch, instead of adopting them.
+                let current = await offMain { [tunnel] in tunnel.routeMode() }
+                guard TunnelScope.needsReroute(inTunnel: true, routeMode: current, to: tunnelMode) else {
+                    return finish(mode: .tunnel, ok: true,
+                                  message: "the tunnel was already carrying traffic", notes)
+                }
+                let changed = await offMain { [tunnel] in tunnel.changeMode(tunnelMode) }
+                var state = finish(mode: .tunnel, ok: changed.ok, message: changed.message, notes)
+                state.helperNote = changed.note
+                return state
             }
             let upStart = Date()
             let started = await offMain { [tunnel] in tunnel.start(mode: tunnelMode) }

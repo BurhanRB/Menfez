@@ -19,6 +19,23 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.4",
+            date: "2026-11-18",
+            tr: [
+                "Tünel düşerse interneti kes: açıksa tünel koptuğunda hiçbir şey tünel dışından çıkmaz. Tek tıkla Yeniden bağlan ya da Engeli kaldır.",
+                "Sızıntı testi: IP adresin, DNS ve IPv6 gerçekten tünelden mi gidiyor, tünel kartından bak.",
+                "Klavye kısayolu: Ayarlar'dan bir tuş kaydet, Doğrudan ile son modun arasında geç. İzin istemez.",
+                "Sunucu yokken Tünel'e basıp sunucu eklersen yeni sunucu seçilir ve tünel kayıtlı kapsamla (Tüm internet ya da Sadece Discord) açılır.",
+                "Tünel özellikleri için tünel bileşenini güncellemen gerekir. Menfez'deki Güncelle düğmesine bas.",
+            ],
+            en: [
+                "Block internet if the tunnel drops: when on, nothing leaves outside the tunnel after it drops. One click to Reconnect or Unblock.",
+                "Leak test: check from the tunnel card that your IP address, DNS and IPv6 really go through the tunnel.",
+                "Keyboard shortcut: record a key in Settings to switch between Direct and your last mode. No permission needed.",
+                "Pressing Tunnel with no server and then adding one now picks the new server and starts the tunnel with your saved scope (Whole internet or Discord only).",
+                "The tunnel features need an updated tunnel component. Press Update in Menfez.",
+            ]),
+        ChangelogEntry(
             version: "1.0.3",
             date: "2026-11-18",
             tr: [

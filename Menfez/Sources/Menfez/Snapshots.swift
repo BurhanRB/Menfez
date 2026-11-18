@@ -192,6 +192,27 @@ enum Snapshots {
                    to: "\(dir)/tunnel-scope.png")
         m.report = saved
         m.tunnelScope = .discord
+
+        // Kill switch on under the scope picker, then the tunnel dropped with
+        // the block holding. A window: the switch is AppKit.
+        m.helperVersion = HelperVersion.current
+        m.killSwitchActive = true
+        m.killSwitchProbe = { true }
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(dir)/killswitch-on.png")
+        m.report?.health = Health(ok: false, code: .stale, ageS: 400)
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(dir)/killswitch-blocked.png")
+        sideBySide("\(dir)/killswitch-on.png", "\(dir)/killswitch-blocked.png",
+                   to: "\(dir)/killswitch.png")
+        m.report = saved
+        m.killSwitchActive = false
+        m.killSwitchProbe = { false }
+
+        // A leak test in Whole internet with DNS leaking to the router.
+        renderView(LeakTestSheet(lang: .tr, lines: LeakTest.classify(LeakTest.Input(
+            scope: .all, tunnelIface: "utun4", egressIP: "185.65.134.77", endpoint: "185.65.134.10",
+            probeRouteIface: "utun4", resolvers: [("192.168.1.1", "en0")], hasPublicIPv6: true,
+            ipv6Route: "blocked", killSwitch: true))),
+                   .light, to: "\(dir)/leaktest.png")
         let servers = m.profiles
         m.profiles += [Profile(name: "bg-sof", file: "bg-sof.conf", endpoint: "94.156.1.20:51820",
                                country: "BG", display: "Bulgaristan")]
@@ -216,6 +237,11 @@ enum Snapshots {
         renderWindow(SettingsView(m: m), title: "Menfez", .dark, to: "\(dir)/settings.png")
         // Settings with the notification switches, Turkish, light.
         renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-notifications.png")
+        m.hotKey = HotKeyCombo(keyCode: 46, modifiers: HotKeyCombo.control | HotKeyCombo.option, key: "m")
+        m.hotKeyRefused = true
+        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-shortcut.png")
+        m.hotKey = nil
+        m.hotKeyRefused = false
 
         exit(0)
     }
