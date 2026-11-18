@@ -109,6 +109,9 @@ struct L {
             "tunnel_lost": "Tünel koptu. Trafiğin şu an şifresiz gidiyor olabilir.",
             "tunnel_lost_blocked": "Tünel koptu. Engel açık, trafik dışarı çıkmıyor.",
             "tunnel_helper_missing": "Tünel için bir kez kurulum gerekiyor. DPI kurulumsuz çalışır.",
+            "tunnel_not_installed": "Tünel bileşeni kurulu değil. Tüneli kur'a bas.",
+            "app_update_check": "Güncellemeleri denetle…",
+            "app_update_auto": "Güncellemeleri kendiliğinden denetle",
             "helper_no_reply": "yardımcı program yanıt vermedi",
             "launch_proxyNotRunning": "Önce DPI'ı aç. Proxy çalışmıyor.",
             "launch_invalidPort": "{port} portu kullanılamıyor",
@@ -499,6 +502,9 @@ struct L {
             "tunnel_lost": "The tunnel dropped. Your traffic may be going out unencrypted.",
             "tunnel_lost_blocked": "The tunnel dropped. Blocking is on, nothing goes out.",
             "tunnel_helper_missing": "The tunnel needs a one-time setup. DPI works without it.",
+            "tunnel_not_installed": "The tunnel helper isn't installed. Press Set up tunnel.",
+            "app_update_check": "Check for Updates…",
+            "app_update_auto": "Check for updates automatically",
             "helper_no_reply": "the helper did not answer",
             "launch_proxyNotRunning": "Turn on DPI first. The proxy isn't running.",
             "launch_invalidPort": "Port {port} can't be used",
@@ -866,7 +872,7 @@ struct L {
         guard state.ok else {
             let what = state.recovery == .chooseServer
                 ? t(TunnelRecovery.chooseServerMessageKey(hasProfiles: hasProfiles))
-                : state.message
+                : state.message == NoTunnel.message ? t("tunnel_not_installed") : state.message
             return t("failed", ["what": what])
         }
         let head: String
@@ -1243,13 +1249,14 @@ final class Model: ObservableObject {
         // The helper is only wired in when it exists. Without one, `NoTunnel`
         // refuses with a sentence instead of spawning sudo on every click — the
         // whole point of the rootless default.
+        // Re-checked on every call, so installing or removing the helper
+        // takes effect without a relaunch (`InstalledTunnel`).
         let helper = backend.helper
-        let hasHelper = FileManager.default.isExecutableFile(atPath: helper)
-        let tunnel: TunnelControl = hasHelper
-            ? HelperTunnel(client: backend.client,
+        let tunnel = InstalledTunnel(
+            installed: { FileManager.default.isExecutableFile(atPath: helper) },
+            helper: HelperTunnel(client: backend.client,
                            lastProfile: { UserDefaults.standard.string(forKey: Model.lastProfileKey) },
-                           dnsRouteArgs: { Model.dnsRouteArgs() })
-            : NoTunnel()
+                           dnsRouteArgs: { Model.dnsRouteArgs() }))
         tunnelControl = tunnel
         return ModeCoordinator(
             dpi: DPIMode(engine: DPIEngine(portStore: .standard),
@@ -1533,6 +1540,12 @@ final class Model: ObservableObject {
                 self.helperOutdated = HelperVersion.needsUpdate(installed: installed)
                     && self.canRunTunnelInstaller
                 if self.helperOutdated { Notifier.shared.post(.helperUpdate, lang: self.lang) }
+                // Quitting lifts the block (a block with no app would strand
+                // the user), so a relaunch, including Sparkle's after an
+                // update, puts it back on the adopted tunnel.
+                if self.coordinator.mode == .tunnel && KillSwitch.load() == nil {
+                    await self.applyKillSwitchAfterStart()
+                }
                 self.coordinator.updateRoutes = { Model.updateRoutes() }
                 // Removes an updates tunnel a quit app left behind.
                 await self.coordinator.syncUpdateTunnel()
@@ -4890,6 +4903,8 @@ struct MenfezApp: App {
         #if DEBUG
         Snapshots.renderIfRequested()
         #endif
+        // Sparkle's scheduled checks run whether or not a menu is ever opened.
+        _ = Updater.shared
     }
 
     var body: some Scene {
@@ -4905,6 +4920,13 @@ struct MenfezApp: App {
         .windowResizability(.contentSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(after: .appInfo) {
+                if Updater.shared.available {
+                    Button(L(lang: model.lang).t("app_update_check")) {
+                        Updater.shared.checkForUpdates()
+                    }
+                }
+            }
             // The menu entry point is the same one-click action as the big
             // button: start the proxy and launch Discord. It needs no helper, so
             // it is the item that always works — the tunnel's own commands live

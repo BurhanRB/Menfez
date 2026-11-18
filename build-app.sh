@@ -47,10 +47,14 @@ BUILD="$DIR/Menfez/.build/out/Products/Release"
 # that rm -rf and by assert_universal checking the freshly fused binaries.
 # Every release bumps the patch number (1.0.0 → 1.0.1 → 1.0.2 …) and adds an
 # entry to Menfez/Sources/MenfezCore/Changelog.swift; ChangelogTests checks both.
-VERSION="1.0.5"
+VERSION="1.0.6"
 MIN_MINOS="13.0"
 ARCHS="x86_64 arm64"
 XCODE="/Applications/Xcode.app/Contents/Developer"
+# Sparkle (docs/SIGNING.md §1c). The EdDSA public key pairs with the private
+# key in the release machine's login keychain (generate_keys --account menfez;
+# backup: docs/SIGNING.md). Only the public half is ever in the repository.
+SPARKLE_ED_PUBLIC_KEY="jN18KqaLFRcHVoTcjDB0BecdZ3XPDHQNV7LS099ZwMk="
 
 export MACOSX_DEPLOYMENT_TARGET="$MIN_MINOS"
 
@@ -116,7 +120,15 @@ for arch in $ARCHS; do
         mkdir -p "$SCRATCH/slices"
         cp "$BINPATH/$exe" "$SCRATCH/slices/$exe"
     done
+    # SwiftPM adds an rpath to its own build directory for Sparkle; it names
+    # this machine's home folder and means nothing on a user's Mac.
+    otool -l "$SCRATCH/slices/Menfez" | awk '/LC_RPATH/{r=1} r && $1=="path"{print $2; r=0}' \
+        | { grep PackageFrameworks || true; } | while read -r rp; do
+            install_name_tool -delete_rpath "$rp" "$SCRATCH/slices/Menfez"
+        done
+    SPARKLE_FW="$BINPATH/Sparkle.framework"
 done
+[ -d "$SPARKLE_FW" ] || { echo "error: Sparkle.framework not found next to the build products" >&2; exit 1; }
 
 echo "==> lipo (fusing slices)"
 for exe in Menfez menfez-route; do
@@ -131,6 +143,9 @@ echo "==> verifying architectures and deployment target"
 for exe in Menfez menfez-route; do
     assert_universal "$BUILD/$exe" "$exe"
 done
+if otool -l "$BUILD/Menfez" | grep -q PackageFrameworks; then
+    echo "error: Menfez still carries a build-directory rpath" >&2; exit 1
+fi
 
 # One test run, both the summary and the verdict. Two runs doubled a 25 s
 # step and, because the summary was piped through grep first, a failure could
@@ -168,6 +183,22 @@ cp "$HELPER" "$APP/Contents/MacOS/menfez-route"
 # The one-time tunnel setup the Help panel shows runs this script; it copies the
 # helper out of the bundle into a root-owned directory before granting it.
 cp "$DIR/install-helper.sh" "$APP/Contents/Resources/install-helper.sh"
+# Sparkle, found through @executable_path/../Frameworks (Package.swift).
+# ditto keeps the framework's symlinks. The XPC services exist for sandboxed
+# apps only; Menfez is not sandboxed, and Sparkle's docs allow removing them.
+mkdir -p "$APP/Contents/Frameworks"
+ditto "$SPARKLE_FW" "$APP/Contents/Frameworks/Sparkle.framework"
+rm -rf "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices" \
+       "$APP/Contents/Frameworks/Sparkle.framework/XPCServices"
+SPARKLE_DIR="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+for bin in Sparkle Autoupdate Updater.app/Contents/MacOS/Updater; do
+    archs="$(lipo -archs "$SPARKLE_DIR/$bin" 2>/dev/null || true)"
+    for want in $ARCHS; do
+        case " $archs " in *" $want "*) ;;
+            *) echo "error: Sparkle $bin is not universal ($archs)" >&2; exit 1 ;;
+        esac
+    done
+done
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -185,6 +216,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>LSMinimumSystemVersion</key>  <string>13.0</string>
     <key>NSHighResolutionCapable</key> <true/>
     <key>LSApplicationCategoryType</key> <string>public.app-category.utilities</string>
+    <key>SUPublicEDKey</key>           <string>${SPARKLE_ED_PUBLIC_KEY}</string>
+    <key>SUEnableAutomaticChecks</key> <true/>
+    <key>SUEnableSystemProfiling</key> <false/>
 </dict>
 </plist>
 PLIST

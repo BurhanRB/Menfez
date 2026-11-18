@@ -96,10 +96,12 @@ Nothing in the repository names an identity, an Apple ID or a password.
 | `MENFEZ_SIGN_IDENTITY` | `Developer ID Application: <Name> (<TEAMID>)`, exactly as `security find-identity` prints it | ad-hoc, as before |
 | `MENFEZ_NOTARY_PROFILE` | the keychain profile name, e.g. `menfez-notary` | no notarisation |
 
-With an identity, signing is inside-out and never `--deep`: `menfez-route`,
-then `Menfez.app` (both `--options runtime --timestamp`), then each dmg
-(`--timestamp`). No entitlements file: the app is not sandboxed, loads no
-third-party library and only spawns system tools (`/usr/bin/curl`,
+With an identity, signing is inside-out and never `--deep`: Sparkle's
+`Autoupdate` and `Updater.app`, `Sparkle.framework`, `menfez-route`, then
+`Menfez.app` (all `--options runtime --timestamp`), then each dmg
+(`--timestamp`). No entitlements file: the app is not sandboxed, its one
+third-party library (Sparkle, section 1c) is signed with the same identity,
+and it only spawns system tools (`/usr/bin/curl`,
 `/usr/sbin/netstat`, `/usr/bin/osascript`, ...), which the hardened runtime
 allows (section B). Bundle id, Info.plist and provisioning are unchanged.
 
@@ -147,6 +149,79 @@ spctl -a -vvv -t exec /Volumes/Menfez/Menfez.app      # after mounting it
 Then download the dmg through a browser on another Mac (so it is
 quarantined) and open it once before publishing. With neither variable set
 everything above is skipped and the build is ad-hoc, exactly as before.
+
+---
+
+## 1c. Sparkle updates (from 1.0.6)
+
+The app updates itself with Sparkle 2 (pinned in `Menfez/Package.swift`).
+Each update is checked twice: the dmg's EdDSA signature against
+`SUPublicEDKey` in Info.plist, and the new app's code signature against the
+running app's Team ID. The XPC services are removed (the app is not
+sandboxed); `Autoupdate`, `Updater.app` and the framework are signed
+inside-out by `tools/sign.sh` with the same Developer ID.
+
+**Feeds.** One appcast per dmg, chosen by the slice that is running
+(`UpdateFeed.swift`):
+
+    https://raw.githubusercontent.com/BurhanRB/Menfez/main/appcast-arm64.xml
+    https://raw.githubusercontent.com/BurhanRB/Menfez/main/appcast-intel.xml
+
+Plain files on the public repo's `main`, because GitHub's
+`releases/latest/download/...` URL skips pre-releases and every Menfez
+release so far is one. The enclosure URLs point at the release assets
+(`.../releases/download/v<version>/Menfez-<version>-<arch>.dmg`).
+
+**The EdDSA key.** Made once with Sparkle's `generate_keys --account menfez`;
+the private key is in the login keychain of the release Mac, the public key
+is `SPARKLE_ED_PUBLIC_KEY` in `build-app.sh`. The tools live in
+`Menfez/.build/artifacts/sparkle/Sparkle/bin/` after `swift package resolve`.
+
+Back it up once, now, and keep the file offline (an encrypted USB stick or a
+password manager attachment, never the repository or a cloud folder):
+
+```
+cd macos/Menfez/.build/artifacts/sparkle/Sparkle/bin
+./generate_keys --account menfez -x ~/Desktop/menfez-sparkle-private-key
+# move the file to the offline place, then delete it from the Desktop
+./generate_keys --account menfez -f <file>     # restore on a new Mac
+```
+
+If the key is lost, installed copies can no longer accept updates: every
+user would have to download the next version by hand. If it leaks, anyone
+who also controls the feed can sign an update (the Team ID check still
+stops a build that is not signed with our Developer ID). Rotation: Sparkle
+accepts a new `SUPublicEDKey` only from an update signed with the old key,
+so ship one release that carries the new public key, signed with the old
+private key, then sign everything after it with the new one.
+
+**Every release, after `build-dmg.sh` and `verify-build.sh`:**
+
+```
+cd macos
+./tools/make-appcast.sh              # writes appcast/appcast-arm64.xml and -intel.xml
+```
+
+The first run asks for keychain access for `sign_update`; choose
+*Always Allow* (the prompt can sit behind other windows). The script signs
+each stapled dmg, verifies the signature again and puts the Changelog entry
+(TR and EN) in as release notes. Then, in this order:
+
+1. Upload both dmgs to the GitHub release `v<version>` (the same files: a
+   rebuilt dmg has a different signature).
+2. Copy `appcast/appcast-arm64.xml` and `appcast/appcast-intel.xml` to the
+   root of the public repo and push `main`. Users see the update from then
+   on (raw.githubusercontent.com caches for about five minutes).
+
+Order matters: an appcast published before its dmg sends users to a 404.
+
+**Testing an update locally.** `Updater.swift` reads `MENFEZ_TEST_FEED`
+only in a build compiled with `-Xswiftc -DMENFEZ_UPDATE_TEST`; such a build
+also downloads and installs without asking. `make-appcast.sh` takes
+`MENFEZ_DMG_DIR`, `MENFEZ_URL_PREFIX`, `MENFEZ_APPCAST_OUT`,
+`MENFEZ_ED_KEY_FILE` and `MENFEZ_NOTES_VERSION` for that test, so a
+throwaway key and `python3 -m http.server --bind 127.0.0.1` are enough. Use
+a copy of the app with a different bundle id, never `/Applications/Menfez.app`.
 
 ---
 

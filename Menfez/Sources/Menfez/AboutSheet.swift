@@ -67,6 +67,14 @@ struct AboutSheet: View {
                 .padding(.top, 10)
 
             HStack {
+                if Updater.shared.available {
+                    Button(l.t("app_update_check")) { Updater.shared.checkForUpdates() }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .modifier(Chip())
+                        .foregroundStyle(Palette.text)
+                        .disabled(!Updater.shared.canCheck)
+                }
                 Spacer()
                 Button(l.t("close")) { onClose() }
                     .buttonStyle(.plain)

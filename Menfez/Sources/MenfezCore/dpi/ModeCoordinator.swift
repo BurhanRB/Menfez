@@ -298,16 +298,48 @@ extension TunnelControl {
 /// the state machine's decision "the tunnel is not available" is a value rather
 /// than a crash or a silent success.
 public struct NoTunnel: TunnelControl {
+    /// The refusal. The app matches it and shows its own TR/EN sentence.
+    public static let message = "The tunnel helper isn't installed. Press Set up tunnel."
     public init() {}
     public func isTunnelUp() -> Bool { false }
     public func start(mode: Mode) -> TunnelOutcome {
-        TunnelOutcome(ok: false,
-                      message: "this build has no privileged helper, so the tunnel "
-                          + "cannot start; DPI mode needs no helper")
+        TunnelOutcome(ok: false, message: NoTunnel.message)
     }
     public func stop() -> TunnelOutcome {
         TunnelOutcome(ok: true, message: "no tunnel to stop")
     }
+}
+
+/// The helper when it is installed, `NoTunnel` when it is not, decided on
+/// every call.
+///
+/// The choice used to be made once at launch, so a helper installed with
+/// "Set up tunnel" (or removed by `brew upgrade`) only counted after a
+/// relaunch: the tunnel button kept saying there was no helper.
+public struct InstalledTunnel: TunnelControl {
+    private let installed: @Sendable () -> Bool
+    private let helper: TunnelControl
+    private let absent: TunnelControl
+
+    public init(installed: @escaping @Sendable () -> Bool,
+                helper: TunnelControl,
+                absent: TunnelControl = NoTunnel()) {
+        self.installed = installed
+        self.helper = helper
+        self.absent = absent
+    }
+
+    private var current: TunnelControl { installed() ? helper : absent }
+
+    public func isTunnelUp() -> Bool { current.isTunnelUp() }
+    public func isCarryingTraffic() -> Bool { current.isCarryingTraffic() }
+    public func isCarryingTraffic(seen report: Report) -> Bool { current.isCarryingTraffic(seen: report) }
+    public func start(mode: Mode) -> TunnelOutcome { current.start(mode: mode) }
+    public func stop() -> TunnelOutcome { current.stop() }
+    public func startUpdates(_ routes: UpdateRoutes) -> TunnelOutcome { current.startUpdates(routes) }
+    public func isUpdatesOnly() -> Bool { current.isUpdatesOnly() }
+    public func routeMode() -> String { current.routeMode() }
+    public func changeMode(_ mode: Mode) -> TunnelOutcome { current.changeMode(mode) }
 }
 
 /// The real tunnel: the existing helper, through the existing helper path.

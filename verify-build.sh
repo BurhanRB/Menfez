@@ -61,6 +61,38 @@ for exe in "$APP/Contents/MacOS/Menfez" "$APP/Contents/MacOS/menfez-route"; do
     fi
 done
 
+# Sparkle (docs/SIGNING.md §1c): universal in the build, XPC services removed (the
+# app is not sandboxed), the feed key present and system profiling off.
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
+for bin in "$SPARKLE/Versions/B/Sparkle" "$SPARKLE/Versions/B/Autoupdate" \
+           "$SPARKLE/Versions/B/Updater.app/Contents/MacOS/Updater"; do
+    name="Sparkle/$(basename "$bin")"
+    got="$(lipo -archs "$bin" 2>/dev/null)"
+    missing=""
+    for want in $ARCHS; do
+        case " $got " in *" $want "*) ;; *) missing="$missing $want" ;; esac
+    done
+    if [ -z "$missing" ]; then
+        pass "$name is universal" "lipo -archs $bin -> $got"
+    else
+        fail "$name is universal" "lipo -archs $bin -> ${got:-missing}" "missing:$missing"
+    fi
+done
+if [ -e "$SPARKLE/Versions/B/XPCServices" ]; then
+    fail "Sparkle XPC services removed" "ls $SPARKLE/Versions/B/XPCServices" "present; only sandboxed apps need them"
+else
+    pass "Sparkle XPC services removed" "test ! -e $SPARKLE/Versions/B/XPCServices"
+fi
+plist="$APP/Contents/Info.plist"
+edkey="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' "$plist" 2>/dev/null)"
+profiling="$(/usr/libexec/PlistBuddy -c 'Print :SUEnableSystemProfiling' "$plist" 2>/dev/null)"
+if [ -n "$edkey" ] && [ "$profiling" = "false" ]; then
+    pass "Info.plist: SUPublicEDKey set, SUEnableSystemProfiling false" "PlistBuddy $plist"
+else
+    fail "Info.plist: SUPublicEDKey set, SUEnableSystemProfiling false" "PlistBuddy $plist" \
+         "key='${edkey}' profiling='${profiling}'"
+fi
+
 # --- 2. deployment target is 13.0 in every slice -------------------------
 # LC_BUILD_VERSION carries the minimum OS the loader enforces. Package.swift
 # saying .macOS(.v13) is not proof; only the Mach-O header is. Both slices are
@@ -114,13 +146,21 @@ else
     fail "app is signed" "codesign -dv $APP" "codesign could not read a signature"
 fi
 
-# Nested code is what `--deep` gets wrong, so both executables are checked
-# individually as well.
-for exe in "$APP/Contents/MacOS/Menfez" "$APP/Contents/MacOS/menfez-route"; do
+# Nested code is what `--deep` gets wrong, so both executables and Sparkle's
+# pieces are checked individually as well.
+for exe in "$APP/Contents/MacOS/Menfez" "$APP/Contents/MacOS/menfez-route" \
+           "$SPARKLE" "$SPARKLE/Versions/B/Autoupdate" "$SPARKLE/Versions/B/Updater.app"; do
     name="$(basename "$exe")"
     [ -f "$exe" ] || continue
     if codesign -dv "$exe" >/dev/null 2>&1; then
-        pass "$name is signed" "codesign -dv $exe -> $(codesign -dv "$exe" 2>&1 | grep -E '^Signature=' || echo 'no Signature= line')"
+        # Read into a variable first: grep -q closing the pipe early would
+        # make pipefail report a signed binary as unsigned.
+        sigs="$(codesign -dvv "$exe" 2>&1)"
+        if [ -n "${MENFEZ_SIGN_IDENTITY:-}" ] && ! grep -qxF "Authority=$MENFEZ_SIGN_IDENTITY" <<<"$sigs"; then
+            fail "$name is signed by $MENFEZ_SIGN_IDENTITY" "codesign -dvv $exe" "other identity"
+            continue
+        fi
+        pass "$name is signed" "codesign -dv $exe -> $(codesign -dv "$exe" 2>&1 | grep -E '^Signature=|^Authority=' | head -1 || echo 'no Signature= line')"
     else
         fail "$name is signed" "codesign -dv $exe" "not signed"
     fi
@@ -190,12 +230,23 @@ verify_dmg() {
     fi
 
     # The app inside must pass its own signature check after thinning.
-    if codesign --verify --strict "$IN" >/dev/null 2>&1; then
-        pass "dmg app signature verifies" "codesign --verify --strict $IN"
+    if codesign --verify --deep --strict "$IN" >/dev/null 2>&1; then
+        pass "dmg app signature verifies" "codesign --verify --deep --strict $IN"
     else
-        fail "dmg app signature verifies" "codesign --verify --strict $IN" \
-             "$(codesign --verify --strict "$IN" 2>&1 | tail -1)"
+        fail "dmg app signature verifies" "codesign --verify --deep --strict $IN" \
+             "$(codesign --verify --deep --strict "$IN" 2>&1 | tail -1)"
     fi
+
+    # Sparkle thinned with the app, so the arm64 image has no x86_64 slice.
+    local fwb="$IN/Contents/Frameworks/Sparkle.framework/Versions/B" sp
+    for sp in Sparkle Autoupdate Updater.app/Contents/MacOS/Updater; do
+        got="$(lipo -archs "$fwb/$sp" 2>/dev/null)"
+        if [ -n "$want_arch" ] && [ "$got" = "$want_arch" ]; then
+            pass "Sparkle $sp is $want_arch only" "lipo -archs $fwb/$sp -> $got"
+        else
+            fail "Sparkle $sp is ${want_arch:-thin}" "lipo -archs $fwb/$sp -> ${got:-missing}" "wrong or missing slice"
+        fi
+    done
 
     # Executables: the dmg's architecture only, and the same code as that
     # slice of the build. A dmg built from a stale Menfez.app is

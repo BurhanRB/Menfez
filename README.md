@@ -213,4 +213,4 @@ More: [DPI-ENGINE](docs/DPI-ENGINE.md) · [READ-PATH](docs/READ-PATH.md) · [SIG
 
 </details>
 
-Apache-2.0, bkz. / see [LICENSE](LICENSE). Discord is a trademark of Discord Inc.; Menfez is not affiliated with it.
+Apache-2.0, bkz. / see [LICENSE](LICENSE). Üçüncü taraf / third-party: Sparkle (MIT), [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md). Discord is a trademark of Discord Inc.; Menfez is not affiliated with it.

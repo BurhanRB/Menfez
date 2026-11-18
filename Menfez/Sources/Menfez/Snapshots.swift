@@ -259,6 +259,15 @@ enum Snapshots {
         m.hotKey = nil
         m.hotKeyRefused = false
 
+        // Updates (1.0.6): the Settings switch beside the menu-bar items.
+        Updater.shared.available = true
+        renderWindow(HStack(alignment: .top, spacing: 0) {
+                        SettingsView(m: m)
+                        VStack(alignment: .leading, spacing: 6) { MenuBarContent(m: m) }
+                            .buttonStyle(.plain).toggleStyle(MenuCheck())
+                            .padding(12).frame(width: 300)
+                    }, title: "Menfez", .light, to: "\(dir)/updates.png")
+
         exit(0)
     }
 

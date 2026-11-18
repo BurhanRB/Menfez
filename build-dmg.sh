@@ -34,7 +34,8 @@ fi
 
 # The app must be universal before slicing: a single-arch app here means the
 # build script produced something unexpected and neither image would be right.
-for bin in "$APP/Contents/MacOS/Menfez" "$APP/Contents/MacOS/menfez-route"; do
+for bin in "$APP/Contents/MacOS/Menfez" "$APP/Contents/MacOS/menfez-route" \
+           "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/Sparkle"; do
     [ -x "$bin" ] || { echo "error: missing $bin" >&2; exit 1; }
     archs="$(lipo -archs "$bin" 2>/dev/null)"
     case "$archs" in
@@ -100,8 +101,12 @@ build_image() {
 
     # Thin both executables. `lipo -thin` rewrites in place only via a temp
     # file, so copy then replace to keep the bundle's permissions.
-    for bin in Menfez menfez-route; do
-        local target="$work/Menfez.app/Contents/MacOS/$bin"
+    # Sparkle's binaries too: an x86_64 slice anywhere in the arm64 image
+    # brings back the macOS 27 warning this split exists to avoid.
+    local fw="Frameworks/Sparkle.framework/Versions/B"
+    for bin in MacOS/Menfez MacOS/menfez-route "$fw/Sparkle" "$fw/Autoupdate" \
+               "$fw/Updater.app/Contents/MacOS/Updater"; do
+        local target="$work/Menfez.app/Contents/$bin"
         lipo -thin "$slice" "$target" -output "$target.thin" 2>/dev/null
         mv "$target.thin" "$target"
         chmod 0755 "$target"

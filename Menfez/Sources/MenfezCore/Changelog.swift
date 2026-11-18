@@ -19,6 +19,21 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.6",
+            date: "2026-11-18",
+            tr: [
+                "Menfez artık kendini güncelleyebilir. Yeni sürüm çıkınca sorar, tek tıkla kurar ve yeniden açılır.",
+                "Menü çubuğunda ve Hakkında'da Güncellemeleri denetle var. Kendiliğinden denetlemeyi Ayarlar'dan kapatabilirsin.",
+                "Güncelleme açık tüneli kapatmaz. Tünel düşerse interneti kes açıksa Menfez yeniden açılınca yine devreye girer.",
+                "Tüneli kur'a bastıktan sonra Tünel düğmesi Menfez'i yeniden başlatmadan çalışıyor.",
+            ],
+            en: [
+                "Menfez can now update itself. When a new version is out it asks, installs with one click and reopens.",
+                "Check for Updates is in the menu bar and in About. You can turn automatic checks off in Settings.",
+                "An update doesn't close an open tunnel. With Block internet if the tunnel drops on, it comes back on when Menfez reopens.",
+                "After Set up tunnel, the Tunnel button works without restarting Menfez.",
+            ]),
+        ChangelogEntry(
             version: "1.0.5",
             date: "2026-11-18",
             tr: [

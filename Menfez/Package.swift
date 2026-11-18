@@ -20,6 +20,11 @@ let package = Package(
         .executable(name: "menfez-route", targets: ["menfez-route"]),
         .library(name: "MenfezCore", targets: ["MenfezCore"]),
     ],
+    // Sparkle 2 for in-app updates (docs/SIGNING.md §1c): EdDSA-verified
+    // archives, Team ID check, atomic replace. Exact pin; the UI target only.
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.1"),
+    ],
     targets: [
         .target(
             name: "MenfezCore",
@@ -27,9 +32,11 @@ let package = Package(
         ),
         .executableTarget(
             name: "Menfez",
-            dependencies: ["MenfezCore"],
+            dependencies: ["MenfezCore", .product(name: "Sparkle", package: "Sparkle")],
             path: "Sources/Menfez",
-            swiftSettings: [.unsafeFlags(["-parse-as-library"])]
+            swiftSettings: [.unsafeFlags(["-parse-as-library"])],
+            // build-app.sh copies Sparkle.framework into Contents/Frameworks.
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]
         ),
         .executableTarget(
             name: "menfez-route",

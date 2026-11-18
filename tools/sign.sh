@@ -9,11 +9,13 @@
 # Nothing here names an identity, an Apple ID or a password; they come only
 # from the environment and the keychain. See docs/SIGNING.md, "Release checklist".
 #
-# Developer ID signing is inside-out and never --deep: menfez-route, then the
-# app, then (build-dmg.sh) the dmg. Hardened runtime and a secure timestamp
-# are what notarisation requires. No entitlements file: the app is not
-# sandboxed, loads no third-party library and only spawns system tools, none
-# of which needs a hardened-runtime exception.
+# Developer ID signing is inside-out and never --deep: Sparkle's helpers
+# (Autoupdate, Updater.app), Sparkle.framework, menfez-route, then the app,
+# then (build-dmg.sh) the dmg. Hardened runtime and a secure timestamp are
+# what notarisation requires. No entitlements file: the app is not sandboxed
+# and only spawns system tools; the one third-party library, Sparkle, is
+# signed here with the same identity, so library validation passes. Sparkle's
+# XPC services are removed by build-app.sh (they serve sandboxed apps only).
 
 SIGN_IDENTITY="${MENFEZ_SIGN_IDENTITY:-}"
 NOTARY_PROFILE="${MENFEZ_NOTARY_PROFILE:-}"
@@ -33,6 +35,13 @@ sign_app() {
         return 0
     fi
     echo "    signing with: $SIGN_IDENTITY"
+    local fw="$app/Contents/Frameworks/Sparkle.framework"
+    if [ -d "$fw" ]; then
+        local item
+        for item in "$fw/Versions/B/Autoupdate" "$fw/Versions/B/Updater.app" "$fw"; do
+            codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$item"
+        done
+    fi
     codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" \
         "$app/Contents/MacOS/menfez-route"
     codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$app"
@@ -57,7 +66,7 @@ notarise_dmg() {
     [ -n "$NOTARY_PROFILE" ] || return 0
     echo "    notarising (this waits for Apple)"
     local out
-    out="$(xcrun notarytool submit "$dmg" --keychain-profile "$NOTARY_PROFILE" --wait 2>&1)" || true
+    out="$(xcrun notarytool submit "$dmg" --keychain-profile "$NOTARY_PROFILE" --wait --timeout "${MENFEZ_NOTARY_TIMEOUT:-25m}" 2>&1)" || true
     echo "$out" | sed 's/^/    /'
     # --wait can end with status Invalid; only Accepted may be stapled.
     if ! echo "$out" | grep -q "status: Accepted"; then

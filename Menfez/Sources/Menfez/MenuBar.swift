@@ -32,6 +32,7 @@ struct MenuBarContent: View {
     static let mainWindowID = "main"
 
     @ObservedObject var m: Model
+    @ObservedObject var updater = Updater.shared
     @Environment(\.openWindow) private var openWindow
 
     private var statusLine: String {
@@ -105,6 +106,11 @@ struct MenuBarContent: View {
             Text(hint).disabled(true)
         }
 
+        if updater.available {
+            Button(m.l.t("app_update_check")) { updater.checkForUpdates() }
+                .disabled(!updater.canCheck)
+        }
+
         Button(m.l.t("menu_open")) {
             NSApp.activate(ignoringOtherApps: true)
             openWindow(id: Self.mainWindowID)
@@ -132,6 +138,7 @@ struct MenuBarContent: View {
 /// Cmd-, : the one setting that is about the app rather than the network.
 struct SettingsView: View {
     @ObservedObject var m: Model
+    @ObservedObject var updater = Updater.shared
     @AppStorage(DiscordUpdateRoutes.defaultsKey) private var updatesViaTunnel = true
     @AppStorage(NotificationEvent.tunnelDropped.defaultsKey) private var notifyTunnel = true
     @AppStorage(NotificationEvent.serverRemoved.defaultsKey) private var notifyServer = true
@@ -152,6 +159,13 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            if updater.available {
+                Toggle(isOn: Binding(
+                    get: { updater.automatic },
+                    set: { updater.setAutomatic($0) })) {
+                    Text(m.l.t("app_update_auto")).fixedSize(horizontal: false, vertical: true)
+                }
             }
             if m.capabilities.tunnelAvailable {
                 Picker(m.l.t("scope_label"), selection: Binding(
