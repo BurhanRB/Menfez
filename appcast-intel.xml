@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Menfez (intel)</title>
+    <item>
+      <title>Menfez 1.0.6</title>
+      <pubDate>Wed, 18 Nov 2026 13:05:46 +0000</pubDate>
+      <sparkle:version>1.0.6</sparkle:version>
+      <sparkle:shortVersionString>1.0.6</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<h3>Yenilikler</h3><ul><li>Menfez artık kendini güncelleyebilir. Yeni sürüm çıkınca sorar, tek tıkla kurar ve yeniden açılır.</li><li>Menü çubuğunda ve Hakkında'da Güncellemeleri denetle var. Kendiliğinden denetlemeyi Ayarlar'dan kapatabilirsin.</li><li>Güncelleme açık tüneli kapatmaz. Tünel düşerse interneti kes açıksa Menfez yeniden açılınca yine devreye girer.</li><li>Tüneli kur'a bastıktan sonra Tünel düğmesi Menfez'i yeniden başlatmadan çalışıyor.</li></ul><h3>What's new</h3><ul><li>Menfez can now update itself. When a new version is out it asks, installs with one click and reopens.</li><li>Check for Updates is in the menu bar and in About. You can turn automatic checks off in Settings.</li><li>An update doesn't close an open tunnel. With Block internet if the tunnel drops on, it comes back on when Menfez reopens.</li><li>After Set up tunnel, the Tunnel button works without restarting Menfez.</li></ul>]]></description>
+      <enclosure url="https://github.com/BurhanRB/Menfez/releases/download/v1.0.6/Menfez-1.0.6-intel.dmg" type="application/octet-stream" sparkle:edSignature="aHDYs1ZKNmwuXK+ijCbixadekkaY5K43Wn5FMFajkOV6i3jDqwuSaa76vD2jr1BNW6tlVTj874bHIq7LQq2DBw==" length="3872187"/>
+    </item>
+  </channel>
+</rss>
