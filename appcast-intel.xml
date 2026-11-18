@@ -3,13 +3,13 @@
   <channel>
     <title>Menfez (intel)</title>
     <item>
-      <title>Menfez 1.0.9</title>
-      <pubDate>Wed, 18 Nov 2026 22:31:12 +0000</pubDate>
-      <sparkle:version>1.0.9</sparkle:version>
-      <sparkle:shortVersionString>1.0.9</sparkle:shortVersionString>
+      <title>Menfez 1.0.10</title>
+      <pubDate>Wed, 18 Nov 2026 23:22:16 +0000</pubDate>
+      <sparkle:version>1.0.10</sparkle:version>
+      <sparkle:shortVersionString>1.0.10</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<h3>Yenilikler</h3><ul><li>Ayarlar yenilendi. Artık başlığı Ayarlar ve beş sekmesi var: Genel, Tünel, Bildirimler, Kısayol, Güncellemeler. Dil ve görünüm de Genel'de.</li><li>Kısayol sekmesinde hazır kısayollar var. Birine tıkla, hemen kullanılır. Başka bir uygulama kullanıyorsa Menfez bunu söyler.</li><li>Dili değiştirince uygulama menüleri hemen o dile geçer.</li><li>Menfez açıkken adının yanındaki nokta yavaşça nefes alır. Hareketi azalt açıksa durur. Düğmeler basınca belli olur.</li><li>Menfez arka planda daha az çalışır. Pencere kapalıyken ve tünel yokken neredeyse hiç işlemci kullanmaz.</li><li>"Tünel düşerse interneti kes" açıkken Mac'in kendi içindeki bağlantılar artık takılmaz. Bunun için tünel bileşenini güncelle.</li><li>Hata mesajları ne yapman gerektiğini de söylüyor. DPI açıkken üstteki satır sade bir dille durumu gösterir.</li><li>DPI modunda Discord tek satırda görünür, sayılar Ayrıntılar altında durur. Tünel kurulumu neyin eksik olduğunu daha açık söyler ve gereken komutu tek tıkla kopyalarsın. Silme düğmelerine tıklamak daha kolay. Ayarlar en son baktığın sekmede açılır.</li></ul><h3>What's new</h3><ul><li>Settings is new. It is now titled Settings and has five tabs: General, Tunnel, Notifications, Shortcut and Updates. Language and look are in General.</li><li>The Shortcut tab has ready-made shortcuts. Click one and it works right away. If another app uses it, Menfez tells you.</li><li>When you change the language, the app menus switch to it right away.</li><li>While Menfez is on, the dot next to its name breathes slowly. It stays still with Reduce Motion. Buttons now show when you press them.</li><li>Menfez does less in the background. With the window closed and no tunnel, it uses almost no CPU.</li><li>With "Block internet if the tunnel drops" on, connections inside your Mac no longer hang. This needs an updated tunnel component.</li><li>Error messages now say what to do next. In DPI mode the line at the top shows the state in plain words.</li><li>In DPI mode Discord shows up in one row and the numbers sit under Details. Tunnel setup says more clearly what is missing, and you can copy the command it needs in one click. Remove buttons are easier to click. Settings opens on the tab you used last.</li></ul>]]></description>
-      <enclosure url="https://github.com/BurhanRB/Menfez/releases/download/v1.0.9/Menfez-1.0.9-intel.dmg" type="application/octet-stream" sparkle:edSignature="lnKKu9ZCSivlBgQw6xYMgsvgrSXkJBEN3HSn4NTJd/Cf8HUejXV6Gia9V7dihxsjqxbpjG+2JbcuXTb43SgJCQ==" length="4559096"/>
+      <description><![CDATA[<h3>Yenilikler</h3><ul><li>Pencere açıkken Menfez daha az iş yapar. Böylece daha az pil ve işlemci harcar.</li><li>Menfez arkada kalınca adının yanındaki nokta dinlenir. Pencereye dönünce yeniden nefes alır.</li></ul><h3>What's new</h3><ul><li>With the window open, Menfez does less work, so it uses less battery and CPU.</li><li>When Menfez is in the background, the dot next to its name rests. It starts breathing again when you come back to the window.</li></ul>]]></description>
+      <enclosure url="https://github.com/BurhanRB/Menfez/releases/download/v1.0.10/Menfez-1.0.10-intel.dmg" type="application/octet-stream" sparkle:edSignature="Asczeu9xeJQqWQKyE/5PifPCMN11YjtVzOzmASEs3sl73FcUzIsxxQS/Nq1ggAEmOcpqLsJ/snuzky9BK3S1AQ==" length="4566765"/>
     </item>
   </channel>
 </rss>
