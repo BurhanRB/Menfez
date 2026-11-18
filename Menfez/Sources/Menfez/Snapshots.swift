@@ -106,6 +106,7 @@ enum Snapshots {
         renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-remove.png")
         m.tunnelInstall = .idle
         renderView(AboutSheet(lang: .tr) {}, .light, to: "\(dir)/info.png")
+        renderView(AboutSheet(lang: .en) {}, .light, to: "\(dir)/about-licenses.png")
         // A made-up older release, here only, to show the collapsed row.
         let older = ChangelogEntry(version: "0.9.9", date: "2026-10-01",
                                    tr: ["Örnek eski sürüm."], en: ["Sample older release."])
@@ -234,6 +235,21 @@ enum Snapshots {
                                country: "BG", display: "Bulgaristan")]
         renderView(ContentView(m: m).serverSheet, .light, to: "\(dir)/servers.png")
         m.profiles = servers
+
+        // Keys in the Keychain (1.0.7): the offer with one key still in its
+        // file, then everything moved (lock icons, the way back below).
+        m.keychainSigned = true
+        m.helperVersion = HelperVersion.current
+        m.profiles = [Profile(name: "de-fra", file: "de-fra.conf", endpoint: "185.65.134.10:51820",
+                              country: "DE", display: "Almanya", keychain: true),
+                      Profile(name: "bg-sof", file: "bg-sof.conf", endpoint: "94.156.1.20:51820",
+                              country: "BG", display: "Bulgaristan")]
+        renderView(ContentView(m: m).serverSheet, .light, to: "\(dir)/keychain-offer.png")
+        m.profiles[1].keychain = true
+        renderView(ContentView(m: m).serverSheet, .light, to: "\(dir)/keychain-moved.png")
+        sideBySide("\(dir)/keychain-offer.png", "\(dir)/keychain-moved.png", to: "\(dir)/keychain.png")
+        m.profiles = servers
+        m.helperVersion = 0
 
         // Menu-bar pieces. A real NSMenu cannot be rendered offscreen, so the
         // menu's items are laid out as plain controls: same content, same order.

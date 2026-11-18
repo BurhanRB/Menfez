@@ -183,4 +183,12 @@ public enum Validate {
         }
         return true
     }
+
+    /// A WireGuard key: 44 characters of base64 that decode to 32 bytes.
+    /// Crosses into root on `switch --key-stdin`, so nothing looser is accepted
+    /// (no whitespace, no other length, no URL-safe alphabet).
+    public static func isWireGuardKey(_ text: String) -> Bool {
+        text.utf8.count == 44 && text.hasSuffix("=")
+            && Data(base64Encoded: text)?.count == 32
+    }
 }

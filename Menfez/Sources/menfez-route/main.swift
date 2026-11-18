@@ -19,7 +19,7 @@
 //     teardown          down, then stop the interface and delete its config
 //     version           protocol version, for the app's update notice
 //     mode <discord|all>
-//     switch <profile>
+//     switch <profile> [--key-stdin]   key from the Keychain, one line on stdin (v5)
 //     --site-routes IP,IP   (up/mode/switch) chosen sites' addresses, Discord mode only
 //     dns status | set <preset-id|ip> | auto
 //     detail <ip|routes|dns|tunnel|discord> [--value V]
@@ -90,6 +90,7 @@ func usage() -> Never {
       mode <discord|all|updates> [--dry-run] [--dns-routes IP,IP] [--host-routes IP,IP] [--tunnel-dns IP,IP]
            [--site-routes IP,IP]
       switch <profile-name> [--dns-routes IP,IP] [--tunnel-dns IP,IP] [--site-routes IP,IP]
+             [--key-stdin]       (the profile's private key, one line on standard input)
       dns status | set <preset-id|address> | auto
       detail <ip|routes|dns|tunnel|discord> [--value V]
       profiles
@@ -388,12 +389,22 @@ case "mode":
 case "switch":
     requireRoot()
     guard let name = args.first else { fail("switch needs a profile name", exit: 2) }
+    // `--key-stdin`: the app read the key from the user's Keychain. A bare
+    // flag only; at most `KeyInput.limit` bytes are read and one valid key
+    // line is all that is accepted. The key is never printed or logged.
+    var key: String?
+    if args.has("key-stdin") || args.value("key-stdin") != nil {
+        guard args.value("key-stdin") == nil,
+              let parsed = KeyInput.parse(FileHandle.standardInput.readData(ofLength: KeyInput.limit + 1))
+        else { fail("--key-stdin needs one WireGuard key line on standard input", exit: 2) }
+        key = parsed
+    }
     let routes = dnsRoutes()
     let sites = siteRoutes()
     let servers = tunnelDNS()
     reconcileOrFail(RouteManager())
     let result = withKillSwitch(withTunnelDNS(WireGuardProfiles.switchTo(name: name, dnsRoutes: routes,
-                                                                         siteRoutes: sites),
+                                                                         siteRoutes: sites, key: key),
                                               servers: servers))
     emit(result, exit: result.ok ? 0 : 1)
 

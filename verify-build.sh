@@ -83,6 +83,12 @@ if [ -e "$SPARKLE/Versions/B/XPCServices" ]; then
 else
     pass "Sparkle XPC services removed" "test ! -e $SPARKLE/Versions/B/XPCServices"
 fi
+notices="$APP/Contents/Resources/ThirdPartyNotices.txt"
+if grep -q "Permission is hereby granted" "$notices" 2>/dev/null; then
+    pass "Sparkle MIT license shipped" "grep 'Permission is hereby granted' $notices"
+else
+    fail "Sparkle MIT license shipped" "grep 'Permission is hereby granted' $notices" "missing"
+fi
 plist="$APP/Contents/Info.plist"
 edkey="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' "$plist" 2>/dev/null)"
 profiling="$(/usr/libexec/PlistBuddy -c 'Print :SUEnableSystemProfiling' "$plist" 2>/dev/null)"

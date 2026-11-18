@@ -159,6 +159,18 @@ struct L {
             "srv_bad_name": "Bu ad olmaz. Harf, rakam, boşluk, - ya da _ kullan (en çok 64).",
             "srv_name_taken": "Bu adda bir sunucu zaten var.",
             "srv_replaced": "Config yenilendi: {name}",
+            "kc_offer_title": "Sunucu anahtarlarını Anahtar Zinciri'ne taşı",
+            "kc_offer_body": "Anahtar diskte düz metin olarak kalmaz.",
+            "kc_move": "Taşı",
+            "kc_not_now": "Şimdi değil",
+            "kc_move_link": "Anahtarları Anahtar Zinciri'ne taşı",
+            "kc_restore": "Anahtarları dosyaya geri yaz",
+            "kc_in_keychain": "Anahtar, Anahtar Zinciri'nde",
+            "kc_moved": "Anahtarlar Anahtar Zinciri'nde ({n})",
+            "kc_move_failed": "{n} anahtar taşınamadı; o dosyalar değişmedi.",
+            "kc_restored": "Anahtarlar dosyalara geri yazıldı ({n})",
+            "kc_restore_failed": "{n} anahtar geri yazılamadı; o dosyalar değişmedi.",
+            "kc_failed": "Anahtar Zinciri'ne erişilemedi; tünel açılamadı",
             "f_discord": "Discord",
             "up": "Tünel açık",
             "down": "Tünel kapalı, bağlantın doğrudan gidiyor",
@@ -259,6 +271,7 @@ struct L {
             "about_web": "Web sitesi",
             "about_support": "Destek ol",
             "about_license": "Açık kaynak, Apache-2.0 lisanslı.",
+            "about_licenses": "Üçüncü taraf lisansları",
             "dt_IP": "IP",
             "dt_Reverse DNS": "Ters DNS",
             "dt_City": "Şehir",
@@ -552,6 +565,18 @@ struct L {
             "srv_bad_name": "That name won't work. Use letters, digits, spaces, - or _ (up to 64).",
             "srv_name_taken": "A server with that name already exists.",
             "srv_replaced": "Config replaced: {name}",
+            "kc_offer_title": "Move server keys to Keychain",
+            "kc_offer_body": "Keys won't sit on disk as plain text.",
+            "kc_move": "Move",
+            "kc_not_now": "Not now",
+            "kc_move_link": "Move keys to Keychain",
+            "kc_restore": "Write keys back to files",
+            "kc_in_keychain": "Key is in Keychain",
+            "kc_moved": "Keys are in Keychain ({n})",
+            "kc_move_failed": "Couldn't move {n} key(s); those files are unchanged.",
+            "kc_restored": "Keys written back to files ({n})",
+            "kc_restore_failed": "Couldn't write back {n} key(s); those files are unchanged.",
+            "kc_failed": "Couldn't read Keychain; tunnel not started",
             "f_discord": "Discord",
             "up": "Tunnel is on",
             "down": "Tunnel is off. Your connection goes direct.",
@@ -652,6 +677,7 @@ struct L {
             "about_web": "Website",
             "about_support": "Support",
             "about_license": "Open source, Apache-2.0 license.",
+            "about_licenses": "Third-party licenses",
             "dt_IP": "IP",
             "dt_Reverse DNS": "Reverse DNS",
             "dt_City": "City",
@@ -872,7 +898,8 @@ struct L {
         guard state.ok else {
             let what = state.recovery == .chooseServer
                 ? t(TunnelRecovery.chooseServerMessageKey(hasProfiles: hasProfiles))
-                : state.message == NoTunnel.message ? t("tunnel_not_installed") : state.message
+                : state.message == NoTunnel.message ? t("tunnel_not_installed")
+                : state.message == ProfileKeys.readFailure ? t("kc_failed") : state.message
             return t("failed", ["what": what])
         }
         let head: String
@@ -944,6 +971,25 @@ enum Countries {
 /// slower schedule and merged in. See docs/READ-PATH.md.
 // @unchecked: every stored property is set in init and never mutated after
 // (`client` is lazy but forced in init); HelperClient is itself Sendable.
+/// The two switches behind "keys in the Keychain" (1.0.7).
+enum KeychainKeys {
+    /// The user moved keys to the Keychain; new imports follow.
+    static let onKey = "keychain.on"
+    static let dismissedKey = "keychain.offerDismissed"
+
+    /// After an import: once keys live in the Keychain, the new file's key
+    /// goes there too. A failed move leaves the file as imported (it still
+    /// works); the next "Move keys" picks it up.
+    static func follow(_ result: Result<Profile, WireGuardProfiles.ImportError>)
+        -> Result<Profile, WireGuardProfiles.ImportError> {
+        guard case .success(var profile) = result,
+              UserDefaults.standard.bool(forKey: onKey), KeychainStore.signedWithTeam
+        else { return result }
+        if ProfileKeys.moveToStore(file: profile.file, store: KeychainStore()) { profile.keychain = true }
+        return .success(profile)
+    }
+}
+
 final class Backend: @unchecked Sendable {
     /// Absolute path of the privileged helper: always the root-owned installed
     /// copy the sudoers rule names. A copy in the bundle or a build directory
@@ -1049,7 +1095,7 @@ final class Backend: @unchecked Sendable {
     /// no sudo. The write is mode 0600 from the first byte.
     func importConfig(from path: String,
                       overwrite: Bool) -> Result<Profile, WireGuardProfiles.ImportError> {
-        WireGuardProfiles.importConfig(from: path, overwrite: overwrite)
+        KeychainKeys.follow(WireGuardProfiles.importConfig(from: path, overwrite: overwrite))
     }
 
     /// The DNS sheet's data. Costs a burst of `dig` (three per preset), so it
@@ -1561,6 +1607,47 @@ final class Model: ObservableObject {
     @Published var helperOutdated = false
     /// What `menfez-route version` answered; 0 until asked or when too old.
     @Published var helperVersion = 0
+
+    // MARK: - Keys in the Keychain (1.0.7)
+
+    /// Signed with a Team ID; a stored value so the snapshot can set it.
+    var keychainSigned = KeychainStore.signedWithTeam
+    /// Moving keys needs a signed build and a helper that takes `--key-stdin`.
+    var keychainAvailable: Bool { keychainSigned && helperVersion >= 5 }
+    /// "Not now" on the offer; the servers sheet keeps a quiet link instead.
+    @Published var keychainOfferDismissed = UserDefaults.standard.bool(forKey: KeychainKeys.dismissedKey) {
+        didSet { UserDefaults.standard.set(keychainOfferDismissed, forKey: KeychainKeys.dismissedKey) }
+    }
+
+    /// Move every profile's key into the Keychain, or back into its file.
+    /// Each file changes only after its key is safely on the other side.
+    func moveKeys(toKeychain: Bool) {
+        guard !busy, toKeychain ? keychainAvailable : true else { return }
+        busy = true
+        Task {
+            let (done, failed) = await Task.detached(priority: .userInitiated) {
+                let census = ProfileKeys.census()
+                let store = KeychainStore()
+                let files = toKeychain ? census.plain : census.moved
+                let done = files.filter {
+                    toKeychain ? ProfileKeys.moveToStore(file: $0, store: store)
+                               : ProfileKeys.moveToFile(file: $0, store: store)
+                }.count
+                return (done, files.count - done)
+            }.value
+            self.busy = false
+            UserDefaults.standard.set(toKeychain, forKey: KeychainKeys.onKey)
+            if toKeychain { self.keychainOfferDismissed = true }
+            if failed > 0 {
+                self.status = self.l.t(toKeychain ? "kc_move_failed" : "kc_restore_failed", ["n": "\(failed)"])
+                self.statusColor = Palette.danger
+            } else {
+                self.status = self.l.t(toKeychain ? "kc_moved" : "kc_restored", ["n": "\(done)"])
+                self.statusColor = Palette.success
+            }
+            self.loadProfiles()
+        }
+    }
 
     // MARK: - Shortcut
 
@@ -2826,7 +2913,7 @@ final class Model: ObservableObject {
         guard panel.runModal() == .OK, let url = panel.url else { return }
         Task {
             let result = await Task.detached(priority: .userInitiated) {
-                WireGuardProfiles.importConfig(from: url.path, overwrite: true, as: p.name)
+                KeychainKeys.follow(WireGuardProfiles.importConfig(from: url.path, overwrite: true, as: p.name))
             }.value
             switch result {
             case .success:
@@ -2961,7 +3048,8 @@ final class Model: ObservableObject {
                 self.status = done + suffix
                 self.statusColor = notes.isEmpty ? Palette.success : Palette.warning
             } else {
-                let reason = result?.error ?? self.l.t("helper_no_reply")
+                let reason = result?.error == ProfileKeys.readFailure ? self.l.t("kc_failed")
+                    : result?.error ?? self.l.t("helper_no_reply")
                 self.status = self.l.t("failed", ["what": String(reason.prefix(150))])
                 self.statusColor = Palette.danger
             }
@@ -4418,6 +4506,8 @@ struct ContentView: View {
                 .foregroundStyle(Palette.text)
                 .padding(.bottom, 10)
 
+            if keychainOffer { keychainOfferRow }
+
             if m.profiles.isEmpty {
                 Text(m.l.t("no_profiles"))
                     .font(.system(size: 12))
@@ -4445,6 +4535,16 @@ struct ContentView: View {
                 .foregroundStyle(Palette.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 10)
+
+            // The quiet way back: after "Not now", or to undo a move.
+            if !keychainOffer, let link = keychainLink {
+                Button(m.l.t(link.key)) { m.moveKeys(toKeychain: link.toKeychain) }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Palette.accent)
+                    .disabled(m.busy)
+                    .padding(.top, 4)
+            }
 
             HStack(spacing: 6) {
                 Button(m.l.t("import_conf")) { importConfig() }
@@ -4480,6 +4580,51 @@ struct ContentView: View {
         }
     }
 
+    /// Some keys still sit in files and the offer was not turned down.
+    private var keychainOffer: Bool {
+        m.keychainAvailable && !m.keychainOfferDismissed && m.profiles.contains { $0.keychain != true }
+    }
+
+    /// "Move keys to Keychain" while any file holds its key, else "Write keys
+    /// back" while any key is in the Keychain. Restoring works without the
+    /// signed-build check, so a key is never stranded.
+    private var keychainLink: (key: String, toKeychain: Bool)? {
+        if m.keychainAvailable, m.profiles.contains(where: { $0.keychain != true }) {
+            return ("kc_move_link", true)
+        }
+        return m.profiles.contains(where: { $0.keychain == true }) ? ("kc_restore", false) : nil
+    }
+
+    /// The one-time offer after the upgrade to 1.0.7.
+    private var keychainOfferRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Palette.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(m.l.t("kc_offer_title"))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Palette.text)
+                    Text(m.l.t("kc_offer_body"))
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.secondary)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(spacing: 6) {
+                Spacer()
+                sheetButton(m.l.t("kc_not_now")) { m.keychainOfferDismissed = true }
+                sheetButton(m.l.t("kc_move")) { m.moveKeys(toKeychain: true) }
+                    .disabled(m.busy)
+            }
+        }
+        .padding(10)
+        .background(Palette.card)
+        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .padding(.bottom, 8)
+    }
+
     /// One server: the row switches to it, the two icons edit or delete it.
     private func profileRow(_ p: Profile) -> some View {
         HStack(spacing: 2) {
@@ -4493,6 +4638,13 @@ struct ContentView: View {
                     Text(p.display ?? Countries.name(p.country, lang: m.lang))
                         .font(.system(size: 12))
                         .lineLimit(1)
+                    if p.keychain == true {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 9))
+                            .opacity(0.7)
+                            .help(m.l.t("kc_in_keychain"))
+                            .accessibilityLabel(m.l.t("kc_in_keychain"))
+                    }
                     Spacer()
                     Text((p.endpoint ?? "—").split(separator: ":").first.map(String.init) ?? "—")
                         .font(.system(size: 10, design: .monospaced))

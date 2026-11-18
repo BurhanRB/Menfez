@@ -19,6 +19,21 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.7",
+            date: "2026-11-18",
+            tr: [
+                "Sunucu anahtarların artık Anahtar Zinciri'nde durabilir. Sunucular listesinde bir kez sorar; kabul edersen anahtar diskte düz metin olarak kalmaz.",
+                "Anahtarı Anahtar Zinciri'nde olan sunucunun yanında kilit var. Sonradan eklediğin sunucular da oraya gider.",
+                "Geri almak istersen: Sunucular > Anahtarları dosyaya geri yaz. 1.0.6'ya dönmeden önce bunu yap, yoksa tünel açılmaz.",
+                "Hakkında'da Üçüncü taraf lisansları var. Bu özellik için tünel bileşenini güncellemen gerekir; Menfez'deki Güncelle düğmesine bas.",
+            ],
+            en: [
+                "Your server keys can now live in Keychain. The Servers list asks once; say yes and keys don't sit on disk as plain text.",
+                "A server whose key is in Keychain shows a lock. Servers you add later go there too.",
+                "To undo it: Servers > Write keys back to files. Do this before going back to 1.0.6, or the tunnel won't start.",
+                "About now has Third-party licenses. This needs an updated tunnel component; press Update in Menfez.",
+            ]),
+        ChangelogEntry(
             version: "1.0.6",
             date: "2026-11-18",
             tr: [

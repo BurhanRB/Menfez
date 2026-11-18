@@ -2,7 +2,7 @@
 # uninstall.sh — remove Menfez completely.
 #
 # "Completely" means: no app, no sudoers rule, no routes, no DNS override, no
-# profiles, no state. A leftover sudoers line is the most dangerous residue
+# profiles (nor their keys in the Keychain), no state. A leftover sudoers line is the most dangerous residue
 # because it keeps granting root to a path that may later be replaced by
 # something else, so it is removed first and its removal is verified.
 #
@@ -184,6 +184,22 @@ else
         [ -e "$p" ] && run rm -f "$p"
     done
     run defaults delete com.menfez.app >/dev/null 2>&1 || true
+    # 1.0.7+: the profiles' private keys in the user's login Keychain. The
+    # profiles above are gone, so their keys are of no use any more.
+    # Under sudo the keychain to clean is the invoking user's, not root's.
+    kc_delete() {
+        if [ "$(id -u)" = 0 ]; then sudo -u "$REAL_USER" security delete-generic-password "$@"
+        else security delete-generic-password "$@"; fi
+    }
+    if [ "$DRY" -eq 1 ]; then
+        say "  would run: security delete-generic-password -s com.menfez.app.wireguard (until none left)"
+    else
+        n=0
+        while [ "$n" -lt 200 ] && kc_delete -s com.menfez.app.wireguard >/dev/null 2>&1; do
+            n=$((n + 1))
+        done
+        if [ "$n" -gt 0 ]; then say "    removed $n key(s) from the Keychain"; fi
+    fi
     run rm -f /tmp/menfez-trace.log /tmp/menfez-probe.log /tmp/menfez-spawn.log
     run rm -rf "$REAL_HOME/Library/Logs/Menfez"
 fi

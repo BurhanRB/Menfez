@@ -256,6 +256,9 @@ public struct Profile: Codable, Equatable, Sendable, Identifiable {
     public var peerKey: String?
     /// The config's `DNS =` addresses (IPv4 only), used by Whole internet.
     public var dns: [String]?
+    /// True when the file's private key lives in the Keychain (1.0.7).
+    /// Optional so a helper's older `profiles` reply still decodes.
+    public var keychain: Bool?
 
     public var id: String { name }
 
@@ -263,7 +266,8 @@ public struct Profile: Codable, Equatable, Sendable, Identifiable {
                 host: String? = nil, country: String? = nil,
                 display: String? = nil,
                 active: Bool = false, error: String? = nil,
-                peerKey: String? = nil, dns: [String]? = nil) {
+                peerKey: String? = nil, dns: [String]? = nil, keychain: Bool? = nil) {
+        self.keychain = keychain
         self.peerKey = peerKey
         self.dns = dns
         self.name = name

@@ -47,7 +47,7 @@ BUILD="$DIR/Menfez/.build/out/Products/Release"
 # that rm -rf and by assert_universal checking the freshly fused binaries.
 # Every release bumps the patch number (1.0.0 → 1.0.1 → 1.0.2 …) and adds an
 # entry to Menfez/Sources/MenfezCore/Changelog.swift; ChangelogTests checks both.
-VERSION="1.0.6"
+VERSION="1.0.7"
 MIN_MINOS="13.0"
 ARCHS="x86_64 arm64"
 XCODE="/Applications/Xcode.app/Contents/Developer"
@@ -190,6 +190,16 @@ mkdir -p "$APP/Contents/Frameworks"
 ditto "$SPARKLE_FW" "$APP/Contents/Frameworks/Sparkle.framework"
 rm -rf "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices" \
        "$APP/Contents/Frameworks/Sparkle.framework/XPCServices"
+# Sparkle's MIT license must travel with the binary. Its LICENSE comes from the
+# SwiftPM artifact (or the checkout); About > Third-party licenses opens it.
+SPARKLE_LICENSE=""
+for f in "$BUILD"/scratch-*/artifacts/sparkle/Sparkle/LICENSE "$DIR/Menfez/.build/artifacts/sparkle/Sparkle/LICENSE" \
+         "$BUILD"/scratch-*/checkouts/Sparkle/LICENSE "$DIR/Menfez/.build/checkouts/Sparkle/LICENSE"; do
+    [ -f "$f" ] && { SPARKLE_LICENSE="$f"; break; }
+done
+[ -n "$SPARKLE_LICENSE" ] || { echo "error: Sparkle LICENSE not found (resolve the package first)" >&2; exit 1; }
+{ printf 'Third-party licenses\n\nSparkle 2.10.1 (https://sparkle-project.org), MIT License:\n\n'
+  cat "$SPARKLE_LICENSE"; } > "$APP/Contents/Resources/ThirdPartyNotices.txt"
 SPARKLE_DIR="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
 for bin in Sparkle Autoupdate Updater.app/Contents/MacOS/Updater; do
     archs="$(lipo -archs "$SPARKLE_DIR/$bin" 2>/dev/null || true)"

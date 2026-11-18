@@ -94,9 +94,12 @@ public enum Shell {
     public static var path: String { path(root: geteuid() == 0) }
 
     /// Run a command and wait for it, killing it after `timeout`.
+    /// `stdin` (1.0.7) is written to the child and then closed; only
+    /// `switch --key-stdin` uses it. Without it the child reads /dev/null.
     public static func run(_ tool: String,
                            _ args: [String] = [],
-                           timeout: TimeInterval = 30) -> CommandResult {
+                           timeout: TimeInterval = 30,
+                           stdin: Data? = nil) -> CommandResult {
         let process = Process()
         let root = geteuid() == 0
         let resolved = resolve(tool, root: root)
@@ -123,12 +126,18 @@ public enum Shell {
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
-        process.standardInput = FileHandle.nullDevice
+        let input = stdin.map { _ in Pipe() }
+        process.standardInput = input ?? FileHandle.nullDevice
 
         do {
             try process.run()
         } catch {
             return CommandResult(status: 127, output: "\(tool): \(error.localizedDescription)")
+        }
+        if let input, let stdin {
+            // A key line is far below the pipe buffer, so this never blocks.
+            try? input.fileHandleForWriting.write(contentsOf: stdin)
+            try? input.fileHandleForWriting.close()
         }
 
         // Read on a background thread so a chatty tool cannot fill the pipe and

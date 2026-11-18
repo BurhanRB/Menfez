@@ -342,7 +342,8 @@ public enum WireGuardProfiles {
                                     active: active,
                                     error: problem,
                                     peerKey: parsed.peerKey,
-                                    dns: parsed.dns))
+                                    dns: parsed.dns,
+                                    keychain: ProfileKeys.keychainID(in: text) != nil ? true : nil))
         }
         return profiles
     }
@@ -473,11 +474,22 @@ public enum WireGuardProfiles {
     /// The key line is copied through unchanged and is never decoded: the
     /// generated file is the only place a working key can live, so dropping it
     /// would produce a config that cannot come up.
+    ///
+    /// `key` (1.0.7) is the key `--key-stdin` brought for a profile whose
+    /// file points at the Keychain; it replaces that placeholder line only.
+    /// Such a profile without a key is refused, since wg-quick would only
+    /// echo the placeholder back in an error.
     @discardableResult
     public static func writeManagedConfig(from source: String,
-                                          to destination: String = Path.managedConfig)
+                                          to destination: String = Path.managedConfig,
+                                          key: String? = nil)
         -> Bool {
-        guard let raw = readText(at: source) else { return false }
+        guard var raw = readText(at: source) else { return false }
+        if ProfileKeys.keychainID(in: raw) != nil {
+            guard let key, Validate.isWireGuardKey(key),
+                  let merged = ProfileKeys.replacingKey(in: raw, with: key) else { return false }
+            raw = merged
+        }
 
         var output: [String] = []
         var section = ""
@@ -581,7 +593,7 @@ public enum WireGuardProfiles {
     /// looks configured but carries nothing is the failure mode this exists to
     /// prevent.
     public static func switchTo(name: String, dnsRoutes: [String] = [],
-                                siteRoutes: [String] = []) -> ActionResult {
+                                siteRoutes: [String] = [], key: String? = nil) -> ActionResult {
         // The picker only ever produces a stem from `list()`, but this entry
         // point takes a string from the CLI. A name containing "/" or ".." is
         // refused before it is compared with a listing: `list()` would never
@@ -596,6 +608,12 @@ public enum WireGuardProfiles {
                 return .failure("no profile named \(name): cannot tell whose profiles to read (run through sudo, not as root directly)")
             }
             return .failure("no profile named \(name)")
+        }
+
+        // Checked before the old tunnel goes down: a profile whose key is in
+        // the Keychain cannot come up without it, so nothing is torn down.
+        if key == nil, let text = readText(at: target.file), ProfileKeys.keychainID(in: text) != nil {
+            return .failure("the profile's key is in the Keychain; update Menfez to send it (--key-stdin)")
         }
 
         var state = RouteStateStore.load()
@@ -637,7 +655,7 @@ public enum WireGuardProfiles {
         // too, and there is nothing to clean up in that case.
         _ = stopManagedTunnel()
 
-        guard writeManagedConfig(from: target.file) else {
+        guard writeManagedConfig(from: target.file, key: key) else {
             // The tunnel is already down, so the state must stop claiming a
             // live mode; otherwise the report says "all" over a dead tunnel.
             return failAfterTunnelDown("cannot write the managed config (the profile must be a regular file you own, not a symlink); the old tunnel is now down")

@@ -28,15 +28,28 @@ public final class HelperClient: @unchecked Sendable {
     /// processes; production always uses the real one.
     private let launcher: (String, [String], TimeInterval) -> CommandResult
 
+    /// The same, with bytes for the child's standard input (`--key-stdin`).
+    private let inputLauncher: (String, [String], TimeInterval, Data) -> CommandResult
+
+    /// Where `switch` finds a profile's key when its file points at the
+    /// Keychain. Takes the profile name.
+    private let profileKey: (String) -> ProfileKeys.Lookup
+
     private let lock = NSLock()
     private var _spawns: [String: Int] = [:]
 
     /// A client with an injected launcher. Spawns nothing on its own, so it
     /// runs no trust check: a fake launcher has no root to protect.
+    /// Without `inputLauncher` a call with input runs through `launcher`
+    /// (the input dropped); without `profileKey` every key is in its file.
     public init(helper: String,
-                launcher: @escaping (String, [String], TimeInterval) -> CommandResult) {
+                launcher: @escaping (String, [String], TimeInterval) -> CommandResult,
+                inputLauncher: ((String, [String], TimeInterval, Data) -> CommandResult)? = nil,
+                profileKey: @escaping (String) -> ProfileKeys.Lookup = { _ in .inFile }) {
         self.helper = helper
         self.launcher = launcher
+        self.inputLauncher = inputLauncher ?? { tool, args, timeout, _ in launcher(tool, args, timeout) }
+        self.profileKey = profileKey
     }
 
     /// The production client. Before every `sudo` it checks that the helper
@@ -44,12 +57,21 @@ public final class HelperClient: @unchecked Sendable {
     /// writable; otherwise the user could swap the binary sudo runs as root.
     public convenience init(helper: String,
                             trust: @escaping (String) -> String? = { Shell.trustViolation($0) }) {
-        self.init(helper: helper) { tool, args, timeout in
+        self.init(helper: helper, launcher: { tool, args, timeout in
             if let why = trust(helper) {
                 return CommandResult(status: 126, output: Shell.untrustedMessage(why))
             }
             return Shell.run(tool, args, timeout: timeout)
-        }
+        }, inputLauncher: { tool, args, timeout, input in
+            if let why = trust(helper) {
+                return CommandResult(status: 126, output: Shell.untrustedMessage(why))
+            }
+            return Shell.run(tool, args, timeout: timeout, stdin: input)
+        }, profileKey: { name in
+            guard Validate.isSafeStem(name) else { return .inFile }
+            let file = (Path.profiles as NSString).appendingPathComponent(name + ".conf")
+            return ProfileKeys.lookup(file: file, store: KeychainStore())
+        })
     }
 
     // MARK: - Spawn accounting
@@ -187,9 +209,26 @@ public final class HelperClient: @unchecked Sendable {
     public static let actTimeout: TimeInterval =
         2 * RouteManager.wireGuardTimeout + RouteManager.transportProbeBudget + 60
 
+    ///
+    /// `switch` to a profile whose key is in the Keychain gets the key on
+    /// standard input and `--key-stdin`; the key is never an argument.
     @discardableResult
     public func act(_ args: [String], timeout: TimeInterval = HelperClient.actTimeout) -> ActionResult {
-        let result = run(args, timeout: timeout)
+        let result: CommandResult
+        if args.first == "switch", args.count > 1 {
+            switch profileKey(args[1]) {
+            case .inFile:
+                result = run(args, timeout: timeout)
+            case .unreadable:
+                return ActionResult.failure(ProfileKeys.readFailure)
+            case .key(let key):
+                record("sudo")
+                result = inputLauncher("/usr/bin/sudo", ["-n", helper] + args + ["--key-stdin"],
+                                       timeout, Data((key + "\n").utf8))
+            }
+        } else {
+            result = run(args, timeout: timeout)
+        }
         if let decoded = JSON.decode(ActionResult.self, from: result.output) {
             return decoded
         }

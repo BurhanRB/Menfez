@@ -17,6 +17,7 @@
 // plain-text fallback for the day someone edits one of them.
 
 import SwiftUI
+import AppKit
 import MenfezCore
 
 struct AboutSheet: View {
@@ -61,10 +62,20 @@ struct AboutSheet: View {
             .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             .padding(.top, 14)
 
-            Text(l.t("about_license"))
-                .font(.system(size: 11))
-                .foregroundStyle(Palette.secondary)
-                .padding(.top, 10)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(l.t("about_license"))
+                    .foregroundStyle(Palette.secondary)
+                // Sparkle's MIT text, copied into the bundle by build-app.sh.
+                Button(l.t("about_licenses")) {
+                    if let url = Bundle.main.url(forResource: "ThirdPartyNotices", withExtension: "txt") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Palette.accent)
+            }
+            .font(.system(size: 11))
+            .padding(.top, 10)
 
             HStack {
                 if Updater.shared.available {

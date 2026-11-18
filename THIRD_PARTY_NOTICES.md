@@ -1,10 +1,10 @@
 # Third-party notices
 
-Menfez bundles one third-party library:
+Menfez ships one third-party library inside the app bundle. Its license text follows in full; the app shows the same text from About (ⓘ) > Third-party licenses (`Contents/Resources/ThirdPartyNotices.txt`).
 
-- **Sparkle 2.10.1** (in-app updates), https://sparkle-project.org, MIT license.
-  `Menfez.app/Contents/Frameworks/Sparkle.framework`. Its license, including
-  the licenses of the code it bundles, follows in full.
+## Sparkle 2.10.1
+
+https://sparkle-project.org · https://github.com/sparkle-project/Sparkle · MIT License
 
 ```
 Copyright (c) 2006-2013 Andy Matuschak.
