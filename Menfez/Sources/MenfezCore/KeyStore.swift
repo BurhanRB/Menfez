@@ -134,7 +134,7 @@ public enum ProfileKeys {
 
     /// What `switch` fails with when the key cannot be read. The app maps it
     /// to its own sentence; keep it stable.
-    public static let readFailure = "Couldn't read Keychain; tunnel not started"
+    public static let readFailure = "Couldn't read Keychain, so the tunnel didn't start"
 
     /// What `switch` needs to send for a profile.
     public enum Lookup: Equatable, Sendable {

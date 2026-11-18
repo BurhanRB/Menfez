@@ -204,7 +204,20 @@ public final class DPIEngine: @unchecked Sendable {
     public static let splitRange = 1...200
 
     /// The split point in force, for logging and the UI.
-    public var splitAt: Int { config.firstRecordPayloadLimit }
+    public var splitAt: Int {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        return config.firstRecordPayloadLimit
+    }
+
+    /// Change the split for connections accepted from now on (a length found
+    /// for this network, 1.0.8). Out of range is ignored; open ones keep theirs.
+    public func setSplit(_ value: Int) {
+        guard Self.splitRange.contains(value) else { return }
+        stateLock.lock()
+        config.firstRecordPayloadLimit = value
+        stateLock.unlock()
+    }
 
     // MARK: - Lifecycle
 
@@ -431,6 +444,26 @@ public final class DPIEngine: @unchecked Sendable {
         stateLock.lock()
         defer { stateLock.unlock() }
         return snapshotLocked()
+    }
+
+    // MARK: - Browser PAC (1.0.8)
+
+    /// The user's browser list while "Use in browsers too" is on; nil means
+    /// `GET /menfez.pac` is refused like any other non-CONNECT request.
+    private var pacEntries: [String]?
+
+    public func setBrowserSites(_ entries: [String]?) {
+        stateLock.lock()
+        pacEntries = entries
+        stateLock.unlock()
+    }
+
+    /// The PAC reply for this listener's port, or nil when not serving one.
+    fileprivate func pacReply() -> String? {
+        stateLock.lock()
+        defer { stateLock.unlock() }
+        guard let entries = pacEntries, let port = listener?.port.map({ Int($0.rawValue) }) else { return nil }
+        return PACFile.response(entries: entries, port: port)
     }
 
     /// The URL a client should be pointed at, or nil when stopped.
@@ -697,6 +730,12 @@ public final class DPIEngine: @unchecked Sendable {
                 }
                 self.headerTimer?.cancel()
                 self.headerTimer = nil
+
+                // The one non-CONNECT request served: the browser PAC.
+                if PACFile.isRequest(head: result.head), let reply = self.engine.pacReply() {
+                    self.serve(reply)
+                    return
+                }
 
                 let request: ConnectRequest
                 do {
@@ -1000,6 +1039,16 @@ public final class DPIEngine: @unchecked Sendable {
                 + "Connection: close\r\n"
                 + extraHeaders
                 + "\r\n" + body
+            client.send(content: Data(text.utf8),
+                        completion: .contentProcessed { [weak self] _ in
+                self?.close()
+            })
+        }
+
+        /// Answer a PAC request and close; not counted as a refusal.
+        private func serve(_ text: String) {
+            guard !refused, phase == .readingHead else { return }
+            refused = true
             client.send(content: Data(text.utf8),
                         completion: .contentProcessed { [weak self] _ in
                 self?.close()

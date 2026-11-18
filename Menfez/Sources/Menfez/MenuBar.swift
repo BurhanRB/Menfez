@@ -138,12 +138,17 @@ struct MenuBarContent: View {
 /// Cmd-, : the one setting that is about the app rather than the network.
 struct SettingsView: View {
     @ObservedObject var m: Model
+    @Environment(\.openWindow) private var openWindow
     @ObservedObject var updater = Updater.shared
     @AppStorage(DiscordUpdateRoutes.defaultsKey) private var updatesViaTunnel = true
     @AppStorage(NotificationEvent.tunnelDropped.defaultsKey) private var notifyTunnel = true
     @AppStorage(NotificationEvent.serverRemoved.defaultsKey) private var notifyServer = true
     @AppStorage(NotificationEvent.dpiStopped.defaultsKey) private var notifyDPI = true
     @AppStorage(NotificationEvent.helperUpdate.defaultsKey) private var notifyHelper = true
+    @AppStorage(NotificationEvent.networkSwitched.defaultsKey) private var notifyNetwork = true
+    @AppStorage(NotificationEvent.tunnelReconnected.defaultsKey) private var notifyReconnect = true
+    @AppStorage(Reconnect.autoKey) private var reconnectAuto = true
+    @AppStorage(Reconnect.switchKey) private var reconnectSwitch = false
     @State var recording = false
     @State var needsModifier = false
     @State var monitor: Any?
@@ -168,6 +173,9 @@ struct SettingsView: View {
                 }
             }
             if m.capabilities.tunnelAvailable {
+                // Label above, not in the Form's label column: that column
+                // pushed "Tünelden geçen" past the 320 pt window's left edge.
+                Text(m.l.t("scope_label"))
                 Picker(m.l.t("scope_label"), selection: Binding(
                     get: { m.scopeChoice },
                     set: { m.setTunnelScope($0) })) {
@@ -176,6 +184,7 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.radioGroup)
+                .labelsHidden()
                 .disabled(m.busy)
                 Text(m.l.t("scope_" + m.scopeChoice.rawValue + "_hint"))
                     .font(.caption)
@@ -184,12 +193,15 @@ struct SettingsView: View {
             }
             // Only meaningful with a usable tunnel and a profile to bring up.
             if m.capabilities.tunnelAvailable && !m.profiles.isEmpty {
-                Toggle(m.l.t("updates_tunnel"), isOn: $updatesViaTunnel)
+                Toggle(isOn: $updatesViaTunnel) {
+                    Text(m.l.t("updates_tunnel")).fixedSize(horizontal: false, vertical: true)
+                }
                     .onChange(of: updatesViaTunnel) { _ in m.updatesSettingChanged() }
                 Text(m.l.t("updates_tunnel_note"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                reconnect
             }
             // The one-time setup, both ways, through macOS's password dialog.
             if m.canRunTunnelInstaller {
@@ -206,6 +218,7 @@ struct SettingsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            networks
             notifications
             shortcut
         }
@@ -275,6 +288,41 @@ extension SettingsView {
         recording = false
     }
 
+    /// Networks (feature 5): the sheet lives in the main window, like the
+    /// other editors; this only opens it.
+    @ViewBuilder var networks: some View {
+        Text(m.l.t("net_title"))
+            .font(.headline)
+            .padding(.top, Space.s)
+        HStack {
+            Text(m.l.t(m.networksAuto ? "net_auto_on" : "net_auto_off"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button(m.l.t("net_open")) {
+                NSApp.activate(ignoringOtherApps: true)
+                openWindow(id: MenuBarContent.mainWindowID)
+                m.networkRequests += 1
+            }
+        }
+    }
+
+    /// Automatic reconnect (feature 4): on by default; switching server off
+    /// by default, since it changes the exit country (AS-10).
+    @ViewBuilder var reconnect: some View {
+        Toggle(isOn: $reconnectAuto) {
+            Text(m.l.t("rc_auto")).fixedSize(horizontal: false, vertical: true)
+        }
+        Toggle(isOn: $reconnectSwitch) {
+            Text(m.l.t("rc_switch")).fixedSize(horizontal: false, vertical: true)
+        }
+            .disabled(!reconnectAuto || m.profiles.count < 2)
+        Text(m.l.t("rc_note"))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     /// One switch per event; all on by default (see `NotificationEvent`).
     @ViewBuilder var notifications: some View {
         Text(m.l.t("notify_title"))
@@ -284,6 +332,10 @@ extension SettingsView {
         Toggle(m.l.t("notify_serverRemoved_setting"), isOn: $notifyServer)
         Toggle(m.l.t("notify_dpiStopped_setting"), isOn: $notifyDPI)
         Toggle(m.l.t("notify_helperUpdate_setting"), isOn: $notifyHelper)
+        Toggle(m.l.t("notify_networkSwitched_setting"), isOn: $notifyNetwork)
+        Toggle(isOn: $notifyReconnect) {
+            Text(m.l.t("notify_tunnelReconnected_setting")).fixedSize(horizontal: false, vertical: true)
+        }
         Text(m.l.t("notify_note"))
             .font(.caption)
             .foregroundStyle(.secondary)

@@ -93,6 +93,9 @@ public enum SiteTest {
         case notFound
         /// The name points at a local address; nothing was tried.
         case refused
+        /// The chosen DoH service blocks the name (0.0.0.0 or no answer)
+        /// while another one finds it. Filters such as AdGuard do this.
+        case dnsFiltered
     }
 
     public static func summary(_ results: [Path: Outcome]) -> Summary {
@@ -101,6 +104,13 @@ public enum SiteTest {
         if results[.dpi] == .opens { return .opensWithDPI }
         if results[.tunnel] == .opens { return .opensWithTunnel }
         return results[.tunnel] == nil ? .opensNowhere : .opensNowhereTunnel
+    }
+
+    /// One line for a DPI-only run (the browser list, 1.0.8): the DPI row,
+    /// or not found / fails when nothing was tried.
+    public static func dpiOutcome(_ r: Report) -> Outcome {
+        if let o = r.results[.dpi] { return o }
+        return r.summary == .notFound ? .notFound : .fails
     }
 
     public struct Report: Equatable, Sendable {
@@ -120,10 +130,23 @@ public enum SiteTest {
     /// caller started for the test (needed only when `paths` has `.dpi`).
     /// Blocks for at most ~DoH plus one `DPIProbe.outerTimeout`; call it off
     /// the main thread.
+    /// `others` are asked only when `resolver` gives nothing or a filter's
+    /// 0.0.0.0: an answer there means the chosen DNS filters the name, and
+    /// the direct attempt uses that answer so the row still says something.
     public static func run(host: String, paths: [Path], proxyPort: Int?,
                            resolver: HostResolver = DoHResolver.shared,
+                           others: [HostResolver] = DoHResolver.otherProviders(),
                            runner: CommandRunner = SystemRunner()) -> Report {
-        let addresses = resolve(host, with: resolver)
+        var addresses = resolve(host, with: resolver)
+        var filtered = false
+        if addresses.isEmpty || isFilterAnswer(addresses) {
+            if let found = firstAnswer(host, from: others) {
+                addresses = found
+                filtered = true
+            } else {
+                addresses = []
+            }
+        }
         guard let first = addresses.first else {
             return Report(host: host, results: Dictionary(uniqueKeysWithValues: paths.map { ($0, .notFound) }),
                           summary: .notFound)
@@ -148,7 +171,27 @@ public enum SiteTest {
             results[path] = outcome(attempt)
             lock.unlock()
         }
-        return Report(host: host, results: results, summary: summary(results))
+        return Report(host: host, results: results, summary: filtered ? .dnsFiltered : summary(results))
+    }
+
+    /// All of 0.0.0.0/8: what AdGuard and family filters answer for a name
+    /// they block. Not a place anything can be reached.
+    static func isFilterAnswer(_ addresses: [String]) -> Bool {
+        !addresses.isEmpty && addresses.allSatisfy { ConnectRequest.dottedQuad($0)?.first == 0 }
+    }
+
+    /// The first usable answer from `resolvers`, asked at the same time.
+    private static func firstAnswer(_ host: String, from resolvers: [HostResolver]) -> [String]? {
+        guard !resolvers.isEmpty else { return nil }
+        var answers = [[String]](repeating: [], count: resolvers.count)
+        let lock = NSLock()
+        DispatchQueue.concurrentPerform(iterations: resolvers.count) { i in
+            let found = resolve(host, with: resolvers[i])
+            lock.lock()
+            answers[i] = found
+            lock.unlock()
+        }
+        return answers.first { !$0.isEmpty && !isFilterAnswer($0) }
     }
 
     private static func resolve(_ host: String, with resolver: HostResolver) -> [String] {

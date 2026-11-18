@@ -30,4 +30,39 @@ enum DiscordPresence {
                 && $0.activationPolicy == .regular
         }
     }
+
+    /// The running Discord client, if any (same matching as `isRunning`).
+    static var app: NSRunningApplication? {
+        let apps = NSWorkspace.shared.runningApplications
+        return apps.first { $0.bundleIdentifier == DiscordLauncher.bundleID }
+            ?? apps.first { $0.localizedName == DiscordLauncher.applicationName && $0.activationPolicy == .regular }
+    }
+
+    /// Discord's live state for the DPI card. Reads the process arguments
+    /// with sysctl (no spawn), so it can run on the 2 s tick.
+    static func state(port: Int?) -> DiscordLauncher.State {
+        guard let app else { return .closed }
+        return DiscordLauncher.state(running: true, arguments: arguments(pid: app.processIdentifier), port: port)
+    }
+
+    /// argv of a process this user owns, from KERN_PROCARGS2, or nil.
+    static func arguments(pid: pid_t) -> [String]? {
+        var mib: [Int32] = [CTL_KERN, KERN_PROCARGS2, pid]
+        var size = 0
+        guard sysctl(&mib, 3, nil, &size, nil, 0) == 0, size > MemoryLayout<Int32>.size else { return nil }
+        var buffer = [UInt8](repeating: 0, count: size)
+        guard sysctl(&mib, 3, &buffer, &size, nil, 0) == 0 else { return nil }
+        let argc = buffer.withUnsafeBytes { $0.load(as: Int32.self) }
+        var at = MemoryLayout<Int32>.size
+        while at < size, buffer[at] != 0 { at += 1 }      // executable path
+        while at < size, buffer[at] == 0 { at += 1 }      // padding
+        var out: [String] = []
+        while out.count < Int(argc), at < size {
+            let start = at
+            while at < size, buffer[at] != 0 { at += 1 }
+            out.append(String(decoding: buffer[start..<at], as: UTF8.self))
+            at += 1
+        }
+        return out
+    }
 }

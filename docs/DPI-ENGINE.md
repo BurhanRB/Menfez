@@ -350,6 +350,27 @@ gateway (`HTTP 101 Switching Protocols` on `gateway.discord.gg`), which is what
 Discord's realtime connection uses, but a live logged-in client test is still
 required before claiming the whole app is covered.
 
+### Other apps (1.0.8)
+
+`AppLauncher.catalog` is a fixed list; the sheet "Other apps" in DPI mode shows
+it. **Nothing in this table has been measured yet** — it is the hypothesis the
+code ships with, to be replaced by measurements on a blocked network.
+
+| App | Bundle id | Route in 1.0.8 | Why (hypothesis) | Measured |
+|---|---|---|---|---|
+| Slack | com.tinyspeck.slackmacgap | `open -b … --args --proxy-server=…` | Electron | no |
+| Signal Desktop | org.whispersystems.signal-desktop | flag | Electron | no |
+| Element | im.riot.app | flag | Electron | no |
+| Telegram Desktop (Qt) | org.telegram.desktop | user types `127.0.0.1:<port>` as HTTP proxy | own HTTP proxy setting | no |
+| Spotify | com.spotify.client | user types the address, HTTP | own proxy setting | no |
+| Telegram (macOS, Swift) | ru.keepcoder.Telegram | Tunnel only | SOCKS5/MTProto only, no HTTP | no |
+| Roblox | com.roblox.RobloxPlayer | Tunnel only | no proxy flag; game traffic is UDP | no |
+
+Rules: a running app is quit (polite `terminate`, never forced) only after the
+user confirms; Menfez never edits another app's settings; after leaving DPI
+the status line names apps still started with our flag (`AppLauncher.flaggedPIDs`).
+Browsers are not here: they use the system PAC (feature 6).
+
 ---
 
 ## 7. What must be re-measured when the ISP block returns

@@ -28,11 +28,25 @@ public enum PortProbe {
         addr.sin_port = in_port_t(UInt16(port).bigEndian)
         addr.sin_addr.s_addr = inet_addr("127.0.0.1")
 
+        // Non-blocking with a short wait: when a packet filter drops the
+        // loopback reset (seen with a kill switch on, 1.0.8) a blocking
+        // connect to a closed port hangs for over a minute.
+        _ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)
         let result = withUnsafePointer(to: &addr) { pointer in
             pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
                 connect(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
             }
         }
-        return result == 0
+        if result == 0 { return true }
+        guard errno == EINPROGRESS else { return false }
+        var poller = pollfd(fd: fd, events: Int16(POLLOUT), revents: 0)
+        guard poll(&poller, 1, Int32(timeoutMs)) == 1 else { return false }
+        var error: Int32 = 0
+        var length = socklen_t(MemoryLayout<Int32>.size)
+        guard getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &length) == 0 else { return false }
+        return error == 0
     }
+
+    /// A loopback answer takes microseconds. Longer means nobody answered.
+    static let timeoutMs = 250
 }

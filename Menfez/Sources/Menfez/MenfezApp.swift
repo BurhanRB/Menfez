@@ -63,7 +63,6 @@ struct L {
             "dpi_enable_from_tunnel_hint": "Tüneli kapatır, DPI'a geçer ve Discord'u açar",
             "dpi_launch_again": "Discord'u yeniden aç",
             "dpi_launch_again_hint": "DPI açık. Discord kapanıp yeniden açılır.",
-            "dpi_no_root_note": "Yönetici şifresi gerekmez. Proxy, Menfez'in içinde çalışır.",
             "tunnel_ready": "Tünel kullanıma hazır.",
             "tunnel_ready_pick": "Tünel hazır, sunucu seçmen gerekiyor.",
             "tunnel_ready_add": "Tünel hazır, sunucu eklemen gerekiyor.",
@@ -96,7 +95,6 @@ struct L {
             "dpi_probe": "Şimdi test et",
             "dpi_probing": "test ediliyor…",
             "dpi_stop": "Durdur",
-            "dpi_quit_first": "Discord açıksa önce kapat. Menfez ayarı ancak Discord açılırken verebilir.",
             "discord_launch": "Discord'u Menfez ile aç",
             "discord_launched": "Discord açıldı (proxy 127.0.0.1:{port})",
             "discord_settings_denied": "Discord'un ayar dosyasına yazamadım. Discord \"Güncellemeler denetleniyor\" ekranında kalabilir. macOS izin isterse ver, sonra Discord'u kapatıp yeniden aç.",
@@ -115,7 +113,7 @@ struct L {
             "helper_no_reply": "yardımcı program yanıt vermedi",
             "launch_proxyNotRunning": "Önce DPI'ı aç. Proxy çalışmıyor.",
             "launch_invalidPort": "{port} portu kullanılamıyor",
-            "launch_alreadyRunning": "Discord zaten açık. Önce kapat, Menfez ayarı ancak açılışta verebilir.",
+            "launch_alreadyRunning": "Discord zaten açık. Önce kapat. Menfez ayarı ancak Discord açılırken verebilir.",
             "launch_notInstalled": "Discord, Uygulamalar klasöründe yok",
             "launch_openFailed": "Discord açılamadı: {what}",
             "discord_restart_title": "Discord yeniden başlatılsın mı?",
@@ -167,10 +165,10 @@ struct L {
             "kc_restore": "Anahtarları dosyaya geri yaz",
             "kc_in_keychain": "Anahtar, Anahtar Zinciri'nde",
             "kc_moved": "Anahtarlar Anahtar Zinciri'nde ({n})",
-            "kc_move_failed": "{n} anahtar taşınamadı; o dosyalar değişmedi.",
+            "kc_move_failed": "{n} anahtar taşınamadı. O dosyalar olduğu gibi duruyor.",
             "kc_restored": "Anahtarlar dosyalara geri yazıldı ({n})",
-            "kc_restore_failed": "{n} anahtar geri yazılamadı; o dosyalar değişmedi.",
-            "kc_failed": "Anahtar Zinciri'ne erişilemedi; tünel açılamadı",
+            "kc_restore_failed": "{n} anahtar geri yazılamadı. O dosyalar olduğu gibi duruyor.",
+            "kc_failed": "Anahtar Zinciri okunamadı, tünel açılmadı",
             "f_discord": "Discord",
             "up": "Tünel açık",
             "down": "Tünel kapalı, bağlantın doğrudan gidiyor",
@@ -193,7 +191,8 @@ struct L {
             "auto": "Otomatik",
             "never": "hiç",
             "active_n": "{n}/{total} açık",
-            "ok_ms": "açılıyor, {ms} ms",
+            "ok_ms": "açılıyor, yanıt {ms} ms",
+            "discord_ms_help": "Yanıt süresi ping değil. Bağlantı kurulduktan sonra Discord'un ilk cevabına kadar geçen süre. Sunucunun kendi işini de içerdiği için pingden biraz yüksek çıkar.",
             "ok": "açılıyor",
             "blocked": "engelli",
             "dns_blocked": "DNS engelli",
@@ -337,7 +336,8 @@ struct L {
             "sitetest_timedOut": "Cevap yok",
             "sitetest_notFound": "Ad bulunamadı",
             "sitetest_sum_opensDirect": "Bu site engelli değil, doğrudan açılıyor.",
-            "sitetest_sum_opensWithDPI": "Bu site engelli ama DPI ile açılıyor. Menfez DPI'ı şimdilik yalnız Discord için kullanıyor; tarayıcında açmak için Tüm internet tünelini kullan.",
+            "sitetest_sum_opensWithDPI": "Bu site engelli ama DPI ile açılıyor. Tarayıcında açmak için DPI modunda siteyi Tarayıcı listesine ekle.",
+            "sitetest_sum_dnsFiltered": "Seçili DNS bu siteyi engelliyor. Başka DNS'ler siteyi buluyor. DNS listesinden başka bir DNS seç.",
             "sitetest_sum_opensWithTunnel": "Bu site tünelle açılıyor.",
             "sitetest_sum_opensNowhere": "Bu site ne doğrudan ne DPI ile açılıyor. Site kapalı olabilir ya da engel daha sıkı. Kendi sunucun varsa Tüm internet tünelini dene.",
             "sitetest_sum_opensNowhereTunnel": "Bu site tünelle de açılmıyor. Site şu an kapalı olabilir.",
@@ -345,7 +345,7 @@ struct L {
             "sitetest_sum_refused": "Bu ad ev ağındaki bir adrese çıkıyor, test etmedim.",
             "sitetest_tunnel_discord_only": "Tünel şu an yalnız Discord'u taşıyor, bu yüzden site tünelle denenmedi.",
             "help_sitetest_title": "Bir site açılmıyorsa",
-            "help_sitetest": "Menfez'e sor: site adını yaz, engelli mi, hangi yolla açılıyor söylesin.",
+            "help_sitetest": "Site adını yaz. Menfez engelli olup olmadığını ve hangi yolla açıldığını söyler.",
             "hotkey_title": "Kısayol",
             "hotkey_none": "Yok",
             "hotkey_record": "Kaydet",
@@ -367,7 +367,7 @@ struct L {
             "sites_needs_update": "Seçili siteler için tünel bileşenini güncelle.",
             "sites_edit": "Siteler ({what})",
             "sites_title": "Tünelden geçen siteler",
-            "sites_intro": "Bu siteler Discord'la birlikte tünelden gider, adları da tünelden çözülür. www. kendiliğinden eklenir; başka alt alan adlarını ayrı ekle.",
+            "sites_intro": "Bu siteler Discord'la birlikte tünelden gider. Adları da tünelden çözülür. www. kendiliğinden eklenir, başka alt alan adlarını ayrı ekle.",
             "sites_placeholder": "ornek.com",
             "sites_add": "Ekle",
             "sites_remove": "Kaldır",
@@ -375,7 +375,57 @@ struct L {
             "sites_invalid": "Bu bir site adı değil.",
             "sites_full": "Liste dolu (en çok {what} site).",
             "sites_save_failed": "Site listesi kaydedilemedi.",
-            "sites_recovered": "Site listesi okunamadı; boş başlandı, eskisi sites.json.bak olarak duruyor.",
+            "net_title": "Ağlar",
+            "net_open": "Ağlar…",
+            "net_auto": "Ağa göre modu kendiliğinden değiştir",
+            "net_auto_on": "Ağa göre mod açık.",
+            "net_auto_off": "Ağa göre mod kapalı.",
+            "net_intro": "Hatırladığın bir ağa bağlanınca Menfez o ağ için seçtiğin moda geçer. Elle seçtiğin mod, ağ değişene kadar geçerli kalır.",
+            "net_how": "Ağlar yönlendiriciden ayırt edilir. Konum izni istenmez, Wi-Fi adı okunmaz.",
+            "net_current": "Bu ağ: {name}",
+            "net_unknown": "Bu ağ henüz hatırlanmıyor.",
+            "net_cannot": "Bu ağ ayırt edilemiyor. Yönlendirici tanınmadı.",
+            "net_reading": "Ağa bakılıyor…",
+            "net_remember": "Bu ağı hatırla",
+            "net_empty": "Henüz hatırlanan ağ yok.",
+            "net_default_name": "Ağ",
+            "net_mode_leave": "Dokunma",
+            "net_mode_label": "{name} için mod",
+            "net_now": "Şu an",
+            "net_rename": "Yeniden adlandır",
+            "net_rename_done": "Tamam",
+            "net_name_label": "Ağ adı",
+            "net_forget": "Unut",
+            "net_recovered": "Ağ listesi okunamadı, boş bir listeyle başladım. Eskisi networks.json.bak adıyla duruyor.",
+            "net_save_failed": "Ağ listesi kaydedilemedi.",
+            "net_needs_tunnel": "{name}: Tünel için kurulum ya da sunucu gerekiyor, mod değişmedi.",
+            "notify_networkSwitched_setting": "Ağa göre mod değişince",
+            "notify_networkSwitched_title": "Ağ değişti: {what} açıldı",
+            "notify_networkSwitched_body": "Bu ağ için seçtiğin moda geçildi.",
+            "notify_networkNeedsTunnel_title": "Ağ değişti: Tünel açılamadı",
+            "notify_networkNeedsTunnel_body": "Bu ağ için Tünel seçili ama tünel kurulu değil ya da sunucu yok. Mod değişmedi.",
+            "lat_pick": "En hızlıyı seç",
+            "lat_pick_help": "Sunuculara ping atar, en hızlı yanıt vereni seçer",
+            "lat_measuring": "Sunucular ölçülüyor…",
+            "lat_ms": "{n} ms",
+            "lat_no_reply": "yanıt yok",
+            "lat_none": "Hiçbir sunucu ping'e yanıt vermedi. Seçim değişmedi.",
+            "lat_already": "En hızlı sunucu zaten bu: {what}",
+            "lat_a11y": "Gecikme: {what}",
+            "rc_auto": "Kopunca kendiliğinden yeniden bağlan",
+            "rc_switch": "Gerekirse başka sunucuya geç",
+            "rc_note": "Önce aynı sunucu denenir. Başka sunucuya geçmek çıkış ülkeni değiştirebilir.",
+            "rc_trying": "Yeniden bağlanıyor ({n}/{max})…",
+            "rc_tried": "Yeniden bağlanma denendi, bakılıyor",
+            "rc_done": "Tünel yeniden bağlandı ({what})",
+            "rc_waiting": "yeniden bağlanmaya çalışıyor",
+            "rc_gave_up_short": "kendiliğinden bağlanamadı",
+            "notify_tunnelReconnected_setting": "Tünel kendiliğinden bağlanınca",
+            "notify_tunnelReconnected_title": "Tünel yeniden bağlandı ({what})",
+            "notify_tunnelReconnected_body": "Trafiğin yeniden tünelden geçiyor.",
+            "notify_reconnectFailed_title": "Tünel yeniden bağlanamadı",
+            "notify_reconnectFailed_body": "Birkaç deneme sonuç vermedi. Menfez'i açıp başka bir sunucu seç.",
+            "sites_recovered": "Site listesi okunamadı, boş bir listeyle başladım. Eskisi sites.json.bak adıyla duruyor.",
             "sites_updated": "Site adresleri güncellendi.",
             "sites_count": "{what} adres",
             "sites_unresolved": "Bu ad çözülemedi",
@@ -384,6 +434,59 @@ struct L {
             "sites_ago_min": "Güncellendi: {what} dk önce",
             "sites_dns_outside": "Mac'in DNS'i ev ağında (modem), o yüzden site adları tünelden çözülemiyor. DNS ayarından herkese açık bir DNS seç.",
             "sites_not_active": "Kapsam Discord + siteler olunca bu siteler tünelden gider.",
+            "apps_title": "Başka uygulamalar",
+            "apps_intro": "Bazı uygulamalar Menfez'den geçebilir. Menfez onların ayarlarına dokunmaz. Yalnız sen tıklayınca açar.",
+            "apps_route_flag": "Menfez'le açılınca engeli aşar.",
+            "apps_route_manual": "Kendi proxy ayarına aşağıdaki adresi HTTP olarak yaz.",
+            "apps_route_tunnel": "Proxy ayarına uymuyor. Tünel modunu kullan.",
+            "apps_not_installed": "Yüklü değil.",
+            "apps_open": "Menfez'le aç",
+            "apps_address": "Adres: {what}",
+            "apps_copy": "Kopyala",
+            "apps_copied": "Kopyalandı",
+            "apps_note_manual": "Elle yazdığın adres yalnız DPI modu açıkken çalışır. Menfez'i kapatınca o ayarı da kapat.",
+            "apps_note_udp": "Sesli ve görüntülü görüşmeler proxy'den geçmez.",
+            "apps_note_leave": "DPI'dan çıkınca Menfez'le açtığın uygulamayı yeniden başlat.",
+            "apps_relaunch_title": "{what} yeniden açılsın mı?",
+            "apps_relaunch_body": "{what} kapatılıp Menfez'le yeniden açılacak. Kaydedilmemiş bir şey varsa önce kaydet.",
+            "apps_relaunch_yes": "Kapat ve aç",
+            "apps_need_dpi": "Önce DPI modunu aç.",
+            "apps_still_running": "{what} kapanmadı. Onu kendin kapatıp yeniden dene.",
+            "apps_opened": "{what} Menfez'le açıldı.",
+            "apps_restart_note": "{what} hâlâ kapattığın proxy'yi kullanıyor. Yeniden başlat.",
+            "tune_button": "Ayar ara",
+            "tune_forget": "Varsayılana dön",
+            "tune_starting": "Ayar aranıyor…",
+            "tune_trying": "{i}/{n} deneniyor…",
+            "tune_found": "Bu ağ için ayar bulundu ve kaydedildi (bölme: {n} bayt).",
+            "tune_found_global": "Ayar bulundu ve kaydedildi (bölme: {n} bayt). Bu ağ ayırt edilemediği için kendi ayarı olmayan bütün ağlarda kullanılır.",
+            "tune_not_needed": "Doğrudan bağlantı şimdi çalışıyor. Bu ağ engellemiyor olabilir.",
+            "tune_dns": "Ad çözülemedi. Bunu bir ayar düzeltemez. DNS'i değiştir ya da tüneli dene.",
+            "tune_none": "Hiçbir ayar işe yaramadı, tüneli dene.",
+            "browser_toggle": "Tarayıcıda da kullan",
+            "dc_viaDPI": "Açık, DPI'dan geçiyor",
+            "dc_withoutDPI": "Açık ama DPI'sız",
+            "dc_running": "Açık",
+            "dc_closed": "Kapalı",
+            "dc_open": "Aç",
+            "dc_reopen": "Yeniden aç",
+            "dc_reopen_hint": "Discord kapanır ve Menfez'den geçecek şekilde yeniden açılır.",
+            "lang_menu_restart": "Menü dili Menfez'i yeniden açınca değişir.",
+            "browser_check_all": "Hepsini dene",
+            "browser_check_again": "Yeniden denemek için tıkla",
+            "dpi_group_title": "DPI ile açılanlar",
+            "dpi_row_browser": "Tarayıcı",
+            "dpi_row_browser_caption": "Safari ve Chrome'da yalnız listendeki siteler",
+            "dpi_row_sites": "Siteler",
+            "browser_needs_update": "Tarayıcıda kullanmak için tünel bileşenini kur ya da güncelle.",
+            "browser_failed": "Tarayıcı ayarı değiştirilemedi: {what}",
+            "browser_title": "Tarayıcıda Menfez'den geçen siteler",
+            "browser_intro": "Yalnız bu listedeki siteler Menfez'den geçer, alt alan adları da dahil. Yalnız DPI modu açıkken çalışır.",
+            "browser_firefox": "Firefox kendi ayarını kullanır: Ayarlar → Ağ Ayarları → Sistem proxy ayarlarını kullan.",
+            "browser_reload": "Tarayıcı listeyi yeniden okuyunca değişiklik geçerli olur. Olmazsa tarayıcıyı yeniden başlat.",
+            "browser_empty": "Henüz site yok. Açılmayan bir sitenin adını yaz ve Ekle'ye bas.",
+            "browser_recovered": "Tarayıcı listesi okunamadı, boş bir listeyle başladım. Eskisi browser-sites.json.bak adıyla duruyor.",
+            "browser_off_note": "\"Tarayıcıda da kullan\" kapalı. Liste şu an kullanılmıyor.",
             "ks_reconnect": "Yeniden bağlan",
             "ks_unblock": "Engeli kaldır",
             "ks_on_done": "Tünel düşerse internet kesilecek",
@@ -411,7 +514,7 @@ struct L {
             "leak_ip_discord_leak": "Discord tünel dışından gidiyor",
             "leak_dns_tunnel": "Tünelden gidiyor",
             "leak_dns_leak": "Tünel dışından gidiyor. Sağlayıcın baktığın adları görebilir.",
-            "leak_dns_discord": "Tünel dışından gidiyor. Sadece Discord'da bu olağan; sağlayıcın Discord'a baktığını görebilir.",
+            "leak_dns_discord": "Tünel dışından gidiyor. Sadece Discord modunda bu olağan. Sağlayıcın Discord'a baktığını görebilir.",
             "leak_dns_local": "Bu Mac'teki bir çözücü kullanılıyor, nereye gittiğini göremiyorum.",
             "leak_dns_unknown": "Çözücü bulunamadı",
             "leak_v6_none": "Bu ağda IPv6 yok, sızamaz",
@@ -423,17 +526,17 @@ struct L {
             "leak_ks_off": "Kapalı. Tünel düşerse trafik doğrudan gider.",
             "leak_ks_unknown": "Bilinmiyor: önce tünel yardımcısını güncelle.",
             "onb1_title": "Menfez ne yapar?",
-            "onb1_1": "İnternet sağlayıcın bağlantıların içine bakıp bazılarını kesebiliyor. Buna DPI deniyor; Discord'un açılmamasının sebebi bu.",
-            "onb1_2": "Menfez, Discord'un bağlantısını bu kontrole takılmayacak şekilde gönderir. Hesap, sunucu ya da ücret gerekmez; her şey bu Mac'te olur.",
+            "onb1_1": "İnternet sağlayıcın bağlantılarının içine bakıp bazılarını kesebiliyor. Buna DPI deniyor. Discord bu yüzden açılmıyor.",
+            "onb1_2": "Menfez, Discord'un bağlantısını bu kontrole takılmadan gönderir. Hesap, sunucu ya da ücret gerekmez. Her şey bu Mac'te olur.",
             "onb1_3": "Kullanmak için Discord'u kapat, sonra Menfez'de Discord'u aç düğmesine bas.",
             "onb2_title": "Kendi sunucun varsa",
             "onb2_1": "DPI yetmezse ya da bütün internetini başka bir yerden geçirmek istersen tünel kullanabilirsin.",
-            "onb2_2": "Menfez sunucu vermez. Bir WireGuard sağlayıcısından aldığın .conf dosyasını eklersin; tünel bir kez kurulur.",
+            "onb2_2": "Menfez sunucu vermez. Bir WireGuard sağlayıcısından aldığın .conf dosyasını eklersin. Tüneli bir kez kurarsın.",
             "onb2_3": "Sunucun yoksa bu adımı geç. DPI tek başına çalışır.",
             "onb3_title": "Hazırsın",
             "onb3_1": "Bir site açılmazsa Yardım'daki \"Bir siteyi test et\" ile engelli mi, hangi yolla açılıyor bak.",
             "onb3_2": "Tünel düşerse ya da DPI durursa sana bildirim gönderirim. macOS bunun için bir kez izin soracak. Bu rehber Yardım'da durur.",
-            "onb3_3": "Discord kapalıysa Discord'u aç'a bas; Menfez önce DPI'ı açar, sonra Discord'u.",
+            "onb3_3": "Discord kapalıysa Discord'u aç'a bas. Menfez önce DPI'ı, sonra Discord'u açar.",
             "onb_skip": "Geç",
             "onb_back": "Geri",
             "onb_next": "İleri",
@@ -469,7 +572,6 @@ struct L {
             "dpi_enable_from_tunnel_hint": "Closes the tunnel, switches to DPI and opens Discord",
             "dpi_launch_again": "Reopen Discord",
             "dpi_launch_again_hint": "DPI is on. Discord quits and opens again.",
-            "dpi_no_root_note": "No admin password needed. The proxy runs inside Menfez.",
             "tunnel_ready": "The tunnel is ready to use.",
             "tunnel_ready_pick": "Tunnel ready, pick a server.",
             "tunnel_ready_add": "Tunnel ready, add a server.",
@@ -502,7 +604,6 @@ struct L {
             "dpi_probe": "Test now",
             "dpi_probing": "testing…",
             "dpi_stop": "Stop",
-            "dpi_quit_first": "If Discord is open, quit it first. Menfez can only set it up when Discord starts.",
             "discord_launch": "Open Discord through Menfez",
             "discord_launched": "Discord opened (proxy 127.0.0.1:{port})",
             "discord_settings_denied": "I couldn't write to Discord's settings file. Discord may stay on \"Checking for updates\". Allow it if macOS asks, then quit and reopen Discord.",
@@ -521,7 +622,7 @@ struct L {
             "helper_no_reply": "the helper did not answer",
             "launch_proxyNotRunning": "Turn on DPI first. The proxy isn't running.",
             "launch_invalidPort": "Port {port} can't be used",
-            "launch_alreadyRunning": "Discord is already open. Quit it first; Menfez can only set it up at launch.",
+            "launch_alreadyRunning": "Discord is already open. Quit it first. Menfez can only set it up when Discord starts.",
             "launch_notInstalled": "Discord isn't in the Applications folder",
             "launch_openFailed": "Couldn't open Discord: {what}",
             "discord_restart_title": "Restart Discord?",
@@ -532,7 +633,7 @@ struct L {
             "discord_restarted": "Discord reopened without the proxy",
             "probe_working": "The direct connection is blocked and DPI gets through. DPI is working.",
             "probe_notNeeded": "The direct connection works. This network isn't blocking right now, so you don't need DPI.",
-            "probe_notHelping": "Neither got through. DPI isn't enough on this network; try the tunnel.",
+            "probe_notHelping": "Neither got through. DPI isn't enough on this network. Try the tunnel.",
             "probe_dnsBlocked": "Neither got through and the address didn't resolve. DNS is blocked. Change DNS and try again.",
             "probe_proxyBroken": "The direct connection works but the proxy doesn't. The problem is in Menfez's proxy.",
             "probe_proxyOff": "The proxy is off, so there's nothing to compare.",
@@ -573,10 +674,10 @@ struct L {
             "kc_restore": "Write keys back to files",
             "kc_in_keychain": "Key is in Keychain",
             "kc_moved": "Keys are in Keychain ({n})",
-            "kc_move_failed": "Couldn't move {n} key(s); those files are unchanged.",
+            "kc_move_failed": "Couldn't move {n} key(s). Those files are unchanged.",
             "kc_restored": "Keys written back to files ({n})",
-            "kc_restore_failed": "Couldn't write back {n} key(s); those files are unchanged.",
-            "kc_failed": "Couldn't read Keychain; tunnel not started",
+            "kc_restore_failed": "Couldn't write back {n} key(s). Those files are unchanged.",
+            "kc_failed": "Couldn't read Keychain, so the tunnel didn't start",
             "f_discord": "Discord",
             "up": "Tunnel is on",
             "down": "Tunnel is off. Your connection goes direct.",
@@ -599,7 +700,8 @@ struct L {
             "auto": "Automatic",
             "never": "never",
             "active_n": "{n}/{total} active",
-            "ok_ms": "reachable, {ms} ms",
+            "ok_ms": "reachable, response {ms} ms",
+            "discord_ms_help": "Response time isn't ping. It's the time from the connection being ready to Discord's first answer. That includes the server's own work, so it reads a little above ping.",
             "ok": "reachable",
             "blocked": "blocked",
             "dns_blocked": "DNS blocked",
@@ -742,8 +844,9 @@ struct L {
             "sitetest_fails": "Doesn't open",
             "sitetest_timedOut": "No answer",
             "sitetest_notFound": "Name not found",
-            "sitetest_sum_opensDirect": "This site isn't blocked; it opens directly.",
-            "sitetest_sum_opensWithDPI": "This site is blocked, but it opens with DPI. For now Menfez uses DPI only for Discord; to open it in your browser, use the Whole internet tunnel.",
+            "sitetest_sum_opensDirect": "This site isn't blocked. It opens directly.",
+            "sitetest_sum_opensWithDPI": "This site is blocked, but it opens with DPI. To open it in your browser, add it to the Browser list in DPI mode.",
+            "sitetest_sum_dnsFiltered": "The DNS you chose blocks this site. Other DNS services find it. Pick another DNS in the DNS list.",
             "sitetest_sum_opensWithTunnel": "This site opens through the tunnel.",
             "sitetest_sum_opensNowhere": "This site doesn't open directly or with DPI. It may be down, or the block is stricter. If you have your own server, try the Whole internet tunnel.",
             "sitetest_sum_opensNowhereTunnel": "This site doesn't open through the tunnel either. It may be down right now.",
@@ -751,7 +854,7 @@ struct L {
             "sitetest_sum_refused": "This name points to an address on your home network, so I didn't test it.",
             "sitetest_tunnel_discord_only": "The tunnel only carries Discord right now, so the site wasn't tried through it.",
             "help_sitetest_title": "If a site won't open",
-            "help_sitetest": "Ask Menfez: type the site name and it tells you whether it's blocked and which way it opens.",
+            "help_sitetest": "Type the site name. Menfez tells you whether it's blocked and which way it opens.",
             "hotkey_title": "Shortcut",
             "hotkey_none": "None",
             "hotkey_record": "Record",
@@ -769,11 +872,11 @@ struct L {
             "ks_blocked_sites": "Tunnel dropped, Discord and your sites blocked.",
             "ks_hint_sites": "If the tunnel drops, Discord and the sites on your list are cut. The rest opens as usual.",
             "m_sites": "Discord + sites",
-            "scope_sites_hint": "Discord and the sites on your list go through the tunnel; the rest uses your normal internet.",
+            "scope_sites_hint": "Discord and the sites on your list go through the tunnel. The rest uses your normal internet.",
             "sites_needs_update": "Update the tunnel component to use chosen sites.",
             "sites_edit": "Sites ({what})",
             "sites_title": "Sites through the tunnel",
-            "sites_intro": "These sites go through the tunnel with Discord, and their names are looked up through it too. www. is added for you; add other subdomains separately.",
+            "sites_intro": "These sites go through the tunnel with Discord, and so do their name lookups. www. is added for you. Add other subdomains one by one.",
             "sites_placeholder": "example.com",
             "sites_add": "Add",
             "sites_remove": "Remove",
@@ -781,7 +884,57 @@ struct L {
             "sites_invalid": "That isn't a site name.",
             "sites_full": "The list is full (at most {what} sites).",
             "sites_save_failed": "Couldn't save the site list.",
-            "sites_recovered": "Couldn't read the site list, so it starts empty; the old one is kept as sites.json.bak.",
+            "net_title": "Networks",
+            "net_open": "Networks…",
+            "net_auto": "Change mode by network",
+            "net_auto_on": "Mode by network is on.",
+            "net_auto_off": "Mode by network is off.",
+            "net_intro": "When you join a network you remembered, Menfez switches to the mode you chose for it. A mode you pick yourself stays until the network changes.",
+            "net_how": "Networks are told apart by their router. No location permission, and the Wi-Fi name is not read.",
+            "net_current": "This network: {name}",
+            "net_unknown": "This network isn't remembered yet.",
+            "net_cannot": "This network can't be told apart. Its router wasn't recognised.",
+            "net_reading": "Checking the network…",
+            "net_remember": "Remember this network",
+            "net_empty": "No networks remembered yet.",
+            "net_default_name": "Network",
+            "net_mode_leave": "Leave as is",
+            "net_mode_label": "Mode for {name}",
+            "net_now": "Now",
+            "net_rename": "Rename",
+            "net_rename_done": "Done",
+            "net_name_label": "Network name",
+            "net_forget": "Forget",
+            "net_recovered": "Couldn't read the network list, so I started an empty one. The old one is saved as networks.json.bak.",
+            "net_save_failed": "Couldn't save the network list.",
+            "net_needs_tunnel": "{name}: Tunnel needs the setup or a server, so the mode stayed.",
+            "notify_networkSwitched_setting": "Mode changes by network",
+            "notify_networkSwitched_title": "Network changed: {what} on",
+            "notify_networkSwitched_body": "Switched to the mode you chose for this network.",
+            "notify_networkNeedsTunnel_title": "Network changed: Tunnel can't start",
+            "notify_networkNeedsTunnel_body": "Tunnel is chosen for this network, but it isn't set up or there's no server. The mode stayed.",
+            "lat_pick": "Pick the fastest",
+            "lat_pick_help": "Pings the servers and picks the one that answers fastest",
+            "lat_measuring": "Measuring servers…",
+            "lat_ms": "{n} ms",
+            "lat_no_reply": "no reply",
+            "lat_none": "No server answered the ping. Nothing changed.",
+            "lat_already": "Already on the fastest server: {what}",
+            "lat_a11y": "Latency: {what}",
+            "rc_auto": "Reconnect automatically",
+            "rc_switch": "Switch server if needed",
+            "rc_note": "The same server is tried first. Switching server can change your exit country.",
+            "rc_trying": "Reconnecting ({n}/{max})…",
+            "rc_tried": "Reconnect tried, checking",
+            "rc_done": "Tunnel reconnected ({what})",
+            "rc_waiting": "trying to reconnect",
+            "rc_gave_up_short": "could not reconnect on its own",
+            "notify_tunnelReconnected_setting": "Tunnel reconnects on its own",
+            "notify_tunnelReconnected_title": "Tunnel reconnected ({what})",
+            "notify_tunnelReconnected_body": "Your traffic is going through the tunnel again.",
+            "notify_reconnectFailed_title": "Tunnel could not reconnect",
+            "notify_reconnectFailed_body": "Several tries did not work. Open Menfez and pick another server.",
+            "sites_recovered": "Couldn't read the site list, so I started an empty one. The old one is saved as sites.json.bak.",
             "sites_updated": "Site addresses updated.",
             "sites_count": "{what} addresses",
             "sites_unresolved": "Could not resolve this name",
@@ -790,6 +943,59 @@ struct L {
             "sites_ago_min": "Updated: {what} min ago",
             "sites_dns_outside": "Your Mac's DNS is on your home network (the router), so site names can't be looked up through the tunnel. Pick a public DNS in DNS settings.",
             "sites_not_active": "These sites go through the tunnel when the scope is Discord + sites.",
+            "apps_title": "Other apps",
+            "apps_intro": "Some apps can go through Menfez. Menfez doesn't touch their settings. It only opens them when you click.",
+            "apps_route_flag": "Gets past the block when opened with Menfez.",
+            "apps_route_manual": "Type the address below into its own proxy setting, as HTTP.",
+            "apps_route_tunnel": "Ignores proxy settings. Use Tunnel mode.",
+            "apps_not_installed": "Not installed.",
+            "apps_open": "Open with Menfez",
+            "apps_address": "Address: {what}",
+            "apps_copy": "Copy",
+            "apps_copied": "Copied",
+            "apps_note_manual": "An address you typed in works only while DPI mode is on. Turn that setting off when you quit Menfez.",
+            "apps_note_udp": "Voice and video calls don't go through the proxy.",
+            "apps_note_leave": "After leaving DPI, restart any app you opened with Menfez.",
+            "apps_relaunch_title": "Reopen {what}?",
+            "apps_relaunch_body": "{what} will be quit and opened again with Menfez. Save anything unsaved first.",
+            "apps_relaunch_yes": "Quit and open",
+            "apps_need_dpi": "Turn on DPI mode first.",
+            "apps_still_running": "{what} didn't quit. Quit it yourself and try again.",
+            "apps_opened": "{what} opened with Menfez.",
+            "apps_restart_note": "{what} still uses the proxy you turned off. Restart it.",
+            "tune_button": "Find a setting",
+            "tune_forget": "Back to default",
+            "tune_starting": "Looking for a setting…",
+            "tune_trying": "Trying {i} of {n}…",
+            "tune_found": "Found a setting for this network and saved it (split: {n} bytes).",
+            "tune_found_global": "Found a setting and saved it (split: {n} bytes). This network can't be told apart, so it's used on every network without its own setting.",
+            "tune_not_needed": "The direct connection works now. This network may not be blocking.",
+            "tune_dns": "The name didn't resolve. No setting can fix that. Change DNS or try the tunnel.",
+            "tune_none": "No setting worked, try the tunnel.",
+            "browser_toggle": "Use in browsers too",
+            "dc_viaDPI": "Open, going through DPI",
+            "dc_withoutDPI": "Open without DPI",
+            "dc_running": "Open",
+            "dc_closed": "Closed",
+            "dc_open": "Open",
+            "dc_reopen": "Reopen",
+            "dc_reopen_hint": "Discord quits and opens again through Menfez.",
+            "lang_menu_restart": "The menu language changes when you reopen Menfez.",
+            "browser_check_all": "Test all",
+            "browser_check_again": "Click to test again",
+            "dpi_group_title": "Goes through DPI",
+            "dpi_row_browser": "Browser",
+            "dpi_row_browser_caption": "Only the sites on your list, in Safari and Chrome",
+            "dpi_row_sites": "Sites",
+            "browser_needs_update": "Install or update the tunnel component to use this in browsers.",
+            "browser_failed": "Couldn't change the browser setting: {what}",
+            "browser_title": "Sites through Menfez in browsers",
+            "browser_intro": "Only the sites on this list go through Menfez, subdomains included. Works only while DPI mode is on.",
+            "browser_firefox": "Firefox uses its own setting: Settings → Network Settings → Use system proxy settings.",
+            "browser_reload": "A change applies when the browser reads the list again. If it doesn't, restart the browser.",
+            "browser_empty": "No sites yet. Type the name of a site that won't open and press Add.",
+            "browser_recovered": "Couldn't read the browser list, so I started an empty one. The old one is saved as browser-sites.json.bak.",
+            "browser_off_note": "\"Use in browsers too\" is off. The list isn't in use right now.",
             "ks_reconnect": "Reconnect",
             "ks_unblock": "Unblock",
             "ks_on_done": "Internet will be blocked if the tunnel drops",
@@ -817,8 +1023,8 @@ struct L {
             "leak_ip_discord_leak": "Discord goes outside the tunnel",
             "leak_dns_tunnel": "Goes through the tunnel",
             "leak_dns_leak": "Goes outside the tunnel. Your provider can see the names you look up.",
-            "leak_dns_discord": "Goes outside the tunnel. That's normal with Discord only; your provider can see you look up Discord.",
-            "leak_dns_local": "A resolver on this Mac is in use; I can't see where it goes.",
+            "leak_dns_discord": "Goes outside the tunnel. That's normal in Discord only mode. Your provider can see you look up Discord.",
+            "leak_dns_local": "A resolver on this Mac is in use. I can't see where it sends lookups.",
             "leak_dns_unknown": "No resolver found",
             "leak_v6_none": "No IPv6 on this network, nothing to leak",
             "leak_v6_tunnel": "Goes through the tunnel",
@@ -830,16 +1036,16 @@ struct L {
             "leak_ks_unknown": "Unknown: update the tunnel helper first.",
             "onb1_title": "What Menfez does",
             "onb1_1": "Your internet provider can look inside your connections and cut some of them. This is called DPI, and it's why Discord won't open.",
-            "onb1_2": "Menfez sends Discord's connection in a way that slips past this check. No account, server or payment needed; it all happens on this Mac.",
+            "onb1_2": "Menfez sends Discord's connection so this check doesn't catch it. No account, server or payment needed. It all happens on this Mac.",
             "onb1_3": "To use it, quit Discord, then press Open Discord in Menfez.",
             "onb2_title": "If you have your own server",
             "onb2_1": "If DPI isn't enough, or you want all your internet to go out somewhere else, you can use a tunnel.",
-            "onb2_2": "Menfez doesn't come with a server. You add the .conf file you get from a WireGuard provider; the tunnel is set up once.",
+            "onb2_2": "Menfez doesn't come with a server. You add the .conf file you get from a WireGuard provider and set up the tunnel once.",
             "onb2_3": "No server? Skip this step. DPI works on its own.",
             "onb3_title": "You're set",
             "onb3_1": "If a site won't open, use \"Test a site\" in Help to see whether it's blocked and which way it opens.",
             "onb3_2": "If the tunnel drops or DPI stops, I'll send you a notification. macOS will ask permission once. This guide stays in Help.",
-            "onb3_3": "With Discord closed, press Open Discord; Menfez turns on DPI first, then opens Discord.",
+            "onb3_3": "With Discord closed, press Open Discord. Menfez turns on DPI first, then opens Discord.",
             "onb_skip": "Skip",
             "onb_back": "Back",
             "onb_next": "Next",
@@ -1026,6 +1232,14 @@ final class Backend: @unchecked Sendable {
     }
     private var networkWatcher: NetworkChangeWatcher?
     private var dnsWatcher: NetworkChangeWatcher?
+    /// The physical network is up; automatic reconnect waits while it is not.
+    var pathSatisfied: Bool { dnsWatcher?.isSatisfied ?? true }
+
+    /// Ping each server's endpoint host as the user (feature 4). Keyed by
+    /// profile name. Blocking; only on the user's "Pick the fastest".
+    func measureLatency(_ hosts: [String: String?]) -> [String: ServerLatency.Result] {
+        ServerLatency.measure(hosts, using: localRunner())
+    }
     /// Posted (off main) when a background `repin` fails; userInfo["error"].
     static let repinFailed = Notification.Name("MenfezRepinFailed")
     /// Posted (off main) after any debounced network path change.
@@ -1208,14 +1422,18 @@ final class Model: ObservableObject {
     /// One site test (`SiteTest`), off the main thread. DPI is tried through
     /// a proxy started for the test alone, so it works in every mode and the
     /// running proxy's counters stay Discord's.
-    func runSiteTest(_ host: String) async -> SiteTest.Report {
-        let paths = SiteTest.paths(tunnelCarriesEverything: tunnelCarriesEverything)
+    /// `paths` nil means the ways that mean something now. The test proxy
+    /// cuts where the running one does, so a length found for this network
+    /// (1.0.8) is the one tested.
+    func runSiteTest(_ host: String, paths only: [SiteTest.Path]? = nil) async -> SiteTest.Report {
+        let paths = only ?? SiteTest.paths(tunnelCarriesEverything: tunnelCarriesEverything)
+        let liveSplit = dpiEngine?.splitAt
         return await Task.detached(priority: .userInitiated) {
             var engine: DPIEngine?
             var port: Int?
             if paths.contains(.dpi) {
                 var config = DPIEngine.Configuration()
-                let split = UserDefaults.standard.integer(forKey: DPIEngine.splitDefaultsKey)
+                let split = liveSplit ?? UserDefaults.standard.integer(forKey: DPIEngine.splitDefaultsKey)
                 if DPIEngine.splitRange.contains(split) { config.firstRecordPayloadLimit = split }
                 let e = DPIEngine(configuration: config)
                 port = (try? e.start())?.port
@@ -1230,7 +1448,7 @@ final class Model: ObservableObject {
     /// The DPI proxy's published status. Refreshed from the engine on the fast
     /// tick (a lock and a few integers, no I/O) so the counters in the card are
     /// live without a second source of truth.
-    @Published var dpi = DPIStatus()
+    @Published var dpi = DPIStatus() { didSet { if dpi != oldValue { syncBrowserProxy() } } }
 
     /// What this machine can actually do, probed once at launch.
     ///
@@ -1304,8 +1522,12 @@ final class Model: ObservableObject {
                            lastProfile: { UserDefaults.standard.string(forKey: Model.lastProfileKey) },
                            dnsRouteArgs: { Model.dnsRouteArgs() }))
         tunnelControl = tunnel
+        let engine = DPIEngine(portStore: .standard)
+        engine.setBrowserSites(browserProxyWanted ? browserSites : nil)
+        dpiEngine = engine
+        engine.setSplit(DPITuning().effective(for: networkID))
         return ModeCoordinator(
-            dpi: DPIMode(engine: DPIEngine(portStore: .standard),
+            dpi: DPIMode(engine: engine,
                          discordRunning: { DiscordPresence.isRunning }),
             tunnel: tunnel)
     }
@@ -1449,6 +1671,7 @@ final class Model: ObservableObject {
         }
 
         status = L(lang: lang).t("checking")
+        _ = Model.syncMenuLanguage(lang)
         readLaunchAtLogin()
 
         // First paint waits for nothing: `report` stays nil (rows read
@@ -1497,6 +1720,7 @@ final class Model: ObservableObject {
                     try? await Task.sleep(nanoseconds: 3_000_000_000)
                     self.checkDNSRoutes()
                     self.checkSiteRoutes()
+                    self.checkNetwork()
                 }
             }
         })
@@ -1531,6 +1755,12 @@ final class Model: ObservableObject {
             MainActor.assumeIsolated {
                 // A block with no app to lift it would strand the user.
                 if KillSwitch.load() != nil { self?.backend.act(["killswitch", "off"], timeout: 5) }
+                // The browsers' proxy goes back with the app (the PAC's DIRECT
+                // would cope, but the setting is ours to undo).
+                if let self, self.browserProxyApplied != nil || self.browserProxyInFlight {
+                    // One read + up to two writes per service: 5 s was tight.
+                    self.backend.act(["proxy", "off"], timeout: 10)
+                }
                 self?.coordinator.shutdownForQuit()
             }
         })
@@ -1585,6 +1815,9 @@ final class Model: ObservableObject {
                 self.helperVersion = installed
                 self.helperOutdated = HelperVersion.needsUpdate(installed: installed)
                     && self.canRunTunnelInstaller
+                // Now `proxy` is known to work: undo a crashed run's setting
+                // or point it at this run's port.
+                self.syncBrowserProxy()
                 if self.helperOutdated { Notifier.shared.post(.helperUpdate, lang: self.lang) }
                 // Quitting lifts the block (a block with no app would strand
                 // the user), so a relaunch, including Sparkle's after an
@@ -1596,6 +1829,8 @@ final class Model: ObservableObject {
                 // Removes an updates tunnel a quit app left behind.
                 await self.coordinator.syncUpdateTunnel()
             }
+            // After the probe, so a Tunnel rule knows whether a tunnel can start.
+            self.checkNetwork()
         }
     }
 
@@ -2001,6 +2236,7 @@ final class Model: ObservableObject {
         killSwitchActive = killSwitchProbe()
         refreshDPIStatus()
         maybeRefreshFacts()
+        checkReconnect()
         // A probe owed by a mode or server change starts once it has settled.
         if probeSchedule.pending { refreshProbes() }
         // A DHCP resolver change does not always move the network path.
@@ -2026,9 +2262,11 @@ final class Model: ObservableObject {
         let lost = tunnelLost
         if let event = NotificationPolicy.tunnelEvent(wasLost: wasTunnelLost, isLost: lost,
                                                       inTunnel: runMode == .tunnel,
-                                                      healthy: report?.health.code == .ok) {
+                                                      healthy: report?.health.code == .ok),
+           !(event == .tunnelRestored && reconnectedNow) {
             Notifier.shared.post(event, lang: lang)
         }
+        reconnectedNow = false
         wasTunnelLost = lost
         if NotificationPolicy.dpiStoppedUnexpectedly(wasRunning: wasDPIRunning, isRunning: dpi.running,
                                                      dpiSelected: dpiOn) {
@@ -2111,6 +2349,30 @@ final class Model: ObservableObject {
     /// a listener died.
     func refreshDPIStatus() {
         dpi = coordinator.proxy
+        let state = runMode == .dpi ? DiscordPresence.state(port: dpi.running ? dpi.port : nil) : .closed
+        if state != discordState { discordState = state }
+    }
+
+    /// Discord's live state, for the DPI card's Discord row (1.0.8).
+    @Published var discordState: DiscordLauncher.State = .closed
+
+    /// "Reopen" in the Discord row: quit the running Discord, then launch it
+    /// through the proxy. A Discord started without the flag never picks it up.
+    func reopenDiscordThroughDPI() {
+        guard let app = DiscordPresence.app else { launchDiscord(); return }
+        Task {
+            app.terminate()
+            for _ in 0..<50 where !app.isTerminated {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+            if !app.isTerminated {
+                app.forceTerminate()
+                try? await Task.sleep(nanoseconds: 500_000_000)
+            }
+            self.launchDiscord()
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            self.refreshDPIStatus()
+        }
     }
 
     /// Fetch the privileged half when it is stale, and only while visible.
@@ -2283,7 +2545,18 @@ final class Model: ObservableObject {
         guard new != lang else { return }
         lang = new
         savePrefs()
-        status = l.t("now")
+        status = l.t(Model.syncMenuLanguage(new) ? "lang_menu_restart" : "now")
+    }
+
+    /// The app menu and Sparkle's windows take their language from
+    /// AppleLanguages at launch. Keep this app's value on the in-app language;
+    /// true when it changed, so the next launch differs. Bundles only.
+    static func syncMenuLanguage(_ lang: Lang) -> Bool {
+        guard Bundle.main.bundleURL.pathExtension == "app" else { return false }
+        let defaults = UserDefaults.standard
+        if defaults.stringArray(forKey: "AppleLanguages")?.first?.hasPrefix(lang.rawValue) == true { return false }
+        defaults.set([lang.rawValue], forKey: "AppleLanguages")
+        return true
     }
 
     private func savePrefs() {
@@ -2403,6 +2676,7 @@ final class Model: ObservableObject {
     /// click needs, and the user asked for DPI mode, not for it to be undone.
     func enableDPIAndLaunchDiscord() {
         guard !busy else { return }
+        userChoseMode()
         beginPathChange()
         Task {
             await self.releaseKillSwitch()
@@ -2416,6 +2690,7 @@ final class Model: ObservableObject {
     /// Enter DPI mode only.
     func enableDPI() {
         guard !busy else { return }
+        userChoseMode()
         beginPathChange()
         Task {
             await self.releaseKillSwitch()
@@ -2427,6 +2702,7 @@ final class Model: ObservableObject {
     /// Leave DPI mode. Established tunnels are allowed to finish.
     func disableDPI() {
         guard !busy else { return }
+        userChoseMode()
         beginPathChange()
         busy = true
         let from = runMode, port = dpi.port
@@ -2504,6 +2780,276 @@ final class Model: ObservableObject {
                 self.scopeChoice = previous
             }
         }
+    }
+
+    // MARK: - Networks (feature 5)
+
+    /// Bumped by Settings' "Networks…"; the window opens the sheet.
+    @Published var networkRequests = 0
+    private static let loadedNetworks = NetworkList.load()
+    /// The remembered networks (`networks.json`).
+    @Published var networks: [KnownNetwork] = Model.loadedNetworks.list.networks
+    /// `networks.json` could not be read; it was kept as `.bak` (shown in the sheet).
+    let networksRecovered = Model.loadedNetworks.recovered
+    /// "Change mode by network". Off by default, so nothing changes for
+    /// anyone who never opens the sheet.
+    @Published var networksAuto = NetworkList.isEnabled() {
+        didSet { UserDefaults.standard.set(networksAuto, forKey: NetworkList.enabledKey) }
+    }
+    @Published var networkWatch = NetworkWatch()
+    /// False until the first reading landed, so the sheet does not say
+    /// "can't tell" before it looked.
+    @Published var networkRead = false
+    /// True only while a rule's own switch is being started.
+    private var networkSwitching = false
+
+    /// The hashed id of the network the Mac is on; nil when it cannot be told
+    /// apart. Per-network settings (feature 8) key on this.
+    var networkID: String? { networkWatch.id }
+    var currentNetwork: KnownNetwork? { NetworkList(networks: networks).entry(networkID) }
+
+    /// Read the network (one `arp` or `ndp` as the user, no prompt) and apply
+    /// its rule when this is a join. Runs at launch and after a network change.
+    func checkNetwork(reapply: Bool = false) {
+        Task {
+            let found = await Task.detached(priority: .utility) {
+                NetworkIdentity.id(of: NetworkIdentity.readPrimary())
+            }.value
+            let moved = found != networkID
+            networkWatch.observe(found)
+            networkRead = true
+            if moved {
+                // A length found for one network says nothing about the next.
+                if case .done = tuning { tuning = nil }
+                applyDPISplit()
+            }
+            if reapply { networkWatch.reapply() }
+            applyNetworkRule()
+        }
+    }
+
+    /// The user picked a mode: that wins until the next network change.
+    private func userChoseMode() {
+        if !networkSwitching { networkWatch.userChose() }
+        // A mode click (Reconnect included) takes over from the automatic one.
+        reconnect.reset()
+    }
+
+    private func applyNetworkRule() {
+        guard networkWatch.pending else { return }
+        if busy {
+            // A switch is running; its result decides `current`, so ask again after it.
+            Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                self.applyNetworkRule()
+            }
+            return
+        }
+        let rule = currentNetwork
+        let ready = capabilities.tunnelAvailable && TunnelRecovery.selection(
+            lastProfile: selectedProfile,
+            available: WireGuardProfiles.list(liveHost: nil).map(\.name)) != nil
+        let action = NetworkWatch.decide(rule: rule?.mode, enabled: networksAuto,
+                                         pending: networkWatch.pending, manual: networkWatch.manual,
+                                         current: runMode, tunnelReady: ready)
+        networkWatch.settled()
+        guard let rule else { return }
+        switch action {
+        case .none:
+            return
+        case .needsTunnel:
+            Model.trace("network rule: tunnel wanted, not available")
+            status = l.t("net_needs_tunnel", ["name": rule.name])
+            statusColor = Palette.warning
+            Notifier.shared.post(.networkNeedsTunnel, lang: lang)
+        case .switchTo(let mode):
+            Model.trace("network rule: switching to \(mode.rawValue)")
+            networkSwitching = true
+            setMode(mode.rawValue)
+            networkSwitching = false
+            Notifier.shared.post(.networkSwitched, lang: lang,
+                                 ["what": l.t("mode_" + mode.rawValue)])
+        }
+    }
+
+    /// "Remember this network", with the mode in use now, so nothing switches.
+    func rememberNetwork() {
+        guard let id = networkID, currentNetwork == nil,
+              networks.count < NetworkList.maxNetworks else { return }
+        let list = NetworkList(networks: networks)
+        networks.append(KnownNetwork(id: id, name: list.nextName(prefix: l.t("net_default_name")),
+                                     mode: NetworkMode(rawValue: runMode.rawValue) ?? .leave))
+        networksEdited()
+    }
+
+    func setNetworkMode(_ id: String, _ mode: NetworkMode) {
+        guard let i = networks.firstIndex(where: { $0.id == id }), networks[i].mode != mode else { return }
+        networks[i].mode = mode
+        networksEdited()
+        // Editing this network's rule is the user's own choice: apply it now.
+        if id == networkID { networkWatch.reapply(); applyNetworkRule() }
+    }
+
+    func renameNetwork(_ id: String, _ raw: String) {
+        guard let name = NetworkList.cleanName(raw),
+              let i = networks.firstIndex(where: { $0.id == id }) else { return }
+        networks[i].name = name
+        networksEdited()
+    }
+
+    func forgetNetwork(_ id: String) {
+        networks.removeAll { $0.id == id }
+        networksEdited()
+    }
+
+    func setNetworksAuto(_ on: Bool) {
+        networksAuto = on
+        if on { networkWatch.reapply(); applyNetworkRule() }
+    }
+
+    private func networksEdited() {
+        guard NetworkList(networks: networks).save() else {
+            status = l.t("net_save_failed")
+            statusColor = Palette.danger
+            return
+        }
+    }
+
+    // MARK: - DPI in the browser (1.0.8)
+
+    nonisolated static let browserProxyKey = "browserProxy.enabled"
+    /// "Use in browsers too": saved, off by default. Acts only in DPI mode.
+    @Published var browserProxyWanted = UserDefaults.standard.bool(forKey: Model.browserProxyKey)
+    /// Helper 6 knows `proxy`; older or none gets the dimmed toggle and hint.
+    var browserProxyAvailable: Bool { helperVersion >= 6 }
+    private static let loadedBrowserSites = SiteList.load(path: SiteList.browserPath)
+    /// The browser list (`browser-sites.json`), separate from the tunnel's.
+    @Published var browserSites: [String] = Model.loadedBrowserSites.list.sites
+    let browserSitesRecovered = Model.loadedBrowserSites.recovered
+    /// The port the system proxy points at now, as far as this run knows.
+    /// Starts from the system's own setting, so a crashed run's PAC is
+    /// found without a process and undone once the helper answers.
+    private(set) var browserProxyApplied: Int? = SystemProxy.livePort()
+    private var browserProxyInFlight = false
+    /// False only in snapshots, which must never run the helper.
+    var browserProxySyncs = true
+    /// A target that failed; not retried until something changes.
+    private var browserProxyFailed: Int?? = nil
+    var dpiEngine: DPIEngine?
+    /// "Find a setting" (feature 8): progress, then the outcome until the network changes.
+    @Published var tuning: TuningState?
+
+    func setBrowserProxy(_ on: Bool) {
+        browserProxyWanted = on
+        UserDefaults.standard.set(on, forKey: Model.browserProxyKey)
+        browserProxyFailed = nil
+        dpiEngine?.setBrowserSites(on ? browserSites : nil)
+        syncBrowserProxy()
+    }
+
+    /// Make the system setting match: our PAC while the toggle is on and the
+    /// proxy runs, the user's own setting otherwise. Spawns only on a change.
+    func syncBrowserProxy() {
+        guard browserProxySyncs, browserProxyAvailable, !browserProxyInFlight else { return }
+        let want = SystemProxy.wanted(enabled: browserProxyWanted,
+                                      dpiRunning: runMode == .dpi && dpi.running, port: dpi.port)
+        guard want != browserProxyApplied, browserProxyFailed != .some(want) else { return }
+        browserProxyInFlight = true
+        let args = want.map { ["proxy", "pac", String($0)] } ?? ["proxy", "off"]
+        let backend = self.backend
+        Task {
+            let result = await Task.detached(priority: .userInitiated) {
+                backend.act(args, timeout: 30)
+            }.value
+            self.browserProxyInFlight = false
+            if result?.ok == true {
+                self.browserProxyApplied = want
+                self.browserProxyFailed = nil
+            } else {
+                self.browserProxyFailed = .some(want)
+                self.status = self.l.t("browser_failed", ["what": String((result?.error ?? self.l.t("helper_no_reply")).prefix(150))])
+                self.statusColor = Palette.warning
+            }
+            self.syncBrowserProxy()   // anything that changed meanwhile
+        }
+    }
+
+    func addBrowserSite(_ raw: String) -> String? {
+        guard let entry = PACFile.entry(raw) else { return l.t("sites_invalid") }
+        guard !browserSites.contains(entry) else { return nil }
+        guard browserSites.count < SiteRoutes.maxSites else {
+            return l.t("sites_full", ["what": String(SiteRoutes.maxSites)])
+        }
+        browserSites.append(entry)
+        browserSitesEdited()
+        checkBrowserSites([entry])
+        return nil
+    }
+
+    func removeBrowserSite(_ entry: String) {
+        browserSites.removeAll { $0 == entry }
+        browserSiteChecks[entry] = nil
+        saveBrowserSiteChecks()
+        browserSitesEdited()
+    }
+
+    // MARK: - Does each browser site open through DPI (1.0.8)
+
+    /// The last check of one browser-list site. `outcome` nil: running now.
+    struct SiteCheck: Codable, Equatable {
+        var outcome: String?
+        var at: Date
+    }
+
+    nonisolated static let browserChecksKey = "browserSites.checks"
+    /// Saved, so reopening the sheet shows the last result without testing again.
+    @Published var browserSiteChecks: [String: SiteCheck] = {
+        guard let data = UserDefaults.standard.data(forKey: Model.browserChecksKey),
+              let saved = try? JSONDecoder().decode([String: SiteCheck].self, from: data) else { return [:] }
+        return saved.filter { $0.value.outcome != nil }
+    }()
+
+    private func saveBrowserSiteChecks() {
+        let done = browserSiteChecks.filter { $0.value.outcome != nil }
+        if let data = try? JSONEncoder().encode(done) {
+            UserDefaults.standard.set(data, forKey: Model.browserChecksKey)
+        }
+    }
+
+    /// Try each entry through a DPI proxy of its own (`runSiteTest`), four at
+    /// a time. Entries already running and IP addresses are skipped.
+    func checkBrowserSites(_ entries: [String]) {
+        let hosts: [(String, String)] = entries.compactMap { entry in
+            guard browserSiteChecks[entry].map({ $0.outcome != nil }) ?? true,
+                  case .success(let host) = SiteTest.host(from: entry) else { return nil }
+            return (entry, host)
+        }
+        guard !hosts.isEmpty else { return }
+        for (entry, _) in hosts { browserSiteChecks[entry] = SiteCheck(outcome: nil, at: Date()) }
+        Task {
+            for start in stride(from: 0, to: hosts.count, by: 4) {
+                let batch = hosts[start..<min(start + 4, hosts.count)]
+                await withTaskGroup(of: (String, SiteTest.Outcome).self) { group in
+                    for (entry, host) in batch {
+                        group.addTask {
+                            (entry, SiteTest.dpiOutcome(await self.runSiteTest(host, paths: [.dpi])))
+                        }
+                    }
+                    for await (entry, outcome) in group where browserSites.contains(entry) {
+                        browserSiteChecks[entry] = SiteCheck(outcome: outcome.rawValue, at: Date())
+                    }
+                }
+                saveBrowserSiteChecks()
+            }
+        }
+    }
+
+    private func browserSitesEdited() {
+        if !SiteList(sites: browserSites).save(path: SiteList.browserPath) {
+            status = l.t("sites_save_failed")
+            statusColor = Palette.danger
+        }
+        if browserProxyWanted { dpiEngine?.setBrowserSites(browserSites) }
     }
 
     // MARK: - Chosen sites (Discord + chosen sites)
@@ -2600,6 +3146,7 @@ final class Model: ObservableObject {
     /// a property of the tunnel, not of "which interception is live".
     func setMode(_ path: String, tunnelMode: Mode? = nil, closesServerSheet: Bool = false) {
         guard !busy else { return }
+        userChoseMode()
         pendingTunnelStart = false
         switch path {
         case "dpi":
@@ -2677,6 +3224,7 @@ final class Model: ObservableObject {
     /// closed proxy. Runs after the switch has finished, so it never delays it.
     private func offerDiscordRestart(from: RunMode, to: RunMode, port: Int?) {
         guard from == .dpi, to != .dpi else { return }
+        noteFlaggedApps(port: port)
         Task {
             let ps = await Task.detached(priority: .utility) {
                 SystemRunner().run("ps", ["-axo", "pid=,args="], timeout: 5).output
@@ -3000,6 +3548,105 @@ final class Model: ObservableObject {
                 l.t("server_set", ["what": name]))
     }
 
+    // --- feature 4: fastest server, automatic reconnect -------------------
+
+    /// The last "Pick the fastest" results, shown on the server rows.
+    @Published var latencies: [String: ServerLatency.Result] = [:]
+    @Published var measuringLatency = false
+    private var latencyCache = LatencyCache()
+    /// The automatic reconnect's state; read by the status line.
+    @Published private(set) var reconnect = Reconnect()
+    /// This tick's reconnect brought the tunnel back: post that, not "restored".
+    private var reconnectedNow = false
+
+    /// Server names fastest first by the last fresh measurement, else list order.
+    var rankedServers: [String] {
+        ServerLatency.rank(profiles.map(\.name), latencyCache.current())
+    }
+
+    /// "Pick the fastest": ping every server (as the user, at most 4 at a
+    /// time, reused for 5 minutes), show the numbers, then choose the fastest
+    /// that answered. With the tunnel up that is a `switch`: the press is the
+    /// user's explicit action. Nothing answered: nothing changes (AS-11).
+    func pickFastest() {
+        guard !busy, !measuringLatency, !profiles.isEmpty else { return }
+        let names = profiles.map(\.name)
+        let hosts = Dictionary(profiles.map { ($0.name, $0.host) }, uniquingKeysWith: { a, _ in a })
+        measuringLatency = true
+        status = l.t("lat_measuring")
+        statusColor = Palette.warning
+        Task {
+            var results = self.latencyCache.current()
+            if Set(results.keys) != Set(names) {
+                let backend = self.backend
+                results = await Task.detached(priority: .userInitiated) {
+                    backend.measureLatency(hosts)
+                }.value
+                self.latencyCache.store(results)
+            }
+            self.latencies = results
+            self.measuringLatency = false
+            guard let best = ServerLatency.fastest(names, results),
+                  let profile = self.profiles.first(where: { $0.name == best }) else {
+                self.status = self.l.t("lat_none")
+                self.statusColor = Palette.warning
+                return
+            }
+            let label = profile.display ?? best
+            if self.runMode == .tunnel && self.isChosen(profile) {
+                self.status = self.l.t("lat_already", ["what": label])
+                self.statusColor = Palette.success
+                return
+            }
+            self.switchServer(best)
+        }
+    }
+
+    /// One reconnect observation per tick (`Reconnect` decides; the helper's
+    /// `repin` and `switch` do the work; the kill switch is never touched).
+    private func checkReconnect() {
+        let input = Reconnect.Input(
+            active: Reconnect.isAuto() && runMode == .tunnel && capabilities.tunnelAvailable,
+            lost: tunnelLost,
+            healthy: report?.health.code == .ok,
+            pathSatisfied: backend.pathSatisfied,
+            current: activeProfile?.name ?? selectedProfile,
+            ranked: rankedServers,
+            allowSwitch: Reconnect.allowsSwitch())
+        let current = input.current
+        switch reconnect.observe(input) {
+        case .none:
+            break
+        case .recovered:
+            reconnectedNow = true
+            let name = current.flatMap { c in profiles.first { $0.name == c } }
+            let label = name?.display ?? current ?? ""
+            status = l.t("rc_done", ["what": label])
+            statusColor = Palette.success
+            Notifier.shared.post(.tunnelReconnected, lang: lang, ["what": label])
+        case .gaveUp:
+            Model.trace("reconnect: gave up")
+            Notifier.shared.post(.reconnectFailed, lang: lang)
+        case .attempt(let step):
+            runReconnect(step)
+        }
+    }
+
+    private func runReconnect(_ step: Reconnect.Step) {
+        let args: [String]
+        switch step {
+        case .repin:
+            args = ["repin"]
+        case .restart(let name), .switchTo(let name):
+            args = ["switch", name] + Model.dnsRouteArgs(profile: name)
+        }
+        Model.trace("reconnect attempt \(reconnect.attempts): \(args[0])")
+        perform(l.t("rc_trying", ["n": "\(reconnect.attempts)", "max": "\(Reconnect.maxAttempts)"]),
+                args, l.t("rc_tried")) { ok in
+            if ok, case .switchTo(let name) = step { self.selectedProfile = name }
+        }
+    }
+
     /// The DNS-through-tunnel toggle changed: a live Discord-mode route set is
     /// swapped at once (`mode` adds or removes only the resolver /32s).
     func dnsRoutingChanged() {
@@ -3199,7 +3846,11 @@ final class Model: ObservableObject {
         // tunnel state is genuinely unknown. Saying "tunnel down" is a claim
         // the app cannot support, and it is the single most alarming thing this
         // line can say.
-        if tunnelLost { return l.t(killSwitchActive ? "tunnel_lost_blocked" : "tunnel_lost") }
+        if tunnelLost {
+            let lost = l.t(killSwitchActive ? "tunnel_lost_blocked" : "tunnel_lost")
+            if reconnect.gaveUp { return lost + " · " + l.t("rc_gave_up_short") }
+            return reconnect.attempts > 0 ? lost + " · " + l.t("rc_waiting") : lost
+        }
         if r.health.code == .unknown { return l.t("checking") }
         guard r.tunnel != nil else { return l.t("down") }
         if mode == "off" { return l.t("off_state") }
@@ -3425,6 +4076,7 @@ struct ContentView: View {
         .onChange(of: m.serverRequests) { _ in show(.servers) }
         .onChange(of: m.serverSheetCloses) { _ in close(.servers) }
         .onChange(of: m.siteTestRequests) { _ in show(.siteTest) }
+        .onChange(of: m.networkRequests) { _ in show(.networks) }
         .alert(m.l.t("discord_restart_title"),
                isPresented: Binding(get: { m.discordRestartPID != nil },
                                     set: { shown in
@@ -3542,6 +4194,12 @@ struct ContentView: View {
             LeakTestSheet(lang: m.lang, onRun: { await m.runLeakTest() }) { close(.leakTest) }
         case .sites:
             SitesSheet(m: m) { close(.sites) }
+        case .networks:
+            NetworksSheet(m: m) { close(.networks) }
+        case .browserSites:
+            BrowserSitesSheet(m: m) { close(.browserSites) }
+        case .otherApps:
+            OtherAppsSheet(m: m) { close(.otherApps) }
         case .siteTest:
             SiteTestSheet(lang: m.lang,
                           tunnelOnlyDiscord: m.runMode == .tunnel && !m.tunnelCarriesEverything,
@@ -3566,7 +4224,8 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: Space.m) {
             if m.helperOutdated { helperUpdateRow }
             if m.tunnelLost && m.killSwitchActive { blockedRow }
-            primaryAction
+            // In DPI mode the Discord row in the DPI card holds this action.
+            if m.runMode != .dpi { primaryAction }
             modeBar
             // The server picker only configures the tunnel; in DPI and direct
             // mode there is no tunnel to point anywhere, so it would be a dead
@@ -3584,8 +4243,12 @@ struct ContentView: View {
                 // Direct mode: the DNS row in the card opens the same sheet.
                 dnsButton(labelled: true)
             }
-            // Setup state of the optional tunnel; moot while it is running.
-            if m.runMode != .tunnel {
+            if m.runMode == .dpi {
+                dpiGroup.transition(reveal)
+            }
+            // Setup state of the optional tunnel: moot while it runs, and noise
+            // in DPI mode, which needs none of it (owner feedback, 1.0.8).
+            if m.runMode == .direct {
                 tunnelRow.transition(reveal)
             }
         }
@@ -3673,6 +4336,8 @@ struct ContentView: View {
                         Text(m.lang.flag)
                         Text(m.lang.label)
                             .font(.system(size: 11))
+                            // "English" was cut to "Engli…" once the header got busier.
+                            .fixedSize()
                     }
                     .padding(.horizontal, 9)
                     .padding(.vertical, 5)
@@ -3741,50 +4406,27 @@ struct ContentView: View {
     /// the tunnel's mode buttons first, so a stranger's first click went to a
     /// helper they had never installed.
     private var primaryAction: some View {
-        VStack(alignment: .leading, spacing: Space.s) {
-            Button {
-                m.enableDPIAndLaunchDiscord()
-            } label: {
-                HStack(spacing: Space.m) {
-                    Image(systemName: m.dpiOn ? "bolt.horizontal.fill" : "bolt.horizontal")
-                        .font(.system(size: 16, weight: .semibold))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(m.dpiOn
-                             ? m.l.t("dpi_launch_again")
-                             : m.l.t("dpi_enable_discord"))
-                            .font(.system(size: 14, weight: .semibold))
-                        Text(m.dpiOn
-                             ? m.l.t("dpi_launch_again_hint")
-                             // The click switches modes: in tunnel mode it
-                             // tears the tunnel down first, so say so.
-                             : m.l.t(m.runMode == .tunnel ? "dpi_enable_from_tunnel_hint"
-                                                          : "dpi_enable_hint"))
-                            .font(.system(size: 11))
-                            .opacity(0.85)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, Space.l)
-                .padding(.vertical, Space.m + 2)
-                .contentShape(Rectangle())
+        // One line, normal height (owner feedback, 1.0.8): the two-line hero
+        // was the biggest thing in the window. What the click does is the tooltip.
+        Button {
+            m.enableDPIAndLaunchDiscord()
+        } label: {
+            HStack(spacing: Space.s) {
+                Image(systemName: m.dpiOn ? "arrow.clockwise" : "bolt.horizontal.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                Text(m.dpiOn ? m.l.t("dpi_launch_again") : m.l.t("dpi_enable_discord"))
+                    .font(.system(size: 13, weight: .semibold))
             }
-            .buttonStyle(PrimaryButtonStyle())
-            .disabled(m.busy)
-            .help(m.l.t("dpi_no_root_note"))
-
-            // The rootless promise, stated where the click happens rather than
-            // buried in Help. It is the reason a stranger can use this app.
-            HStack(alignment: .firstTextBaseline, spacing: Space.s - 2) {
-                Image(systemName: "lock.open")
-                    .font(.system(size: 10))
-                Text(m.l.t("dpi_no_root_note"))
-                    .font(.system(size: 11))
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
-            }
-            .foregroundStyle(Palette.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, Space.s)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(PrimaryButtonStyle())
+        .disabled(m.busy)
+        .help(m.dpiOn
+              ? m.l.t("dpi_launch_again_hint")
+              // The click switches modes: in tunnel mode it tears the tunnel down first.
+              : m.l.t(m.runMode == .tunnel ? "dpi_enable_from_tunnel_hint" : "dpi_enable_hint"))
     }
 
     // --- mode chips ------------------------------------------------------
@@ -3902,6 +4544,135 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    /// What goes through DPI, as one grouped card drawn like the detail card:
+    /// Discord (always), the browser toggle with its list, other apps (1.0.8).
+    /// The browser row is dimmed with the update hint on a helper older than 6.
+    private var dpiGroup: some View {
+        VStack(alignment: .leading, spacing: Space.xs + 2) {
+            Text(m.l.t("dpi_group_title"))
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Palette.secondary)
+                .padding(.leading, Space.xs)
+            VStack(spacing: 0) {
+                discordRow
+                groupDivider
+                groupRow("safari", m.l.t("dpi_row_browser"),
+                         caption: m.l.t(m.browserProxyAvailable ? "dpi_row_browser_caption" : "browser_needs_update")) {
+                    Toggle("", isOn: Binding(get: { m.browserProxyWanted && m.browserProxyAvailable },
+                                             set: { m.setBrowserProxy($0) }))
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                        .disabled(!m.browserProxyAvailable)
+                        .accessibilityLabel(m.l.t("browser_toggle"))
+                }
+                .opacity(m.browserProxyAvailable ? 1 : 0.6)
+                if m.browserProxyAvailable {
+                    groupDivider
+                    groupLink("list.bullet", m.l.t("dpi_row_sites"), value: String(m.browserSites.count)) {
+                        show(.browserSites)
+                    }
+                }
+                groupDivider
+                // No helper needed, so never dimmed.
+                groupLink("square.grid.2x2", m.l.t("apps_title")) { show(.otherApps) }
+            }
+            .padding(.vertical, Space.xs)
+            .modifier(Card())
+        }
+    }
+
+    /// Discord's live state and the one action that fits it: Open when
+    /// closed, Reopen when it runs without the proxy, none when it goes
+    /// through DPI. Replaces the big button in DPI mode.
+    private var discordRow: some View {
+        let state = m.discordState
+        let (key, color): (String, Color) = {
+            switch state {
+            case .viaDPI:     return ("dc_viaDPI", Palette.success)
+            case .withoutDPI: return ("dc_withoutDPI", Palette.warning)
+            case .running:    return ("dc_running", Palette.text)
+            case .closed:     return ("dc_closed", Palette.secondary)
+            }
+        }()
+        return groupRow("bubble.left.and.bubble.right", m.l.t("f_discord")) {
+            HStack(spacing: Space.s) {
+                Text(m.l.t(key))
+                    .font(.system(size: 12, weight: state == .closed ? .regular : .medium))
+                    .foregroundStyle(color)
+                    .lineLimit(1)
+                if state != .viaDPI {
+                    Button {
+                        if state == .closed { m.enableDPIAndLaunchDiscord() } else { m.reopenDiscordThroughDPI() }
+                    } label: {
+                        Text(m.l.t(state == .closed ? "dc_open" : "dc_reopen"))
+                            .font(.system(size: 11.5, weight: .semibold))
+                            .padding(.horizontal, Space.s + 2)
+                            .padding(.vertical, Space.xs)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(m.busy)
+                    .fixedSize()
+                    .help(m.l.t(state == .closed ? "dpi_enable_hint" : "dc_reopen_hint"))
+                }
+            }
+        }
+    }
+
+    private var groupDivider: some View {
+        Rectangle().fill(Palette.separator).frame(height: 1)
+            .padding(.leading, Space.l + 18 + Space.m)
+    }
+
+    /// One row of a grouped card, with the detail card's metrics.
+    private func groupRow<Trailing: View>(_ symbol: String, _ title: String, caption: String? = nil,
+                                          @ViewBuilder trailing: () -> Trailing) -> some View {
+        HStack(spacing: Space.m) {
+            Image(systemName: symbol)
+                .font(.system(size: 13))
+                .foregroundStyle(Palette.secondary)
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title).font(.system(size: 13)).foregroundStyle(Palette.text)
+                if let caption {
+                    Text(caption)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: Space.s)
+            trailing()
+        }
+        .padding(.horizontal, Space.l)
+        .padding(.vertical, Space.s - 1)
+        .frame(minHeight: 30)
+    }
+
+    /// A grouped-card row that opens a sheet: optional value, then a chevron.
+    private func groupLink(_ symbol: String, _ title: String, value: String? = nil,
+                           action: @escaping () -> Void) -> some View {
+        groupRow(symbol, title) {
+            HStack(spacing: Space.s) {
+                if let value {
+                    Text(value)
+                        .font(.system(size: 13, weight: .medium))
+                        .monospacedDigit()
+                        .foregroundStyle(Palette.text)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(Palette.secondary)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: action)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { action() }
     }
 
     /// Kill switch and leak test, under the scope picker in Tunnel mode.
@@ -4144,9 +4915,8 @@ struct ContentView: View {
         // the server label, the long one, takes the rest and all the growth.
         .frame(minWidth: WidthPolicy.dnsPickerMin,
                idealWidth: labelled ? nil : WidthPolicy.dnsPickerIdeal,
-               maxWidth: labelled ? nil : WidthPolicy.dnsPickerMax,
+               maxWidth: labelled ? .infinity : WidthPolicy.dnsPickerMax,
                alignment: .leading)
-        .fixedSize(horizontal: labelled, vertical: false)
     }
 
     // --- detail card -----------------------------------------------------
@@ -4353,6 +5123,7 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            findSettingRow
 
             if TunnelRecovery.isUpdatesHybrid(routeMode: m.mode, carrying: m.tunnelCarriesTraffic) {
                 Label(m.l.t("updates_tunnel_on"), systemImage: "arrow.down.circle")
@@ -4362,21 +5133,6 @@ struct ContentView: View {
             }
 
             HStack(spacing: Space.s) {
-                Button {
-                    m.launchDiscord()
-                } label: {
-                    Text(m.l.t("discord_launch"))
-                        .font(.system(size: 12))
-                        .padding(.horizontal, Space.m)
-                        .padding(.vertical, Space.s - 2)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .modifier(Chip())
-                .foregroundStyle(m.dpi.running ? Palette.text : Palette.secondary)
-                .disabled(!m.dpi.running)
-                .help(m.dpiMode?.discordAvailability.reason ?? "")
-
                 Button {
                     m.runProbe()
                 } label: {
@@ -4429,12 +5185,6 @@ struct ContentView: View {
                 }
             }
 
-            // Said every time, not only on failure: the flag is read at launch,
-            // so a running Discord is never covered no matter what the proxy does.
-            Text(m.l.t("dpi_quit_first"))
-                .font(.system(size: 11))
-                .foregroundStyle(Palette.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(Space.l)
         .modifier(Card())
@@ -4450,6 +5200,47 @@ struct ContentView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(Palette.secondary)
         }
+    }
+
+    /// "Find a setting" (1.0.8): offered only when the probe said DPI is not
+    /// enough, or while/after a search; "Back to default" when this network
+    /// has a saved length.
+    @ViewBuilder
+    private var findSettingRow: some View {
+        let offer = m.probe?.verdict == .notHelping && m.tuning == nil
+        if offer || m.tuning != nil || m.networkHasSetting {
+            VStack(alignment: .leading, spacing: Space.xs) {
+                if let line = m.tuningLine {
+                    Text(line)
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(Palette.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                HStack(spacing: Space.s) {
+                    if offer {
+                        tuneChip(m.l.t("tune_button")) { m.findSetting() }
+                            .disabled(!m.dpi.running)
+                    }
+                    if m.networkHasSetting, m.tuning.map({ if case .trying = $0 { return false } else { return true } }) ?? true {
+                        tuneChip(m.l.t("tune_forget")) { m.forgetSetting() }
+                    }
+                }
+            }
+        }
+    }
+
+    private func tuneChip(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 11, weight: .medium))
+                .padding(.horizontal, Space.s + 2)
+                .padding(.vertical, Space.xs + 1)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .modifier(Chip())
+        .foregroundStyle(Palette.accent)
+        .fixedSize()
     }
 
     private static func probeColor(_ verdict: DPIProbeOutcome.Verdict) -> Color {
@@ -4553,6 +5344,17 @@ struct ContentView: View {
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
 
+                if !m.profiles.isEmpty {
+                    Button(m.l.t(m.measuringLatency ? "lat_measuring" : "lat_pick")) { m.pickFastest() }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .modifier(Chip())
+                        .foregroundStyle(Palette.text)
+                        .disabled(m.busy || m.measuringLatency)
+                        .help(m.l.t("lat_pick_help"))
+                        .accessibilityHint(m.l.t("lat_pick_help"))
+                }
+
                 Spacer()
 
                 Button(m.l.t("close")) { close(.servers) }
@@ -4638,6 +5440,7 @@ struct ContentView: View {
                     Text(p.display ?? Countries.name(p.country, lang: m.lang))
                         .font(.system(size: 12))
                         .lineLimit(1)
+                        .layoutPriority(1)
                     if p.keychain == true {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 9))
@@ -4648,7 +5451,17 @@ struct ContentView: View {
                     Spacer()
                     Text((p.endpoint ?? "—").split(separator: ":").first.map(String.init) ?? "—")
                         .font(.system(size: 10, design: .monospaced))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                         .foregroundStyle(m.isChosen(p) ? Palette.accentText.opacity(0.8) : Palette.secondary)
+                    if let latency = latencyText(p) {
+                        Text(latency)
+                            .font(.system(size: 10, weight: .medium))
+                            .lineLimit(1)
+                            .fixedSize()
+                            .foregroundStyle(m.isChosen(p) ? Palette.accentText : Palette.text)
+                            .accessibilityLabel(m.l.t("lat_a11y", ["what": latency]))
+                    }
                 }
                 .padding(.leading, 11)
                 .padding(.vertical, 8)
@@ -4667,6 +5480,15 @@ struct ContentView: View {
         .foregroundStyle(m.isChosen(p) ? Palette.accentText : Palette.text)
         .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
         .padding(.bottom, 3)
+    }
+
+    /// "42 ms" or "no reply" after "Pick the fastest"; nothing before.
+    private func latencyText(_ p: Profile) -> String? {
+        switch m.latencies[p.name] {
+        case .ms(let n)?: return m.l.t("lat_ms", ["n": "\(n)"])
+        case .noReply?: return m.l.t("lat_no_reply")
+        case nil: return nil
+        }
     }
 
     private func rowIcon(_ symbol: String, _ label: String, active: Bool,
@@ -4919,6 +5741,9 @@ enum SheetRoute: Equatable {
     case siteTest
     case leakTest
     case sites
+    case browserSites
+    case otherApps
+    case networks
     case onboarding
     case detail(DetailSheet)
 }
@@ -4990,6 +5815,13 @@ struct DetailView: View {
                     }
                     .padding(.vertical, 3)
                 }
+                if sheet.what == "discord" {
+                    Text(L(lang: lang).t("discord_ms_help"))
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 8)
+                }
             }
 
             HStack {
@@ -5044,6 +5876,37 @@ struct DetailView: View {
 /// Keeps the process alive when the window closes; the menu bar stays.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    /// A second launch quits at once and asks this copy to show its window,
+    /// also when only the menu bar item is left (1.0.8).
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        DistributedNotificationCenter.default().addObserver(
+            forName: Notification.Name(SingleInstance.showWindowNotification), object: nil, queue: .main
+        ) { _ in
+            Task { @MainActor in
+                NSApp.activate(ignoringOtherApps: true)
+                Notifier.shared.openMain?()
+            }
+        }
+    }
+
+    /// Quit before any window, engine or helper call when an older copy
+    /// runs. Bundles only: a `swift run` binary has no bundle id.
+    @MainActor
+    static func yieldToRunningCopy() {
+        let me = NSRunningApplication.current
+        let others = NSWorkspace.shared.runningApplications.map {
+            SingleInstance.Running(pid: $0.processIdentifier, bundleID: $0.bundleIdentifier, launched: $0.launchDate)
+        }
+        guard let target = SingleInstance.yieldTo(
+            me: SingleInstance.Running(pid: me.processIdentifier, bundleID: me.bundleIdentifier, launched: me.launchDate),
+            others: others) else { return }
+        DistributedNotificationCenter.default().postNotificationName(
+            Notification.Name(SingleInstance.showWindowNotification), object: nil, userInfo: nil,
+            deliverImmediately: true)
+        NSRunningApplication(processIdentifier: target.pid)?.activate(options: [])
+        exit(0)
+    }
 }
 
 @main
@@ -5055,6 +5918,7 @@ struct MenfezApp: App {
         #if DEBUG
         Snapshots.renderIfRequested()
         #endif
+        AppDelegate.yieldToRunningCopy()
         // Sparkle's scheduled checks run whether or not a menu is ever opened.
         _ = Updater.shared
     }

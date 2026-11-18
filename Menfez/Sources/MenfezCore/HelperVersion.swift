@@ -14,8 +14,9 @@ public enum HelperVersion {
     /// 1 = everything up to 1.0.1; 2 = `version`, `teardown`, `--tunnel-dns`;
     /// 3 = `killswitch` (pf anchor), cleared by `teardown`;
     /// 4 = `--site-routes` (Discord + chosen sites), blocked by the kill switch;
-    /// 5 = `switch --key-stdin` (private key from the Keychain, on stdin).
-    public static let current = 5
+    /// 5 = `switch --key-stdin` (private key from the Keychain, on stdin);
+    /// 6 = `proxy pac|off|status` (browser PAC), restored by `teardown`.
+    public static let current = 6
 
     public struct Reply: Codable, Sendable {
         public var version: Int

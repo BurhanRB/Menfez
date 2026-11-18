@@ -19,19 +19,42 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.8",
+            date: "2026-11-18",
+            tr: [
+                "Sunucular listesinde En hızlıyı seç: her sunucunun gecikmesini ölçer ve en hızlısına geçer. Tünel koparsa Menfez kendisi yeniden bağlanır. İstersen başka sunucuya da geçer.",
+                "Ağa göre mod: Ayarlar > Ağlar'da bir ağı hatırlat, o ağa her bağlandığında Doğrudan, DPI ya da Tünel kendiliğinden açılsın. Konum izni istemez, Wi-Fi adını okumaz.",
+                "Tarayıcıda da kullan: DPI modunda listene eklediğin siteler Safari ve Chrome'da da Menfez'den geçer, gerisi normal gider. Menfez kapanınca eski ayarın geri gelir. Bunun için tünel bileşenini güncelle.",
+                "Başka uygulamalar: Slack, Signal ve Element'i Menfez'le açabilirsin. Telegram Desktop ve Spotify için girilecek adresi gösterir.",
+                "DPI yetmiyorsa Ayar ara: Menfez bu ağ için işe yarayan bölme ayarını kendisi dener, bulursa o ağ için saklar.",
+                "Discord satırı artık yanıt süresini gösteriyor. Tünelde gördüğün sayı gerçek gecikmeye çok daha yakın.",
+                "DPI ekranı tek kartta toplandı. Discord satırı Discord'un DPI'dan geçip geçmediğini gösterir, tarayıcı listesi de her sitenin açılıp açılmadığını. Menfez artık iki kez açılmaz.",
+                "Bir siteyi test et, seçtiğin DNS siteyi engelliyorsa bunu açıkça söyler.",
+            ],
+            en: [
+                "Pick the fastest in the Servers list: measures each server's delay and switches to the fastest. If the tunnel drops, Menfez reconnects on its own and can switch server if you allow it.",
+                "Mode by network: remember a network in Settings > Networks and Direct, DPI or Tunnel turns on by itself whenever you join it. No location permission, no Wi-Fi name read.",
+                "Use in browsers too: in DPI mode the sites on your list go through Menfez in Safari and Chrome as well. Everything else goes as usual. Your old setting comes back when Menfez closes. This needs an updated tunnel component.",
+                "Other apps: open Slack, Signal and Element with Menfez. For Telegram Desktop and Spotify it shows the address to type in.",
+                "If DPI isn't enough, Find a setting: Menfez tries split settings for this network itself and keeps the one that works.",
+                "The Discord row now shows response time instead of the full page load, so the number is much closer to your real latency.",
+                "The DPI screen is now one card. The Discord row shows whether Discord goes through DPI, and the browser list shows whether each site opens. Menfez no longer opens twice.",
+                "Test a site now says so plainly when the DNS you chose blocks the site.",
+            ]),
+        ChangelogEntry(
             version: "1.0.7",
             date: "2026-11-18",
             tr: [
-                "Sunucu anahtarların artık Anahtar Zinciri'nde durabilir. Sunucular listesinde bir kez sorar; kabul edersen anahtar diskte düz metin olarak kalmaz.",
+                "Sunucu anahtarların artık Anahtar Zinciri'nde durabilir. Sunucular listesinde bir kez sorar. Kabul edersen anahtar diskte düz metin olarak kalmaz.",
                 "Anahtarı Anahtar Zinciri'nde olan sunucunun yanında kilit var. Sonradan eklediğin sunucular da oraya gider.",
                 "Geri almak istersen: Sunucular > Anahtarları dosyaya geri yaz. 1.0.6'ya dönmeden önce bunu yap, yoksa tünel açılmaz.",
-                "Hakkında'da Üçüncü taraf lisansları var. Bu özellik için tünel bileşenini güncellemen gerekir; Menfez'deki Güncelle düğmesine bas.",
+                "Hakkında'da Üçüncü taraf lisansları var. Bu özellik için tünel bileşenini güncellemen gerekir. Menfez'deki Güncelle düğmesine bas.",
             ],
             en: [
-                "Your server keys can now live in Keychain. The Servers list asks once; say yes and keys don't sit on disk as plain text.",
+                "Your server keys can now live in Keychain. The Servers list asks once. Say yes and keys don't sit on disk as plain text.",
                 "A server whose key is in Keychain shows a lock. Servers you add later go there too.",
                 "To undo it: Servers > Write keys back to files. Do this before going back to 1.0.6, or the tunnel won't start.",
-                "About now has Third-party licenses. This needs an updated tunnel component; press Update in Menfez.",
+                "About now has Third-party licenses. This needs an updated tunnel component. Press Update in Menfez.",
             ]),
         ChangelogEntry(
             version: "1.0.6",
@@ -58,7 +81,7 @@ public enum Changelog {
                 "Bu seçenek için tünel bileşenini güncellemen gerekir. Menfez'deki Güncelle düğmesine bas.",
             ],
             en: [
-                "New tunnel option: Discord + sites. The sites on your list go through the tunnel along with Discord; everything else uses your normal internet.",
+                "New tunnel option: Discord + sites. The sites on your list go through the tunnel along with Discord. Everything else uses your normal internet.",
                 "Add or remove sites with the Sites button on the tunnel card. Each site shows how many addresses were found, or says if none were.",
                 "If a site's addresses change, Menfez updates them by itself. With Block internet if the tunnel drops on, these sites are cut too.",
                 "This option needs an updated tunnel component. Press Update in Menfez.",

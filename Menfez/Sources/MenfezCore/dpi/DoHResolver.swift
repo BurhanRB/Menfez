@@ -68,6 +68,13 @@ public final class DoHResolver: HostResolver, @unchecked Sendable {
 
     public static let shared = DoHResolver()
 
+    /// One resolver per provider other than the chosen one (the site test's
+    /// second opinion on a name the chosen one would not give).
+    public static func otherProviders(_ defaults: UserDefaults = .standard) -> [HostResolver] {
+        let chosen = DoHProvider.current(defaults)
+        return DoHProvider.allCases.filter { $0 != chosen }.map { p in DoHResolver(provider: { p }) }
+    }
+
     /// Read on every lookup, so a change in the picker applies at once.
     private let provider: @Sendable () -> DoHProvider
 

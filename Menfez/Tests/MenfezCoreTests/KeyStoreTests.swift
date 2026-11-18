@@ -210,7 +210,7 @@ final class KeyStoreTests: XCTestCase {
     }
 
     func testHelperVersionKnowsKeyStdin() {
-        XCTAssertEqual(HelperVersion.current, 5)
+        XCTAssertGreaterThanOrEqual(HelperVersion.current, 5)
         XCTAssertTrue(HelperVersion.needsUpdate(installed: 4))
     }
 

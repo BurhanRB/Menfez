@@ -128,7 +128,7 @@ public enum DPIConflict {
 
     public static let tunnelIsUpMessage =
         "The WireGuard tunnel is up. DPI mode and the tunnel cannot run at the "
-        + "same time — switch the tunnel off first."
+        + "same time. Switch the tunnel off first."
 
     /// Whether the current machine state blocks starting the engine.
     ///

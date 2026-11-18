@@ -150,6 +150,9 @@ extension Redact {
         out = replace(#"(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{43}=(?![A-Za-z0-9+/=])"#, in: out) { _ in
             "[redacted: key]"
         }
+        // A router MAC or a network id (feature 5) says where the user is.
+        out = replace(#"(?<![\w:])(?:[0-9A-Fa-f]{1,2}:){5}[0-9A-Fa-f]{1,2}(?![\w:])"#, in: out) { _ in "[mac]" }
+        out = replace(#"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64}(?![0-9A-Fa-f])"#, in: out) { _ in "[id]" }
         out = replace(#"(?<![\w:.])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:])"#, in: out, maskIPv6)
         out = replace(#"(?<![\w.])(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?![\w.])"#, in: out, maskIPv4)
         out = replace(#"(?<![\w.*-])(?:[A-Za-z0-9-]+\.)+([A-Za-z]{2,})(?![\w.-])"#, in: out) { m in

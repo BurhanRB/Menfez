@@ -73,9 +73,16 @@ public enum Probes {
 
     // MARK: - Discord
 
-    /// HTTP status and round trip for https://discord.com.
+    /// HTTP status and response time for https://discord.com.
     ///
-    /// `-o /dev/null` throws the body away and `-w` prints the two numbers we
+    /// The time is from the end of the TLS handshake to the first byte of the
+    /// answer: one round trip plus the server's own work. It leaves out the
+    /// DoH lookup, TCP, TLS, the proxy's CONNECT (where the proxy resolves the
+    /// name itself) and the page download, so it means the same thing direct,
+    /// through the DPI proxy and through the tunnel. `time_total` counted all
+    /// of those and read over a second on a 50 ms tunnel.
+    ///
+    /// `-o /dev/null` throws the body away and `-w` prints the numbers we
     /// want, so a 2 MB page never enters the process. code 0 means the request
     /// never completed, and `failure` then says at which step.
     ///
@@ -111,8 +118,8 @@ public enum Probes {
         // body we cannot parse simply leaves ms nil, which the UI draws as a
         // dash next to the status code.
         var ms: Int?
-        if parts.count > 1, let seconds = Double(parts[1]) {
-            ms = Int(seconds * 1000)
+        if parts.count > 2, let secure = Double(parts[1]), let first = Double(parts[2]) {
+            ms = max(0, Int(((first - secure) * 1000).rounded()))
         }
         return DiscordProbe(code: code, ms: ms,
                             failure: code == 0 ? .blocked : nil)
@@ -121,7 +128,7 @@ public enum Probes {
     /// The curl command line for `discord`, separate so a test can read it.
     static func discordArgs(proxyPort: Int?, doh: Bool, maxTime: Int = 8) -> [String] {
         var args = ["-sS", "-o", "/dev/null",
-                    "-w", "%{http_code} %{time_total}",
+                    "-w", "%{http_code} %{time_appconnect} %{time_starttransfer}",
                     "--max-time", "\(maxTime)"]
         if let proxyPort {
             args += ["-x", "http://127.0.0.1:\(proxyPort)"]

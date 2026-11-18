@@ -47,7 +47,7 @@ BUILD="$DIR/Menfez/.build/out/Products/Release"
 # that rm -rf and by assert_universal checking the freshly fused binaries.
 # Every release bumps the patch number (1.0.0 → 1.0.1 → 1.0.2 …) and adds an
 # entry to Menfez/Sources/MenfezCore/Changelog.swift; ChangelogTests checks both.
-VERSION="1.0.7"
+VERSION="1.0.8"
 MIN_MINOS="13.0"
 ARCHS="x86_64 arm64"
 XCODE="/Applications/Xcode.app/Contents/Developer"
@@ -176,6 +176,12 @@ HELPER="$BUILD/menfez-route"
 echo "==> assembling bundle"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+# Declared languages (CFBundleLocalizations): the app menu and Sparkle's
+# windows follow the user's language only for languages the app ships.
+for l in en tr; do
+    mkdir -p "$APP/Contents/Resources/$l.lproj"
+    printf '/* Menfez: the UI strings live in the app. */\n' > "$APP/Contents/Resources/$l.lproj/InfoPlist.strings"
+done
 cp "$BIN"    "$APP/Contents/MacOS/Menfez"
 # The helper lives beside the app binary so the UI finds it without a lookup
 # path, and so the sudoers line names one stable absolute path.
@@ -216,6 +222,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>            <string>Menfez</string>
+    <key>CFBundleDevelopmentRegion</key> <string>en</string>
+    <key>CFBundleLocalizations</key>   <array><string>en</string><string>tr</string></array>
     <key>CFBundleDisplayName</key>     <string>Menfez</string>
     <key>CFBundleIdentifier</key>      <string>com.menfez.app</string>
     <key>CFBundleVersion</key>         <string>${VERSION}</string>

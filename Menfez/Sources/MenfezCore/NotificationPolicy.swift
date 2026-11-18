@@ -17,13 +17,29 @@ public enum NotificationEvent: String, CaseIterable, Sendable {
     case dpiStopped
     /// The installed tunnel helper is older than the bundled one.
     case helperUpdate
+    /// A network rule changed the mode (feature 5).
+    case networkSwitched
+    /// A network rule asks for Tunnel, which cannot start here.
+    case networkNeedsTunnel
+    /// Automatic reconnect brought the tunnel back (feature 4).
+    case tunnelReconnected
+    /// Automatic reconnect used up its attempts.
+    case reconnectFailed
 
     /// The Settings switch this event follows. Dropped and restored are one
     /// story, so they share one switch.
-    public var setting: NotificationEvent { self == .tunnelRestored ? .tunnelDropped : self }
+    public var setting: NotificationEvent {
+        switch self {
+        case .tunnelRestored: return .tunnelDropped
+        case .networkNeedsTunnel: return .networkSwitched
+        case .reconnectFailed: return .tunnelReconnected
+        default: return self
+        }
+    }
 
     /// Switches shown in Settings, in display order.
-    public static let settings: [NotificationEvent] = [.tunnelDropped, .serverRemoved, .dpiStopped, .helperUpdate]
+    public static let settings: [NotificationEvent] = [.tunnelDropped, .serverRemoved, .dpiStopped, .helperUpdate, .networkSwitched,
+                                                       .tunnelReconnected]
 
     public var defaultsKey: String { "notify." + setting.rawValue }
 

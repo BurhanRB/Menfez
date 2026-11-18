@@ -61,6 +61,8 @@ if [ "${1:-}" = "--remove" ]; then
     if [ -x "$DEST/menfez-route" ] && [ "$(stat -f %u "$DEST/menfez-route")" = 0 ]; then
         # 1.0.4+: lift the kill switch first (an older helper has none).
         "$DEST/menfez-route" killswitch off >/dev/null 2>&1 || true
+        # 1.0.8+ (helper 6): give the browsers their previous proxy setting back.
+        "$DEST/menfez-route" proxy off >/dev/null 2>&1 || true
         # `teardown` also stops the interface; a helper older than it only knows `down`.
         "$DEST/menfez-route" teardown >/dev/null 2>&1 \
             || "$DEST/menfez-route" down >/dev/null 2>&1 \

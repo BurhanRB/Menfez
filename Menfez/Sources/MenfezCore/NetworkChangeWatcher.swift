@@ -24,6 +24,16 @@ public final class NetworkChangeWatcher: @unchecked Sendable {
     private var wakeObserver: NSObjectProtocol?
     private var pending: DispatchWorkItem?
     private var lastSignature: String?
+    private let satisfiedLock = NSLock()
+    private var satisfied = true
+
+    /// The physical path is usable (`NWPath.status == .satisfied`). True until
+    /// the first path arrives, so nothing waits on a monitor that never ran.
+    /// Read by automatic reconnect (feature 4): no attempt without a network.
+    public var isSatisfied: Bool {
+        satisfiedLock.lock(); defer { satisfiedLock.unlock() }
+        return satisfied
+    }
 
     /// `isActive` defaults to "the route state records a mode with a pin"; the
     /// state file is world-readable, so this costs no privileged call.
@@ -47,7 +57,9 @@ public final class NetworkChangeWatcher: @unchecked Sendable {
 
     public func start() {
         monitor.pathUpdateHandler = { [weak self] path in
-            self?.pathChanged(Self.signature(path))
+            guard let self else { return }
+            self.satisfiedLock.lock(); self.satisfied = path.status == .satisfied; self.satisfiedLock.unlock()
+            self.pathChanged(Self.signature(path))
         }
         monitor.start(queue: queue)
         wakeObserver = wakeCenter?.addObserver(forName: Self.wakeNotification,

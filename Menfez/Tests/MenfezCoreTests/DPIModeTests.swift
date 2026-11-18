@@ -125,7 +125,7 @@ final class DPIModeTests: XCTestCase {
 
         let availability = mode.discordAvailability
         XCTAssertFalse(availability.enabled)
-        XCTAssertTrue(availability.reason?.contains("quit Discord") ?? false)
+        XCTAssertTrue(availability.reason?.contains("Quit Discord") ?? false)
     }
 
     @MainActor

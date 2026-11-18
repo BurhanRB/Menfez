@@ -48,7 +48,25 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
         #endif
     }
 
-    func checkForUpdates() { controller?.checkForUpdates(nil) }
+    /// When the last check started, so the debug log can say where a slow
+    /// check spent its time (owner report, 1.0.8).
+    nonisolated(unsafe) private static var checkStarted: Date?
+
+    func checkForUpdates() {
+        Self.checkStarted = Date()
+        Model.trace("update check: started")
+        controller?.checkForUpdates(nil)
+    }
+
+    private nonisolated static func traceElapsed(_ what: String) {
+        let ms = checkStarted.map { Int(Date().timeIntervalSince($0) * 1000) } ?? -1
+        Task { @MainActor in Model.trace("update check: \(what) after \(ms) ms") }
+    }
+
+    nonisolated func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
+        Self.traceElapsed("appcast loaded")
+    }
+
 
     func setAutomatic(_ on: Bool) {
         controller?.updater.automaticallyChecksForUpdates = on
@@ -62,6 +80,16 @@ final class Updater: NSObject, ObservableObject, SPUUpdaterDelegate {
         #endif
         return UpdateFeed.current
     }
+
+    #if !MENFEZ_UPDATE_TEST
+    nonisolated func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
+        Self.traceElapsed("no update")
+    }
+
+    nonisolated func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
+        Self.traceElapsed("aborted (\(error.localizedDescription))")
+    }
+    #endif
 
     #if MENFEZ_UPDATE_TEST
     nonisolated func updater(_ updater: SPUUpdater, willInstallUpdateOnQuit item: SUAppcastItem,

@@ -69,6 +69,9 @@ if [ -n "$HELPER" ]; then
     # Best effort: a failure here must not stop the rule from being removed.
     # The kill switch (1.0.4+) goes first so nothing stays blocked.
     run sudo "$HELPER" killswitch off >/dev/null 2>&1 || true
+    # 1.0.8+ (helper 6): the browsers' proxy setting goes back before
+    # proxy-state.json is removed with the rest of the state below.
+    run sudo "$HELPER" proxy off >/dev/null 2>&1 || true
     run sudo "$HELPER" down >/dev/null 2>&1 || say "    warning: helper 'down' failed"
     # `dns auto` puts back the resolvers recorded in dns-state.json, which is
     # why that file must outlive this step. Without a record Menfez never

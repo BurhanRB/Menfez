@@ -27,7 +27,7 @@ final class DiscordDetailTests: XCTestCase {
 
     func testDPIRefreshUsesDoHAndTheProxyNotTheSystemResolver() {
         let runner = RecordingRunner()
-        runner.answer = CommandResult(status: 0, output: "200 0.206")
+        runner.answer = CommandResult(status: 0, output: "200 0.050 0.256")
         let rows = Details.discordLive(proxyPort: 64799,
                                        resolver: FixedResolver(answer: ["162.159.137.232"]),
                                        using: runner, timeout: 3)

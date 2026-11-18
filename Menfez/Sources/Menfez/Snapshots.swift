@@ -47,6 +47,7 @@ enum Snapshots {
 
         // One fixed state for every shot: direct mode, tunnel available.
         let m = Model()
+        m.browserProxySyncs = false   // never run the helper from a snapshot
         m.lang = .tr
         m.capabilities = Capabilities(tunnelAvailable: true)
         m.report = Report(
@@ -123,6 +124,13 @@ enum Snapshots {
                                                  value: nil, backend: m.backend),
                               lang: .tr, onClose: {}, preview: ipRows),
                    .light, to: "\(dir)/ipdetail.png")
+        let discordRows = Details.discordRows(probe: DiscordProbe(code: 200, ms: 52), names: nil)
+        for (lang, scheme, name) in [(Lang.tr, ColorScheme.dark, "dark"), (.tr, .light, "light"), (.en, .light, "en")] {
+            renderView(DetailView(sheet: DetailSheet(title: "Discord", what: "discord",
+                                                     value: nil, backend: m.backend),
+                                  lang: lang, onClose: {}, preview: discordRows),
+                       scheme, to: "\(dir)/discorddetail-\(name).png")
+        }
 
         // DPI mode after a probe that found no blocking: the longest verdict,
         // which must wrap inside the DPI card and not repeat in the footer.
@@ -140,7 +148,81 @@ enum Snapshots {
         m.lang = .en
         render(m, .dark, to: "\(dir)/dpi-verdict-en.png")
         m.lang = .tr
+
+        // Find a setting (1.0.8): offered after "DPI isn't enough", then
+        // progress, then each outcome.
+        let f8 = "\(dir)/f8"
+        try? FileManager.default.createDirectory(atPath: f8, withIntermediateDirectories: true)
+        m.probe = DPIProbeOutcome(host: "discord.com",
+                                  direct: .init(exit: 35, error: "TLS handshake failed"),
+                                  proxied: .init(exit: 35, error: "TLS handshake failed"))
+        render(m, .light, to: "\(f8)/tune-offer.png")
+        m.tuning = .trying(3, 4)
+        render(m, .dark, to: "\(f8)/tune-trying-dark.png")
+        m.tuning = .done(.found(5))
+        render(m, .light, to: "\(f8)/tune-found.png")
+        m.tuning = .done(.noneWorked)
+        render(m, .dark, to: "\(f8)/tune-none-dark.png")
+        m.lang = .en
+        m.tuning = .done(.found(5))
+        render(m, .light, to: "\(f8)/tune-found-en.png")
+        m.lang = .tr
+        m.tuning = nil
         m.probe = nil
+
+        // DPI in the browser (1.0.8): the toggle on with a list, the list
+        // itself, then the dimmed toggle on an older helper.
+        let f6 = "\(dir)/f6"
+        try? FileManager.default.createDirectory(atPath: f6, withIntermediateDirectories: true)
+        let savedBrowser = (m.browserProxyWanted, m.browserSites, m.helperVersion)
+        m.helperVersion = HelperVersion.current
+        m.browserProxyWanted = true
+        m.browserSites = ["x.com", "reddit.com", "archive.org"]
+        renderWindow(ContentView(m: m), title: "Menfez", .dark, to: "\(f6)/browser-on-dark.png")
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(f6)/browser-on.png")
+        renderWindow(BrowserSitesSheet(m: m), title: "Menfez", .dark, to: "\(f6)/browser-sites-dark.png")
+        renderWindow(BrowserSitesSheet(m: m), title: "Menfez", .light, to: "\(f6)/browser-sites.png")
+        // 1.0.8 polish: the DPI group card, light, dark and English.
+        let polish = "\(dir)/polish"
+        try? FileManager.default.createDirectory(atPath: polish, withIntermediateDirectories: true)
+        m.discordState = .withoutDPI
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(polish)/dpi-light.png")
+        m.discordState = .viaDPI
+        renderWindow(ContentView(m: m), title: "Menfez", .dark, to: "\(polish)/dpi-dark.png")
+        m.lang = .en
+        m.discordState = .closed
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(polish)/dpi-en.png")
+        m.discordState = .closed
+        m.lang = .tr
+        let savedSites = m.browserSites
+        m.browserSites += ["ornek.org"]
+        m.browserSiteChecks = [
+            "x.com": .init(outcome: "opens", at: Date().addingTimeInterval(-300)),
+            "reddit.com": .init(outcome: "fails", at: Date().addingTimeInterval(-300)),
+            "archive.org": .init(outcome: nil, at: Date()),
+        ]
+        renderWindow(BrowserSitesSheet(m: m), title: "Menfez", .light, to: "\(polish)/browser-sites-status.png")
+        renderWindow(BrowserSitesSheet(m: m), title: "Menfez", .dark, to: "\(polish)/browser-sites-status-dark.png")
+        m.browserSites = savedSites
+        m.browserSiteChecks = [:]
+        m.lang = .en
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(f6)/browser-on-en.png")
+        renderWindow(BrowserSitesSheet(m: m), title: "Menfez", .light, to: "\(f6)/browser-sites-en.png")
+        m.lang = .tr
+        m.browserProxyWanted = false
+        m.browserSites = []
+        renderWindow(BrowserSitesSheet(m: m), title: "Menfez", .dark, to: "\(f6)/browser-sites-empty-dark.png")
+        m.helperVersion = 5
+        renderWindow(ContentView(m: m), title: "Menfez", .light, to: "\(f6)/browser-old-helper.png")
+        // Other apps (1.0.8): installed state is this Mac's, so rows may be dimmed.
+        let f7 = "\(dir)/f7"
+        try? FileManager.default.createDirectory(atPath: f7, withIntermediateDirectories: true)
+        renderWindow(OtherAppsSheet(m: m), title: "Menfez", .light, to: "\(f7)/apps.png")
+        renderWindow(OtherAppsSheet(m: m), title: "Menfez", .dark, to: "\(f7)/apps-dark.png")
+        m.lang = .en
+        renderWindow(OtherAppsSheet(m: m), title: "Menfez", .light, to: "\(f7)/apps-en.png")
+        m.lang = .tr
+        (m.browserProxyWanted, m.browserSites, m.helperVersion) = savedBrowser
         m.coordinator = direct
 
         // The DNS sheet, with every provider measured.
@@ -210,6 +292,31 @@ enum Snapshots {
         m.scopeChoice = .discord
         m.helperVersion = 0
 
+        // Networks (feature 5): two remembered, on the first; then on an
+        // unremembered network; then one that cannot be told apart.
+        let savedNetworks = (m.networks, m.networkWatch)
+        m.networks = [KnownNetwork(id: "home", name: "Ev", mode: .direct),
+                      KnownNetwork(id: "school", name: "Okul ağı (kütüphane katı)", mode: .dpi),
+                      KnownNetwork(id: "cafe", name: "Kafe", mode: .leave)]
+        m.networkRead = true
+        var watch = NetworkWatch()
+        watch.observe("school")
+        m.networkWatch = watch
+        renderWindow(NetworksSheet(m: m, readsNetwork: false), title: "Menfez", .light, to: "\(dir)/networks.png")
+        renderWindow(NetworksSheet(m: m, readsNetwork: false), title: "Menfez", .dark, to: "\(dir)/networks-dark.png")
+        m.lang = .en
+        m.networks[1].name = "School (library floor)"
+        renderWindow(NetworksSheet(m: m, readsNetwork: false), title: "Menfez", .light, to: "\(dir)/networks-en.png")
+        m.lang = .tr
+        watch.observe("new")
+        m.networkWatch = watch
+        renderWindow(NetworksSheet(m: m, readsNetwork: false), title: "Menfez", .light, to: "\(dir)/networks-unknown.png")
+        m.networks = []
+        watch.observe(nil)
+        m.networkWatch = watch
+        renderWindow(NetworksSheet(m: m, readsNetwork: false), title: "Menfez", .dark, to: "\(dir)/networks-empty-dark.png")
+        (m.networks, m.networkWatch) = savedNetworks
+
         // Kill switch on under the scope picker, then the tunnel dropped with
         // the block holding. A window: the switch is AppKit.
         m.helperVersion = HelperVersion.current
@@ -250,6 +357,28 @@ enum Snapshots {
         sideBySide("\(dir)/keychain-offer.png", "\(dir)/keychain-moved.png", to: "\(dir)/keychain.png")
         m.profiles = servers
         m.helperVersion = 0
+
+        // Feature 4: the server list after "Pick the fastest", and the
+        // reconnect switches in Settings. In an f4/ subfolder.
+        let f4 = dir + "/f4"
+        try? FileManager.default.createDirectory(atPath: f4, withIntermediateDirectories: true)
+        m.profiles = [Profile(name: "de-fra", file: "de-fra.conf", endpoint: "185.65.134.10:51820",
+                              country: "DE", display: "Almanya"),
+                      Profile(name: "bg-sof", file: "bg-sof.conf", endpoint: "94.156.1.20:51820",
+                              country: "BG", display: "Bulgaristan"),
+                      Profile(name: "nl-ams", file: "nl-ams.conf", endpoint: "vpn-nl-amsterdam-03.example.net:51820",
+                              country: "NL", display: "Hollanda Amsterdam 3")]
+        m.latencies = ["de-fra": .ms(42), "bg-sof": .ms(118), "nl-ams": .noReply]
+        renderView(ContentView(m: m).serverSheet, .dark, to: "\(f4)/servers-latency-dark.png")
+        renderView(ContentView(m: m).serverSheet, .light, to: "\(f4)/servers-latency-light.png")
+        renderWindow(SettingsView(m: m), title: "Menfez", .dark, to: "\(f4)/settings-reconnect-dark.png")
+        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(f4)/settings-reconnect-light.png")
+        m.lang = .en
+        renderView(ContentView(m: m).serverSheet, .light, to: "\(f4)/servers-latency-en.png")
+        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(f4)/settings-reconnect-en.png")
+        m.lang = .tr
+        m.latencies = [:]
+        m.profiles = servers
 
         // Menu-bar pieces. A real NSMenu cannot be rendered offscreen, so the
         // menu's items are laid out as plain controls: same content, same order.

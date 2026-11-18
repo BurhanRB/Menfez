@@ -1,7 +1,9 @@
 // Notifier.swift — posts the few notifications `NotificationPolicy` allows.
 //
 // Text is generic on purpose: it shows on the lock screen, so no server name
-// (a file name the user chose), address or network name goes in it.
+// (a file name the user chose), address, network id or network name goes in
+// it — not even the name the user gave a network (owner decision, 1.0.8).
+// Feature 4 adds the user's own server name to "Tunnel reconnected (B)".
 
 import AppKit
 import UserNotifications
@@ -32,13 +34,13 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         center?.requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
-    func post(_ event: NotificationEvent, lang: Lang) {
+    func post(_ event: NotificationEvent, lang: Lang, _ values: [String: String] = [:]) {
         guard let center,
               policy.shouldSend(event, appActive: NSApp.isActive, enabled: event.isEnabled()) else { return }
         let l = L(lang: lang)
         let content = UNMutableNotificationContent()
-        content.title = l.t("notify_" + event.rawValue + "_title")
-        content.body = l.t("notify_" + event.rawValue + "_body")
+        content.title = l.t("notify_" + event.rawValue + "_title", values)
+        content.body = l.t("notify_" + event.rawValue + "_body", values)
         let request = UNNotificationRequest(identifier: event.rawValue, content: content, trigger: nil)
         center.getNotificationSettings { settings in
             if settings.authorizationStatus == .notDetermined {

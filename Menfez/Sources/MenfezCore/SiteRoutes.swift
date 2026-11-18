@@ -228,6 +228,11 @@ public struct SiteList: Codable, Equatable, Sendable {
         (Path.support as NSString).appendingPathComponent("sites.json")
     }
 
+    /// "Use in browsers too" (1.0.8): a separate list in the same format.
+    public static var browserPath: String {
+        (Path.support as NSString).appendingPathComponent("browser-sites.json")
+    }
+
     public static func load(path: String = SiteList.path) -> (list: SiteList, recovered: Bool) {
         guard let data = FileManager.default.contents(atPath: path) else { return (SiteList(), false) }
         if let list = try? JSONDecoder().decode(SiteList.self, from: data), list.version == 1 {

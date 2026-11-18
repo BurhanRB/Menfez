@@ -28,6 +28,8 @@
 //     sanity            remove routes left behind by a dead tunnel
 //     repin             move the endpoint pin to the current physical gateway
 //     killswitch on|off|status   block traffic outside the tunnel (pf anchor)
+//     proxy pac <port>|off|status   browsers' automatic proxy (PAC) on every
+//                       enabled network service; the old setting is put back (v6)
 //
 // `facts` exists because the app's periodic refresh used to ask for a whole
 // `report --fast` just to learn four numbers about the tunnel. Those four
@@ -98,6 +100,8 @@ func usage() -> Never {
       sanity
       repin
       killswitch on|off|status   block traffic outside the tunnel if it drops
+      proxy pac <port>|off|status   point browsers at Menfez's PAC (port 1024-65535);
+                        off puts back the previous setting (status needs no root)
       version           the helper's protocol version (no root needed)
 
     Exits: 0 ok, 1 failure, 2 usage error, 3 not root.
@@ -148,7 +152,7 @@ struct Args {
 /// invocation fails fast with a message naming the holder instead of
 /// interleaving read-modify-write cycles and corrupting the state file.
 let mutating: Set<String> = ["up", "down", "teardown", "mode", "switch", "dns", "sanity", "repin",
-                              "killswitch"]
+                              "killswitch", "proxy"]
 
 /// The lock for a mutating command, or nil for any other.
 ///
@@ -204,7 +208,8 @@ let readOnly = (command == "report" || command == "detail"
                 || command == "profiles" || command == "status"
                 || command == "facts" || command == "version"
                 || (command == "dns" && (args.first ?? "status") == "status")
-                || (command == "killswitch" && args.first == "status"))
+                || (command == "killswitch" && args.first == "status")
+                || (command == "proxy" && args.first == "status"))
 /// Held for the rest of the process lifetime when acquired.
 let routeLock = readOnly ? nil : acquireLockIfNeeded(command)
 
@@ -360,6 +365,7 @@ case "teardown":
     guard args.positional.isEmpty else { fail("teardown takes no arguments", exit: 2) }
     // The server is gone or the helper is being removed: nothing left to protect.
     KillSwitch.off()
+    SystemProxy.off()
     let result = withTunnelDNS(RouteManager().teardown(), servers: [])
     emit(result, exit: result.ok ? 0 : 1)
 
@@ -480,6 +486,28 @@ case "killswitch":
              ?? ActionResult(ok: true, mode: Mode.off.rawValue))
     default:
         fail("killswitch needs on, off or status", exit: 2)
+    }
+
+case "proxy":
+    // Only a port comes from the caller. The services are listed here, the
+    // previous setting is recorded here, and only our PAC URL is ever set.
+    switch args.first {
+    case "pac":
+        guard args.positional.count == 2, let port = SystemProxy.port(args.second) else {
+            fail("proxy pac needs one port, 1024-65535", exit: 2)
+        }
+        requireRoot()
+        let result = SystemProxy.pac(port: port)
+        emit(result, exit: result.ok ? 0 : 1)
+    case "off":
+        guard args.positional.count == 1 else { fail("proxy off takes no arguments", exit: 2) }
+        requireRoot()
+        let result = SystemProxy.off()
+        emit(result, exit: result.ok ? 0 : 1)
+    case "status":
+        emit(SystemProxy.status())
+    default:
+        fail("proxy needs pac <port>, off or status", exit: 2)
     }
 
 case "status":

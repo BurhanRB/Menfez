@@ -49,15 +49,25 @@ brew install --cask menfez
 ```
 
 **İlk açılış:** 1.0.5'ten itibaren sürümler Developer ID ile imzalı ve Apple
-tarafından notarize; Menfez her uygulama gibi açılır. 1.0.4 ve öncesi imzasızdı:
+tarafından notarize. Menfez her uygulama gibi açılır. 1.0.4 ve öncesi imzasızdı:
 onlarda **Sistem Ayarları > Gizlilik ve Güvenlik > Yine de Aç** gerekir.
 
 ### Modlar
 
 - **Doğrudan:** Menfez devrede değil, ağın olduğu gibi çalışır.
-- **DPI:** Discord'u yerel bir proxy ile açar; bağlantının ilk mesajını bölerek engelleyen cihazdan Discord'un adını gizler. Önce Discord'u kapat.
+- **DPI:** Discord'u yerel bir proxy ile açar. Bağlantının ilk mesajını bölerek engelleyen cihazdan Discord'un adını gizler. Önce Discord'u kapat.
 - **Tünel:** İsteğe bağlı. Kendi WireGuard sunucun üzerinden seçtiğin kapsamı geçirir: **Sadece Discord**, **Discord + siteler** (seçtiğin siteler de tünelden) ya da **Tüm internet**.
   Bir kerelik kurulum: `brew install wireguard-tools wireguard-go bash`, sonra uygulamada **Tüneli kur**'a bas (macOS yönetici şifreni sorar).
+
+### Neler var
+
+- **En hızlı sunucu:** Sunucular listesi her sunucunun gecikmesini ölçer, en hızlısına geçer. Tünel koparsa Menfez kendisi yeniden bağlanır.
+- **Ağa göre mod:** Bir ağı hatırlat, o ağa her bağlandığında Doğrudan, DPI ya da Tünel kendiliğinden açılsın.
+- **Tarayıcıda DPI:** Listene eklediğin siteler Safari ve Chrome'da da Menfez'den geçer. Menfez kapanınca eski ayarın geri gelir.
+- **Başka uygulamalar:** Slack, Signal ve Element'i de Menfez'le açabilirsin.
+- **Ayar ara:** DPI yetmezse Menfez bu ağda işe yarayan ayarı kendisi dener ve saklar.
+- **Anahtar Zinciri:** Sunucu anahtarların istersen diskte değil Keychain'de durur.
+- **Canlı durum:** Discord satırı yanıt süresini, site listesi de her sitenin açılıp açılmadığını gösterir.
 
 ### Kendi WireGuard sunucun
 
@@ -66,9 +76,9 @@ dosyasını **Sunucu ekle…** ile ekle ya da `~/Library/Application Support/Men
 
 ### Gizlilik
 
-- Hesap, analiz ya da telemetri yok; geliştiriciye hiçbir şey gönderilmez.
+- Hesap, analiz ya da telemetri yok. Geliştiriciye hiçbir şey gönderilmez.
 - Mac'ten çıkanlar: IP için `api.ipify.org`, konum için `ipinfo.io`, DPI modunda seçtiğin DoH sağlayıcısı (Cloudflare, Google, Quad9, AdGuard), tünelde senin WireGuard sunucun.
-- Hata kaydı sadece sen kaydedersen oluşur, Mac'inde kalır; IP ve anahtarlar gizlenir.
+- Hata kaydı sadece sen kaydedersen oluşur, Mac'inde kalır. IP ve anahtarlar gizlenir.
 
 <details>
 <summary>Daha fazla</summary>
@@ -97,6 +107,7 @@ Kural `visudo -c` ile denetlenir, hatalıysa silinir.
 - (1.0.4 ve öncesi) "Menfez hasarlı" diyorsa dosya bozuk değil: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
 - İndirmeyi doğrulamak için: `shasum -a 256 Menfez-*.dmg` ve `SHA256SUMS` ile karşılaştır.
 - DPI çalışmıyorsa Discord'u tamamen kapatıp Menfez'den aç.
+- Menfez kapandıktan sonra tarayıcıların proxy ayarı değişik kalırsa: Menfez'de tarayıcı anahtarını kapat ya da `networksetup -listallnetworkservices` ile servis adını bul ve `sudo networksetup -setautoproxystate "Wi-Fi" off` çalıştır.
 
 </details>
 </details>
@@ -132,10 +143,20 @@ unsigned and need **System Settings > Privacy & Security > Open Anyway**.
 
 ### Modes
 
-- **Direct:** Menfez is off; your network works as usual.
+- **Direct:** Menfez is off. Your network works as usual.
 - **DPI:** opens Discord through a local proxy that splits the first message of each connection, so the blocking device cannot read Discord's name. Quit Discord first.
 - **Tunnel:** optional. Sends traffic through your own WireGuard server, with the scope you pick: **Discord only**, **Discord + sites** (sites you choose go through the tunnel too) or **Whole internet**.
   One-time setup: `brew install wireguard-tools wireguard-go bash`, then press **Set up tunnel** in the app (macOS asks for your administrator password).
+
+### What's in it
+
+- **Fastest server:** the Servers list measures each server's delay and switches to the fastest. If the tunnel drops, Menfez reconnects on its own.
+- **Mode by network:** remember a network and Direct, DPI or Tunnel turns on by itself whenever you join it.
+- **DPI in browsers:** the sites on your list go through Menfez in Safari and Chrome too. Your old setting comes back when Menfez closes.
+- **Other apps:** open Slack, Signal and Element with Menfez as well.
+- **Find a setting:** if DPI isn't enough, Menfez tries settings for this network itself and keeps the one that works.
+- **Keychain:** your server keys can live in Keychain instead of on disk, if you want.
+- **Live status:** the Discord row shows response time, and the site list shows whether each site opens.
 
 ### Your own WireGuard server
 
@@ -144,7 +165,7 @@ with **Add server…**, or put it in `~/Library/Application Support/Menfez/wireg
 
 ### Privacy
 
-- No account, no analytics, no telemetry; nothing is sent to the author.
+- No account, no analytics, no telemetry. Nothing is sent to the author.
 - What leaves your Mac: `api.ipify.org` for the IP, `ipinfo.io` for location, the DoH provider you pick in DPI mode (Cloudflare, Google, Quad9, AdGuard), and your WireGuard server in tunnel mode.
 - The debug log exists only if you save it, stays on your Mac, and hides IPs and keys.
 
@@ -175,6 +196,7 @@ The rule is checked with `visudo -c` and removed if invalid.
 - (1.0.4 and older) "Menfez is damaged" means macOS does not trust it, not that it is broken: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
 - To verify a download: `shasum -a 256 Menfez-*.dmg` and compare with `SHA256SUMS`.
 - If DPI does not work, quit Discord fully and open it from Menfez.
+- If the browsers' proxy setting stays changed after Menfez closes: turn the browser switch off in Menfez, or find the service name with `networksetup -listallnetworkservices` and run `sudo networksetup -setautoproxystate "Wi-Fi" off`.
 
 </details>
 </details>
@@ -200,7 +222,7 @@ Xcode gerekir / Needs Xcode (the SwiftUI macro plugin is not in the Command Line
 ```sh
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 (cd Menfez && swift test)   # tests
-./build-app.sh              # Menfez.app, universal (arm64 + x86_64); ad-hoc signed unless MENFEZ_SIGN_IDENTITY is set (docs/SIGNING.md)
+./build-app.sh              # Menfez.app, universal (arm64 + x86_64), ad-hoc signed unless MENFEZ_SIGN_IDENTITY is set (docs/SIGNING.md)
 ./build-dmg.sh              # Menfez-<version>-arm64.dmg, Menfez-<version>-intel.dmg
 ./install.sh                # installs to /Applications (--tunnel also runs the tunnel setup)
 ```
@@ -213,4 +235,4 @@ More: [DPI-ENGINE](docs/DPI-ENGINE.md) · [READ-PATH](docs/READ-PATH.md) · [SIG
 
 </details>
 
-Apache-2.0, bkz. / see [LICENSE](LICENSE). Üçüncü taraf / third-party: Sparkle (MIT), [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md). Discord is a trademark of Discord Inc.; Menfez is not affiliated with it.
+Apache-2.0, bkz. / see [LICENSE](LICENSE). Üçüncü taraf / third-party: Sparkle (MIT), [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md). Discord is a trademark of Discord Inc. Menfez is not affiliated with it.

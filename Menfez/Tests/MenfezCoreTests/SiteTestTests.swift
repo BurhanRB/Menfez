@@ -126,7 +126,7 @@ final class SiteTestTests: XCTestCase {
     func testRunUnresolvedNameIsNotFound() {
         let curl = FakeCurl(direct: 0, proxied: 0)
         let r = SiteTest.run(host: "nope.example", paths: [.direct, .dpi], proxyPort: 6000,
-                             resolver: FixedResolver(answer: nil), runner: curl)
+                             resolver: FixedResolver(answer: nil), others: [], runner: curl)
         XCTAssertEqual(r.summary, .notFound)
         XCTAssertTrue(curl.calls.isEmpty)
     }
@@ -138,5 +138,57 @@ final class SiteTestTests: XCTestCase {
         XCTAssertEqual(r.results, [.tunnel: .opens])
         XCTAssertEqual(r.summary, .opensWithTunnel)
         XCTAssertEqual(curl.calls.count, 1)
+    }
+
+    // MARK: DNS filters (1.0.8)
+
+    func testFilterAnswerIsReportedAndTheOtherAnswerIsTried() {
+        let curl = FakeCurl(direct: 35, proxied: 35)
+        let r = SiteTest.run(host: "example.xxx", paths: [.direct, .dpi], proxyPort: 6000,
+                             resolver: FixedResolver(answer: ["0.0.0.0"]),
+                             others: [FixedResolver(answer: nil), FixedResolver(answer: ["93.184.216.34"])],
+                             runner: curl)
+        XCTAssertEqual(r.summary, .dnsFiltered)
+        XCTAssertEqual(r.results[.direct], .fails)
+        XCTAssertTrue(curl.calls.contains { $0.contains("example.xxx:443:93.184.216.34") })
+    }
+
+    func testNoAnswerFromChosenButOneElsewhereIsFiltered() {
+        let curl = FakeCurl(direct: 0, proxied: 0)
+        let r = SiteTest.run(host: "example.xxx", paths: [.direct], proxyPort: nil,
+                             resolver: FixedResolver(answer: nil),
+                             others: [FixedResolver(answer: ["93.184.216.34"])], runner: curl)
+        XCTAssertEqual(r.summary, .dnsFiltered)
+        XCTAssertEqual(r.results, [.direct: .opens])
+    }
+
+    func testFilteredEverywhereIsNotFoundAndNothingIsDialled() {
+        let curl = FakeCurl(direct: 0, proxied: 0)
+        let r = SiteTest.run(host: "example.xxx", paths: [.direct, .dpi], proxyPort: 6000,
+                             resolver: FixedResolver(answer: ["0.0.0.0"]),
+                             others: [FixedResolver(answer: ["0.0.0.0"])], runner: curl)
+        XCTAssertEqual(r.summary, .notFound)
+        XCTAssertTrue(curl.calls.isEmpty)
+    }
+
+    func testOrdinaryAnswerNeverAsksOthers() {
+        final class Counting: HostResolver, @unchecked Sendable {
+            var asked = 0
+            func resolve(_ host: String, completion: @escaping @Sendable ([String]?) -> Void) { asked += 1; completion(["93.184.216.34"]) }
+        }
+        let other = Counting()
+        _ = SiteTest.run(host: "example.xxx", paths: [.direct], proxyPort: nil,
+                         resolver: FixedResolver(answer: ["93.184.216.34"]), others: [other],
+                         runner: FakeCurl(direct: 0, proxied: 0))
+        XCTAssertEqual(other.asked, 0)
+        XCTAssertTrue(SiteTest.isFilterAnswer(["0.0.0.0"]))
+        XCTAssertFalse(SiteTest.isFilterAnswer(["0.0.0.0", "93.184.216.34"]))
+        XCTAssertFalse(SiteTest.isFilterAnswer([]))
+    }
+
+    func testDPIOutcomeForTheBrowserList() {
+        XCTAssertEqual(SiteTest.dpiOutcome(.init(host: "a.example", results: [.dpi: .opens], summary: .opensWithDPI)), .opens)
+        XCTAssertEqual(SiteTest.dpiOutcome(.init(host: "a.example", results: [:], summary: .refused)), .fails)
+        XCTAssertEqual(SiteTest.dpiOutcome(.init(host: "a.example", results: [:], summary: .notFound)), .notFound)
     }
 }

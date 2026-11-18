@@ -53,11 +53,11 @@ public enum DiscordLauncher {
         public var description: String {
             switch self {
             case .proxyNotRunning:
-                return "start DPI mode first — there is no proxy port to point Discord at"
+                return "Start DPI mode first. There is no proxy port to point Discord at yet."
             case .invalidPort(let port):
                 return "port \(port) is not usable"
             case .alreadyRunning:
-                return "Discord is already running; quit it first, because the proxy flag is read only at launch"
+                return "Discord is already running. Quit it first. Discord reads the proxy setting only when it starts."
             case .notInstalled:
                 return "Discord was not found in /Applications"
             case .openFailed(let why):
@@ -263,5 +263,26 @@ public enum DiscordLauncher {
             }
             return .failure(.openFailed(result.tail(1)))
         }
+    }
+
+    // MARK: - Live state (1.0.8, the Discord row in DPI mode)
+
+    public enum State: String, Sendable {
+        case closed
+        /// Started with `--proxy-server` at this proxy's port.
+        case viaDPI
+        /// Running without the flag, or with an old port.
+        case withoutDPI
+        /// Running, arguments unreadable.
+        case running
+    }
+
+    /// `arguments` nil: could not be read. `port` nil: no proxy running, so
+    /// a running Discord cannot be going through it.
+    public static func state(running: Bool, arguments: [String]?, port: Int?) -> State {
+        guard running else { return .closed }
+        guard let arguments else { return .running }
+        guard let port else { return .withoutDPI }
+        return arguments.contains("--proxy-server=http://127.0.0.1:\(port)") ? .viaDPI : .withoutDPI
     }
 }

@@ -192,10 +192,10 @@ public final class DPIMode {
     /// Whether the menu item should be enabled, and why not when it should not.
     public var discordAvailability: (enabled: Bool, reason: String?) {
         guard let port = engine.status().port, engine.status().running else {
-            return (false, "start DPI mode first")
+            return (false, "Start DPI mode first.")
         }
         if discordRunning() {
-            return (false, "quit Discord first — the proxy flag is read only at launch")
+            return (false, "Quit Discord first. It reads the proxy setting only when it starts.")
         }
         return (true, "launches Discord with --proxy-server=http://127.0.0.1:\(port)")
     }

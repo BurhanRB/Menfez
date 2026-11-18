@@ -19,7 +19,7 @@ final class ProbesTests: XCTestCase {
             Thread.sleep(forTimeInterval: delay)
             if line.contains("api.ipify.org") { return CommandResult(status: 0, output: "203.0.113.7") }
             if line.contains("ipinfo.io") { return CommandResult(status: 0, output: #"{"country":"BG"}"#) }
-            return CommandResult(status: 0, output: "200 0.150")
+            return CommandResult(status: 0, output: "200 0.050 0.200")
         }
     }
 
@@ -75,8 +75,10 @@ final class DiscordProbeTests: XCTestCase {
     }
 
     func testSuccessParsesCodeAndTime() {
-        let probe = Probes.discord(doh: true, using: Canned(CommandResult(status: 0, output: "200 0.146")))
-        XCTAssertEqual(probe, DiscordProbe(code: 200, ms: 146))
+        let probe = Probes.discord(doh: true, using: Canned(CommandResult(status: 0, output: "200 1.092 1.146")))
+        XCTAssertEqual(probe, DiscordProbe(code: 200, ms: 54), "TLS done to first byte, not the 1 s DoH lookup")
+        XCTAssertEqual(Probes.discord(doh: true, using: Canned(CommandResult(status: 0, output: "200 0.1"))).ms, nil)
+        XCTAssertTrue(Probes.discordArgs(proxyPort: nil, doh: true).contains("%{http_code} %{time_appconnect} %{time_starttransfer}"))
     }
 
     func testDirectProbeResolvesOverDoH() {
