@@ -59,11 +59,16 @@ public struct ReportBuilder {
     ///   Injectable for the same reason `RouteManager.statePath` is: a test
     ///   must not be able to see or change the real /var/run/menfez file, and
     ///   two tests running in parallel must not share one.
-    /// - Parameter dnsCache: when given, the service name and resolvers are
-    ///   read from it while it is valid, saving two `networksetup` per tick.
+    /// - Parameter dnsCache: when given, the service name, resolvers and local
+    ///   address are read from it while it is valid, saving two `networksetup`
+    ///   and one `ipconfig` per tick.
+    /// - Parameter interfaceExists: answers "does the kernel know this
+    ///   interface" without a process (the app passes `if_nametoindex`). nil
+    ///   runs `ifconfig <name>` through `runner`.
     public func buildLocal(depth: Depth = .local,
                            statePath: String = Path.routeState,
                            dnsCache: DNSInfoCache? = nil,
+                           interfaceExists: ((String) -> Bool)? = nil,
                            using runner: CommandRunner = SystemRunner()) -> Report {
         var report = Report()
 
@@ -79,7 +84,8 @@ public struct ReportBuilder {
             // An interface the kernel still knows, but whose handshake we cannot
             // read. `unknown` is the honest code and the UI says "checking";
             // calling it noHandshake would claim a measurement we did not take.
-            let exists = RouteManager.interfaceExists(tunnel, using: runner)
+            let exists = interfaceExists.map { $0(tunnel) }
+                ?? RouteManager.interfaceExists(tunnel, using: runner)
             report.health = exists
                 ? Health(ok: false, code: .unknown)
                 : Health(ok: false, code: .gone)
@@ -123,11 +129,6 @@ public struct ReportBuilder {
         }
 
         report.interface = primary
-        if let primary {
-            let result = runner.run("ipconfig", ["getifaddr", primary], timeout: 5)
-            let text = result.output.trimmingCharacters(in: .whitespacesAndNewlines)
-            if result.ok, !text.isEmpty { report.localIP = text }
-        }
 
         // Prefer the live gateway reading and fall back to the one recorded
         // when the routes were applied, because that is the value the endpoint
@@ -138,14 +139,22 @@ public struct ReportBuilder {
         // same interface, so it is passed in rather than looked up again.
         let dnsInfo = dnsCache?.lookup(interface: primary) ?? {
             let service = DNSManager.activeService(interface: primary, using: runner)
+            var localIP: String?
+            if let primary {
+                let result = runner.run("ipconfig", ["getifaddr", primary], timeout: 5)
+                let text = result.output.trimmingCharacters(in: .whitespacesAndNewlines)
+                if result.ok, !text.isEmpty { localIP = text }
+            }
             let info = DNSInfoCache.Info(
                 service: service,
-                servers: service.map { DNSManager.current(service: $0, using: runner) } ?? [])
+                servers: service.map { DNSManager.current(service: $0, using: runner) } ?? [],
+                localIP: localIP)
             dnsCache?.store(info, interface: primary)
             return info
         }()
         report.dnsService = dnsInfo.service
         report.dns = dnsInfo.servers
+        report.localIP = dnsInfo.localIP
 
         if depth == .probed {
             let probed = Self.probes(using: runner)

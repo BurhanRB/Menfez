@@ -169,12 +169,37 @@ final class TickCostTests: XCTestCase {
         _ = ReportBuilder().buildLocal(statePath: path, dnsCache: cache, using: runner)
         let second = runner.calls.dropFirst(first.count)
         XCTAssertEqual(second.filter { $0.tool == "networksetup" }.count, 0, "cached")
+        XCTAssertEqual(first.filter { $0.tool == "ipconfig" }.count, 1)
+        XCTAssertEqual(second.filter { $0.tool == "ipconfig" }.count, 0, "local address cached too")
 
         // A DNS action invalidates: the very next tick reads the new resolvers.
         cache.invalidate()
         _ = ReportBuilder().buildLocal(statePath: path, dnsCache: cache, using: runner)
         XCTAssertEqual(runner.calls.dropFirst(first.count + second.count)
             .filter { $0.tool == "networksetup" }.count, 2)
+    }
+
+    /// The app's tick: with a warm cache and an in-process interface check it
+    /// starts only `wg show interfaces` and `route -n get default`.
+    func testWarmTickSpawnsTwoCommands() {
+        let dir = NSTemporaryDirectory() + "menfez-tick-\(UUID().uuidString)"
+        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(atPath: dir) }
+        let path = dir + "/route-state.json"
+        let runner = SpawnBudgetTests.Counter()
+        let cache = DNSInfoCache()
+        var asked: [String] = []
+        let first = ReportBuilder().buildLocal(statePath: path, dnsCache: cache,
+                                               interfaceExists: { asked.append($0); return true }, using: runner)
+        XCTAssertEqual(first.localIP, "192.168.1.2")
+        let before = runner.calls.count
+        let second = ReportBuilder().buildLocal(statePath: path, dnsCache: cache,
+                                                interfaceExists: { asked.append($0); return true }, using: runner)
+        XCTAssertEqual(runner.calls.dropFirst(before).map(\.tool), ["wg", "route"])
+        XCTAssertEqual(second.localIP, "192.168.1.2", "from the cache")
+        XCTAssertEqual(second.health.code, .unknown, "interface known, handshake not read")
+        XCTAssertEqual(asked, ["utun9", "utun9"])
+        XCTAssertFalse(runner.calls.contains { $0.tool == "ifconfig" })
     }
 
     func testDNSCacheExpiresAndFollowsTheInterface() {

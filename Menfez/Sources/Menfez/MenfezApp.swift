@@ -1360,10 +1360,13 @@ final class Backend: @unchecked Sendable {
     ///
     /// This is a plain function call, not a subprocess: `RouteManager`,
     /// `DNSManager` and `Probes` are linked into the app. The only processes it
-    /// starts are `route`, `networksetup`, `ifconfig`, `ipconfig` and `wg show
-    /// interfaces`, all of which run as the user.
+    /// starts are `route` and `wg show interfaces` per tick, plus
+    /// `networksetup` and `ipconfig` when the DNS cache is cold, all as the user.
     func localReport(depth: ReportBuilder.Depth = .local) -> Report {
-        ReportBuilder().buildLocal(depth: depth, dnsCache: dnsCache, using: localRunner())
+        // `if_nametoindex` asks the kernel directly: no `ifconfig` per tick.
+        ReportBuilder().buildLocal(depth: depth, dnsCache: dnsCache,
+                                   interfaceExists: { if_nametoindex($0) != 0 },
+                                   using: localRunner())
     }
 
     /// The service name and resolvers between ticks; see `DNSInfoCache`.
@@ -2258,7 +2261,7 @@ final class Model: ObservableObject {
     /// Frontmost, or a mode change that is still settling: `activeTick`.
     /// Anything else: `idleTick`. There is no zero case on purpose — a hidden
     /// window still has to notice a tunnel that died, and the local tick costs
-    /// four short-lived unprivileged commands.
+    /// two short-lived unprivileged commands (`wg show interfaces`, `route`).
     var currentInterval: TimeInterval {
         if let settlingUntil, Date() < settlingUntil { return activeTick }
         if isActive { return activeTick }
@@ -2269,7 +2272,7 @@ final class Model: ObservableObject {
     }
 
     /// Slowest tick: 60 s while no Menfez window is on screen outside the
-    /// tunnel (1.0.9). Each tick spawns four short local commands.
+    /// tunnel (1.0.9). Each tick spawns two short local commands.
     private let hiddenTick: TimeInterval = 60
 
     /// True while any Menfez window is at least partly visible.
@@ -4240,13 +4243,29 @@ final class DotView: NSView {
         CATransaction.commit()
     }
 
+    private var keyObservers: [NSObjectProtocol] = []
+
+    deinit { keyObservers.forEach(NotificationCenter.default.removeObserver) }
+
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        keyObservers.forEach(NotificationCenter.default.removeObserver)
+        keyObservers = []
+        if let window {
+            // The breath costs the window server ~50 wakeups a second, worth it
+            // only while the user is looking at the window in front.
+            keyObservers = [NSWindow.didBecomeKeyNotification, NSWindow.didResignKeyNotification].map {
+                NotificationCenter.default.addObserver(forName: $0, object: window, queue: .main) { [weak self] _ in
+                    self?.applyMotion()
+                }
+            }
+        }
         applyMotion()
     }
 
     private func applyMotion() {
         dot.removeAnimation(forKey: "motion")
+        if motion == .breathe && window?.isKeyWindow != true { return }
         let fade = CABasicAnimation(keyPath: "opacity")
         fade.fromValue = 1
         fade.toValue = 0.4

@@ -19,6 +19,17 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.10",
+            date: "2026-11-19",
+            tr: [
+                "Pencere açıkken Menfez daha az iş yapar. Böylece daha az pil ve işlemci harcar.",
+                "Menfez arkada kalınca adının yanındaki nokta dinlenir. Pencereye dönünce yeniden nefes alır.",
+            ],
+            en: [
+                "With the window open, Menfez does less work, so it uses less battery and CPU.",
+                "When Menfez is in the background, the dot next to its name rests. It starts breathing again when you come back to the window.",
+            ]),
+        ChangelogEntry(
             version: "1.0.9",
             date: "2026-11-18",
             tr: [

@@ -49,8 +49,7 @@ brew install --cask menfez
 ```
 
 **İlk açılış:** 1.0.5'ten itibaren sürümler Developer ID ile imzalı ve Apple
-tarafından notarize. Menfez her uygulama gibi açılır. 1.0.4 ve öncesi imzasızdı:
-onlarda **Sistem Ayarları > Gizlilik ve Güvenlik > Yine de Aç** gerekir.
+tarafından notarize. Menfez her uygulama gibi açılır.
 
 ### Modlar
 
@@ -138,8 +137,7 @@ brew install --cask menfez
 ```
 
 **First open:** from 1.0.5 on, builds are signed with a Developer ID and
-notarised by Apple, so Menfez opens like any other app. 1.0.4 and older were
-unsigned and need **System Settings > Privacy & Security > Open Anyway**.
+notarised by Apple, so Menfez opens like any other app.
 
 ### Modes
 

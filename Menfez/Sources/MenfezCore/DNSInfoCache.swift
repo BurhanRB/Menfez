@@ -5,7 +5,8 @@
 // the network changes or someone sets DNS. The cache is keyed by the primary
 // interface (read every tick anyway), dropped by the app on a network change,
 // a mode switch or a DNS action, and expires after `ttl` so a change made in
-// System Settings still shows up.
+// System Settings still shows up. The interface's own address rides along
+// (one `ipconfig` per tick saved): it changes with the network too.
 
 import Foundation
 
@@ -13,10 +14,12 @@ public final class DNSInfoCache: @unchecked Sendable {
     public struct Info: Equatable, Sendable {
         public var service: String?
         public var servers: [String]
+        public var localIP: String?
 
-        public init(service: String?, servers: [String]) {
+        public init(service: String?, servers: [String], localIP: String? = nil) {
             self.service = service
             self.servers = servers
+            self.localIP = localIP
         }
     }
 

@@ -57,20 +57,10 @@ normally on every Intel Mac that runs a supported macOS.
 '
     fi
 
-    local steps='2. Open Menfez. macOS will refuse the first time, because this build is not yet
-   signed by Apple. Click Done.
-
-3. Open System Settings -> Privacy & Security and scroll down to Security.
-   Click "Open Anyway", then "Open".
-
-If macOS says "Menfez is damaged and can'"'"'t be opened", that message is
-misleading: the file is fine, macOS simply does not trust it. Open Terminal,
-paste this line, press Return, then open Menfez normally:
-
-    xattr -dr com.apple.quarantine /Applications/Menfez.app'
-    # A notarised image opens like any other app.
-    [ -n "$NOTARY_PROFILE" ] && steps='2. Open Menfez. macOS asks once whether to open an app downloaded from the
-   internet; click Open.'
+    # Every release is signed and notarised (docs/SIGNING.md). An ad-hoc dmg is
+    # for local testing only and is never published, so it gets the same text.
+    local steps='2. Open Menfez. macOS asks once whether to open an app downloaded from the
+   internet. Click Open.'
 
     cat <<TXT
 Menfez ($flavour)
