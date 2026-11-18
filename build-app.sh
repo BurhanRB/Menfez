@@ -47,7 +47,7 @@ BUILD="$DIR/Menfez/.build/out/Products/Release"
 # that rm -rf and by assert_universal checking the freshly fused binaries.
 # Every release bumps the patch number (1.0.0 → 1.0.1 → 1.0.2 …) and adds an
 # entry to Menfez/Sources/MenfezCore/Changelog.swift; ChangelogTests checks both.
-VERSION="1.0.8"
+VERSION="1.0.9"
 MIN_MINOS="13.0"
 ARCHS="x86_64 arm64"
 XCODE="/Applications/Xcode.app/Contents/Developer"

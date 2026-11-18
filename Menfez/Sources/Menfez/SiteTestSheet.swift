@@ -50,7 +50,7 @@ struct SiteTestSheet: View {
                     .padding(.horizontal, 12).padding(.vertical, 5)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .background(Palette.accent)
                 .foregroundStyle(Palette.accentText)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
@@ -78,7 +78,7 @@ struct SiteTestSheet: View {
             HStack {
                 Spacer()
                 Button(l.t("close")) { onClose() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)

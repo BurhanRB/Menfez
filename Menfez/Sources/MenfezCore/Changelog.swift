@@ -19,6 +19,29 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.9",
+            date: "2026-11-18",
+            tr: [
+                "Ayarlar yenilendi. Artık başlığı Ayarlar ve beş sekmesi var: Genel, Tünel, Bildirimler, Kısayol, Güncellemeler. Dil ve görünüm de Genel'de.",
+                "Kısayol sekmesinde hazır kısayollar var. Birine tıkla, hemen kullanılır. Başka bir uygulama kullanıyorsa Menfez bunu söyler.",
+                "Dili değiştirince uygulama menüleri hemen o dile geçer.",
+                "Menfez açıkken adının yanındaki nokta yavaşça nefes alır. Hareketi azalt açıksa durur. Düğmeler basınca belli olur.",
+                "Menfez arka planda daha az çalışır. Pencere kapalıyken ve tünel yokken neredeyse hiç işlemci kullanmaz.",
+                "\"Tünel düşerse interneti kes\" açıkken Mac'in kendi içindeki bağlantılar artık takılmaz. Bunun için tünel bileşenini güncelle.",
+                "Hata mesajları ne yapman gerektiğini de söylüyor. DPI açıkken üstteki satır sade bir dille durumu gösterir.",
+                "DPI modunda Discord tek satırda görünür, sayılar Ayrıntılar altında durur. Tünel kurulumu neyin eksik olduğunu daha açık söyler ve gereken komutu tek tıkla kopyalarsın. Silme düğmelerine tıklamak daha kolay. Ayarlar en son baktığın sekmede açılır.",
+            ],
+            en: [
+                "Settings is new. It is now titled Settings and has five tabs: General, Tunnel, Notifications, Shortcut and Updates. Language and look are in General.",
+                "The Shortcut tab has ready-made shortcuts. Click one and it works right away. If another app uses it, Menfez tells you.",
+                "When you change the language, the app menus switch to it right away.",
+                "While Menfez is on, the dot next to its name breathes slowly. It stays still with Reduce Motion. Buttons now show when you press them.",
+                "Menfez does less in the background. With the window closed and no tunnel, it uses almost no CPU.",
+                "With \"Block internet if the tunnel drops\" on, connections inside your Mac no longer hang. This needs an updated tunnel component.",
+                "Error messages now say what to do next. In DPI mode the line at the top shows the state in plain words.",
+                "In DPI mode Discord shows up in one row and the numbers sit under Details. Tunnel setup says more clearly what is missing, and you can copy the command it needs in one click. Remove buttons are easier to click. Settings opens on the tab you used last.",
+            ]),
+        ChangelogEntry(
             version: "1.0.8",
             date: "2026-11-18",
             tr: [

@@ -47,7 +47,7 @@ struct NetworksSheet: View {
             HStack {
                 Spacer()
                 Button(m.l.t("close")) { onClose() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
@@ -80,7 +80,7 @@ struct NetworksSheet: View {
                         .padding(.horizontal, 12).padding(.vertical, 5)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .background(Palette.accent)
                 .foregroundStyle(Palette.accentText)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
@@ -160,16 +160,18 @@ struct NetworksSheet: View {
                         .foregroundStyle(Palette.secondary)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .accessibilityLabel(m.l.t("net_rename") + " " + network.name)
                 .help(m.l.t("net_rename"))
                 Button { m.forgetNetwork(network.id) } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 12))
                         .foregroundStyle(Palette.secondary)
+                        // Same small glyph, a finger-sized target around it.
+                        .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .accessibilityLabel(m.l.t("net_forget") + " " + network.name)
                 .help(m.l.t("net_forget"))
             }

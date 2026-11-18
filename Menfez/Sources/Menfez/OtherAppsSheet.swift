@@ -121,7 +121,7 @@ struct OtherAppsSheet: View {
             HStack {
                 Spacer()
                 Button(m.l.t("close")) { onClose() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
@@ -178,7 +178,7 @@ struct OtherAppsSheet: View {
                 .padding(.vertical, Space.xs + 1)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .modifier(Chip())
         .foregroundStyle(Palette.accent)
         .fixedSize()

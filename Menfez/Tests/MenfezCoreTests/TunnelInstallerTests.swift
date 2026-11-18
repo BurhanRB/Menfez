@@ -74,6 +74,20 @@ final class TunnelInstallerTests: XCTestCase {
         XCTAssertEqual(TunnelInstaller.outcome(of: CommandResult(status: 3, output: "")), .failed("exit 3"))
     }
 
+    /// Each brew failure install-helper.sh can print gets its own sentence.
+    func testBrewFailuresMapToTheirMessages() {
+        XCTAssertEqual(TunnelInstaller.brewFailureKey(
+            "WireGuard tools not found. Install them first: brew install wireguard-tools wireguard-go bash"),
+            "tunnel_install_need_wg")
+        XCTAssertEqual(TunnelInstaller.brewFailureKey(
+            "/opt/homebrew/bin/wireguard-go is missing. Install it: brew install wireguard-tools wireguard-go bash"),
+            "tunnel_install_need_wg")
+        XCTAssertEqual(TunnelInstaller.brewFailureKey(
+            "/opt/homebrew/bin/bash is older than 4; wg-quick needs bash >= 4 (brew install bash)"),
+            "tunnel_install_old_bash")
+        XCTAssertNil(TunnelInstaller.brewFailureKey("timed out"))
+    }
+
     func testStateTransitions() {
         let idle = TunnelInstallState.idle
         XCTAssertEqual(idle.starting(.install), .running(.install))

@@ -71,7 +71,7 @@ struct AboutSheet: View {
                         NSWorkspace.shared.open(url)
                     }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .foregroundStyle(Palette.accent)
             }
             .font(.system(size: 11))
@@ -80,7 +80,7 @@ struct AboutSheet: View {
             HStack {
                 if Updater.shared.available {
                     Button(l.t("app_update_check")) { Updater.shared.checkForUpdates() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .padding(.horizontal, 12).padding(.vertical, 6)
                         .modifier(Chip())
                         .foregroundStyle(Palette.text)
@@ -88,7 +88,7 @@ struct AboutSheet: View {
                 }
                 Spacer()
                 Button(l.t("close")) { onClose() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
@@ -129,7 +129,7 @@ struct AboutSheet: View {
                     .underline(false)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .help(url.absoluteString)
         } else {
             // A broken link should read as text, not as a dead button that

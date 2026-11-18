@@ -15,8 +15,9 @@ public enum HelperVersion {
     /// 3 = `killswitch` (pf anchor), cleared by `teardown`;
     /// 4 = `--site-routes` (Discord + chosen sites), blocked by the kill switch;
     /// 5 = `switch --key-stdin` (private key from the Keychain, on stdin);
-    /// 6 = `proxy pac|off|status` (browser PAC), restored by `teardown`.
-    public static let current = 6
+    /// 6 = `proxy pac|off|status` (browser PAC), restored by `teardown`;
+    /// 7 = kill switch passes loopback both ways without state (1.0.9).
+    public static let current = 7
 
     public struct Reply: Codable, Sendable {
         public var version: Int

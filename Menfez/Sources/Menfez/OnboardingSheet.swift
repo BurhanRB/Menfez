@@ -51,7 +51,7 @@ struct OnboardingSheet: View {
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .modifier(Chip())
                     .foregroundStyle(Palette.accent)
                     .disabled(installRunning)
@@ -69,7 +69,7 @@ struct OnboardingSheet: View {
             HStack(spacing: 10) {
                 if page < pages - 1 {
                     Button(l.t("onb_skip"), action: onSkip)
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .font(.system(size: 12))
                         .foregroundStyle(Palette.secondary)
                         .keyboardShortcut(.cancelAction)
@@ -98,7 +98,7 @@ struct OnboardingSheet: View {
 
     private func chip(_ title: String, action: @escaping () -> Void) -> some View {
         Button(title, action: action)
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .font(.system(size: 12))
             .padding(.horizontal, 12).padding(.vertical, 6)
             .modifier(Chip())
@@ -112,7 +112,7 @@ struct OnboardingSheet: View {
                 .padding(.horizontal, 14).padding(.vertical, 6)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .background(Palette.accent)
         .foregroundStyle(Palette.accentText)
         .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))

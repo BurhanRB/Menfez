@@ -43,6 +43,7 @@ enum Snapshots {
     static func renderIfRequested() {
         guard let dir = ProcessInfo.processInfo.environment["MENFEZ_SNAPSHOT_DIR"] else { return }
         _ = NSApplication.shared
+        StatusDot.animates = false
         try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
 
         // One fixed state for every shot: direct mode, tunnel available.
@@ -76,6 +77,16 @@ enum Snapshots {
                              installRunning: true, installMessage: m.l.t("tunnel_install_running"),
                              onInstall: {}, showSetup: true),
                    .light, to: "\(dir)/help-running.png")
+        let helperAt = "/Applications/Menfez.app/Contents/MacOS/menfez-route"
+        renderView(HelpSheet(lang: .tr, helperPath: helperAt, onInstall: {}, showSetup: true),
+                   .dark, to: "\(dir)/help-dark.png")
+        renderView(HelpSheet(lang: .en, helperPath: helperAt, onInstall: {}, showSetup: true),
+                   .light, to: "\(dir)/help-en.png")
+        // A long failure message beside the install and copy buttons.
+        renderView(HelpSheet(lang: .tr, helperPath: helperAt,
+                             installMessage: m.l.t("tunnel_install_need_wg"),
+                             onInstall: {}, showSetup: true),
+                   .light, to: "\(dir)/help-failed.png")
 
         // The first-run guide, each page, on a machine without the helper.
         for page in 0..<3 {
@@ -101,10 +112,14 @@ enum Snapshots {
         m.tunnelInstall = .failed(.install, "WireGuard tools not found. Install them first: "
                                   + "brew install wireguard-tools wireguard-go bash")
         render(m, .light, to: "\(dir)/tunnel-setup-failed.png")
-        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-setup.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .light, to: "\(dir)/settings-setup.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .dark, to: "\(dir)/settings-setup-dark.png")
+        m.lang = .en
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Settings", .light, to: "\(dir)/settings-setup-en.png")
+        m.lang = .tr
         m.capabilities = Capabilities(tunnelAvailable: true)
         m.tunnelInstall = .succeeded(.install)
-        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-remove.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .light, to: "\(dir)/settings-remove.png")
         m.tunnelInstall = .idle
         renderView(AboutSheet(lang: .tr) {}, .light, to: "\(dir)/info.png")
         renderView(AboutSheet(lang: .en) {}, .light, to: "\(dir)/about-licenses.png")
@@ -371,11 +386,11 @@ enum Snapshots {
         m.latencies = ["de-fra": .ms(42), "bg-sof": .ms(118), "nl-ams": .noReply]
         renderView(ContentView(m: m).serverSheet, .dark, to: "\(f4)/servers-latency-dark.png")
         renderView(ContentView(m: m).serverSheet, .light, to: "\(f4)/servers-latency-light.png")
-        renderWindow(SettingsView(m: m), title: "Menfez", .dark, to: "\(f4)/settings-reconnect-dark.png")
-        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(f4)/settings-reconnect-light.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .dark, to: "\(f4)/settings-reconnect-dark.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .light, to: "\(f4)/settings-reconnect-light.png")
         m.lang = .en
         renderView(ContentView(m: m).serverSheet, .light, to: "\(f4)/servers-latency-en.png")
-        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(f4)/settings-reconnect-en.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .light, to: "\(f4)/settings-reconnect-en.png")
         m.lang = .tr
         m.latencies = [:]
         m.profiles = servers
@@ -395,14 +410,51 @@ enum Snapshots {
                         ForEach(MenuBarModes.order, id: \.self) { MenuBarIcon(mode: $0) }
                     }.padding(10).background(Palette.bg),
                    .light, to: "\(dir)/menubar-icons.png")
-        renderWindow(SettingsView(m: m), title: "Menfez", .dark, to: "\(dir)/settings.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .dark, to: "\(dir)/settings.png")
         // Settings with the notification switches, Turkish, light.
-        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-notifications.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .light, to: "\(dir)/settings-notifications.png")
         m.hotKey = HotKeyCombo(keyCode: 46, modifiers: HotKeyCombo.control | HotKeyCombo.option, key: "m")
         m.hotKeyRefused = true
-        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-shortcut.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .light, to: "\(dir)/settings-shortcut.png")
         m.hotKey = nil
         m.hotKeyRefused = false
+
+        // 1.0.9: every Settings tab, Turkish light, plus dark and English,
+        // and the header dot on, off and mid-breath.
+        let s9 = "\(dir)/109"
+        try? FileManager.default.createDirectory(atPath: s9, withIntermediateDirectories: true)
+        Updater.shared.available = true
+        m.profiles = [Profile(name: "de-fra", file: "de-fra.conf", endpoint: "185.65.134.10:51820",
+                              country: "DE", display: "Almanya"),
+                      Profile(name: "bg-sof", file: "bg-sof.conf", endpoint: "94.156.1.20:51820",
+                              country: "BG", display: "Bulgaristan")]
+        for tab in SettingsTab.allCases {
+            renderWindow(SettingsView(m: m, tab: tab), title: "Ayarlar", .light, to: "\(s9)/settings-\(tab.rawValue).png")
+        }
+        renderWindow(SettingsView(m: m, tab: .general), title: "Ayarlar", .dark, to: "\(s9)/settings-general-dark.png")
+        renderWindow(SettingsView(m: m, tab: .tunnel), title: "Ayarlar", .dark, to: "\(s9)/settings-tunnel-dark.png")
+        m.hotKey = HotKeyCombo(keyCode: 46, modifiers: HotKeyCombo.control | HotKeyCombo.option, key: "m")
+        m.hotKeyRefused = true
+        renderWindow(SettingsView(m: m, tab: .shortcut), title: "Ayarlar", .light, to: "\(s9)/settings-shortcut-taken.png")
+        m.hotKeyRefused = false
+        renderWindow(SettingsView(m: m, tab: .shortcut), title: "Ayarlar", .dark, to: "\(s9)/settings-shortcut-dark.png")
+        m.lang = .en
+        for tab in [SettingsTab.general, .tunnel, .shortcut] {
+            renderWindow(SettingsView(m: m, tab: tab), title: "Settings", .light, to: "\(s9)/settings-\(tab.rawValue)-en.png")
+        }
+        m.lang = .tr
+        m.hotKey = nil
+        m.profiles = []
+        Updater.shared.available = false
+        let dots: [(Color, Bool, Double)] = [(Palette.success, true, 1), (Palette.success, true, 0.45),
+                                             (Palette.warning, true, 1), (Palette.secondary, false, 1)]
+        renderView(HStack(spacing: 24) {
+                        ForEach(0..<dots.count, id: \.self) { i in
+                            StatusDot(color: dots[i].0, pulsing: false, on: dots[i].1)
+                                .frame(width: 15, height: 15).opacity(dots[i].2)
+                        }
+                    }.padding(16).background(Palette.bg),
+                   .light, to: "\(s9)/header-dot.png")
 
         // Updates (1.0.6): the Settings switch beside the menu-bar items.
         Updater.shared.available = true

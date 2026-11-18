@@ -36,7 +36,7 @@ struct BrowserSitesSheet: View {
                         .padding(.horizontal, 12).padding(.vertical, 5)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .background(Palette.accent)
                 .foregroundStyle(Palette.accentText)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
@@ -60,7 +60,7 @@ struct BrowserSitesSheet: View {
             HStack {
                 if m.browserSites.contains(where: { if case .success = SiteTest.host(from: $0) { return true } else { return false } }) {
                     Button(m.l.t("browser_check_all")) { m.checkBrowserSites(m.browserSites) }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .padding(.horizontal, 12).padding(.vertical, 6)
                         .modifier(Chip())
                         .foregroundStyle(Palette.accent)
@@ -68,7 +68,7 @@ struct BrowserSitesSheet: View {
                 }
                 Spacer()
                 Button(m.l.t("close")) { onClose() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
@@ -106,7 +106,7 @@ struct BrowserSitesSheet: View {
                             .foregroundStyle(Palette.secondary)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .accessibilityLabel(m.l.t("sites_remove") + " " + site)
                     .help(m.l.t("sites_remove"))
                 }
@@ -148,7 +148,7 @@ struct BrowserSitesSheet: View {
             }
         } else if case .success = SiteTest.host(from: site) {
             Button(m.l.t("sitetest_run")) { m.checkBrowserSites([site]) }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .font(.system(size: 11.5, weight: .medium))
                 .foregroundStyle(Palette.accent)
         }

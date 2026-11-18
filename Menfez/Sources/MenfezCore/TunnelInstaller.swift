@@ -125,4 +125,14 @@ public enum TunnelInstaller {
         line = line.trimmingCharacters(in: .whitespaces)
         return .failed(line.isEmpty ? "exit \(result.status)" : line)
     }
+
+    /// The string-table key for an install failure the user fixes with brew,
+    /// nil for any other failure. Matches install-helper.sh's English lines.
+    public static func brewFailureKey(_ detail: String) -> String? {
+        if detail.hasPrefix("WireGuard tools not found") || detail.contains(" is missing. Install it: brew install") {
+            return "tunnel_install_need_wg"
+        }
+        if detail.contains("is older than 4") { return "tunnel_install_old_bash" }
+        return nil
+    }
 }

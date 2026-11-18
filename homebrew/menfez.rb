@@ -92,6 +92,7 @@ cask "menfez" do
           "H=/Library/PrivilegedHelperTools/menfez/menfez-route; " \
           "if [ -x \"$H\" ] && [ \"$(stat -f %u \"$H\")\" = 0 ]; then " \
           "\"$H\" proxy off; " \
+          "\"$H\" killswitch off || true; " \
           "\"$H\" down; " \
           "D='/Library/Application Support/Menfez/dns-state.json'; " \
           "{ [ -f \"$D\" ] || [ -f /var/run/menfez/dns-state.json ]; } && \"$H\" dns auto; " \

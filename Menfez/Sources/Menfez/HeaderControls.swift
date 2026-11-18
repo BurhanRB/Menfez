@@ -81,7 +81,7 @@ struct HeaderIcon: View {
                     }
                 }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .onHover { inside = $0 }
         .animation(.easeOut(duration: 0.12), value: inside)
         .help(help)

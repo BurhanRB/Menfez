@@ -17,7 +17,7 @@ final class KillSwitchTests: XCTestCase {
     func testWholeInternetKeepsLoopbackTunnelEndpointDHCPAndLANOpenAndBlocksTheRest() throws {
         let text = try XCTUnwrap(KillSwitch.rules(scope: .all, iface: "utun4", endpoints: ["203.0.113.7"]))
         let lines = text.split(separator: "\n").map(String.init).filter { !$0.hasPrefix("#") }
-        XCTAssertEqual(lines.first, "pass out quick on lo0 all")
+        XCTAssertEqual(lines.first, "pass quick on lo0 all no state", "loopback first, both ways, no state")
         XCTAssertTrue(lines.contains("pass out quick on utun4 all"))
         XCTAssertTrue(lines.contains("pass out quick inet to 203.0.113.7"))
         XCTAssertTrue(lines.contains("pass out quick inet proto udp from any port 68 to any port 67"))
@@ -102,5 +102,6 @@ final class KillSwitchTests: XCTestCase {
     func testOlderHelperIsOfferedTheUpdate() {
         XCTAssertGreaterThanOrEqual(HelperVersion.current, 3)
         XCTAssertTrue(HelperVersion.needsUpdate(installed: 2))
+        XCTAssertTrue(HelperVersion.needsUpdate(installed: 6), "a version 6 helper still loads the stateful lo0 rule")
     }
 }

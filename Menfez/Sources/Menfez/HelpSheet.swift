@@ -90,17 +90,17 @@ struct HelpSheet: View {
                     .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Button(l.t("export_log")) { onExportLog() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .font(.system(size: 11))
                         .foregroundStyle(Palette.accent)
                     Button(l.t("onb_again")) { onGuide() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .font(.system(size: 11))
                         .foregroundStyle(Palette.accent)
                         .padding(.leading, 10)
                     Spacer()
                     Button(l.t("close")) { onClose() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .padding(.horizontal, 12).padding(.vertical, 6)
                         .modifier(Chip())
                         .foregroundStyle(Palette.text)
@@ -129,7 +129,7 @@ struct HelpSheet: View {
             }
             if let button {
                 Button(button.0, action: button.1)
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .font(.system(size: 11))
                     .padding(.horizontal, 9).padding(.vertical, 4)
                     .modifier(Chip())
@@ -175,21 +175,28 @@ struct HelpSheet: View {
                             .padding(.horizontal, 9).padding(.vertical, 4)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .modifier(Chip())
                         .foregroundStyle(Palette.accent)
                         .disabled(installRunning || (installed && removeBlockedReason != nil))
-                        if let note = installed ? removeBlockedReason ?? installMessage : installMessage {
-                            Text(note)
-                                .font(.system(size: 10.5))
-                                .foregroundStyle(Palette.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                        // The sentence above names the brew command, which a
+                        // Text cannot hand over.
+                        CopyCommandButton(command: Model.wireGuardBrewCommand, l: l)
+                    }
+                    // Its own line under the buttons, as in the main window and
+                    // Settings, so a long message does not wrap beside them.
+                    if let note = installed ? removeBlockedReason ?? installMessage : installMessage {
+                        Text(note)
+                            .font(.system(size: 10.5))
+                            .foregroundStyle(Palette.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     Text(l.t("help_setup_terminal"))
                         .font(.system(size: 10.5))
                         .foregroundStyle(Palette.secondary)
                         .padding(.top, 2)
+                } else {
+                    CopyCommandButton(command: Model.wireGuardBrewCommand, l: l)
                 }
 
                 // Selectable, monospaced, wrapped: the user has to be able to
@@ -222,7 +229,7 @@ struct HelpSheet: View {
                             .padding(.vertical, 4)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .background(Palette.raised)
                     .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
                     .foregroundStyle(copied ? Palette.success : Palette.accent)
@@ -243,7 +250,7 @@ struct HelpSheet: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
     }

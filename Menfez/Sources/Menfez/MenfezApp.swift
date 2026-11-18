@@ -51,7 +51,7 @@ struct L {
             "updates_tunnel": "Discord güncellemelerini tünelden indir",
             "updates_tunnel_note": "DPI modunda yalnızca Discord güncellemeleri ve DNS tünelden geçer. Geri kalan her şey DPI ile gider.",
             "updates_tunnel_on": "Discord güncellemeleri tünelden geliyor",
-            "updates_tunnel_failed": "Güncellemeler için tünel açılamadı. Discord \"Güncellemeler denetleniyor\" ekranında kalabilir.",
+            "updates_tunnel_failed": "Güncellemeler için tünel açılamadı. Discord \"Güncellemeler denetleniyor\" ekranında kalabilir. DPI'ı kapatıp yeniden açmayı dene.",
             "mode_direct": "Doğrudan",
             "mode_dpi": "DPI",
             "mode_tunnel": "Tünel",
@@ -82,16 +82,19 @@ struct L {
             "tunnel_remove_leave_first": "Kaldırmadan önce Tünel modundan çık.",
             "help_setup_terminal": "Terminal'i tercih edersen:",
             "tunnel_install_need_wg": "Önce WireGuard araçları gerekiyor. Terminal'de çalıştır: brew install wireguard-tools wireguard-go bash",
+            "tunnel_install_old_bash": "Tünel için daha yeni bir bash gerekiyor. Terminal'de çalıştır: brew install wireguard-tools wireguard-go bash",
             "tunnel_needs_setup": "Tüneli kullanmak için bir kez kurulum yapman gerekiyor.",
             "help_copy_command": "Komutu kopyala",
             "dpi_title": "DPI",
             "dpi_off": "kapalı",
             "dpi_off_state": "DPI kapalı, bağlantın doğrudan gidiyor",
             "dpi_split": "bölündü",
+            "dpi_on_line": "DPI açık · {n} bağlantı",
             "dpi_passthrough": "dokunulmadı",
             "dpi_open": "açık",
             "dpi_refused": "reddedildi",
             "dpi_at": "ilk paketi {n}. baytta bölüyor",
+            "dpi_details": "Ayrıntılar",
             "dpi_probe": "Şimdi test et",
             "dpi_probing": "test ediliyor…",
             "dpi_stop": "Durdur",
@@ -168,7 +171,7 @@ struct L {
             "kc_move_failed": "{n} anahtar taşınamadı. O dosyalar olduğu gibi duruyor.",
             "kc_restored": "Anahtarlar dosyalara geri yazıldı ({n})",
             "kc_restore_failed": "{n} anahtar geri yazılamadı. O dosyalar olduğu gibi duruyor.",
-            "kc_failed": "Anahtar Zinciri okunamadı, tünel açılmadı",
+            "kc_failed": "Anahtar Zinciri okunamadı, tünel açılmadı. Anahtar Zinciri izin isterse izin ver ve tekrar dene.",
             "f_discord": "Discord",
             "up": "Tünel açık",
             "down": "Tünel kapalı, bağlantın doğrudan gidiyor",
@@ -228,7 +231,7 @@ struct L {
             "menu_open": "Pencereyi aç",
             "menu_quit": "Çık",
             "launch_at_login": "Mac açılınca başlat",
-            "launch_at_login_failed": "Açılışta başlatma ayarlanamadı: {what}",
+            "launch_at_login_failed": "Açılışta başlatma ayarlanamadı: {what}. Sistem Ayarları > Genel > Giriş Öğeleri'nden elle ekleyebilirsin.",
             "login_move_first": "Önce Menfez'i Uygulamalar klasörüne taşı.",
             "login_needs_approval": "Sistem Ayarları > Genel > Giriş Öğeleri'nden Menfez'e izin ver.",
             "det_ip": "IP ayrıntıları",
@@ -250,7 +253,7 @@ struct L {
             "donate_hint": "Bir çay ısmarla (burhanrb.com)",
             "export_log": "Günlüğü kaydet…",
             "log_exported": "Hata kaydı kaydedildi",
-            "log_export_failed": "Hata kaydı kaydedilemedi",
+            "log_export_failed": "Hata kaydı kaydedilemedi. Başka bir klasör seçip tekrar dene.",
             "help_title": "Yardım",
             "help_modes": "Üç mod var",
             "help_direct": "Doğrudan: Menfez hiçbir şey yapmaz, internetin normal çalışır.",
@@ -355,6 +358,54 @@ struct L {
             "hotkey_needs_modifier": "⌘, ⌥ ya da ⌃ ile birlikte bas.",
             "hotkey_taken": "Bu kısayol başka bir uygulamada kullanılıyor. Başka bir tane dene.",
             "hotkey_menu": "Kısayol: {what}",
+            "settings_title": "Ayarlar",
+            "sysmenu_window": "Pencere",
+            "sysmenu_help": "Yardım",
+            "sysmenu_edit": "Düzen",
+            "sysmenu_view": "Görüntü",
+            "sysmenu_file": "Dosya",
+            "sysmenu_services": "Servisler",
+            "sysmenu_settings": "Ayarlar…",
+            "sysmenu_about": "Menfez Hakkında",
+            "sysmenu_hide": "Menfez'i Gizle",
+            "sysmenu_hide_others": "Diğerlerini Gizle",
+            "sysmenu_show_all": "Tümünü Göster",
+            "sysmenu_quit": "Menfez'ten Çık",
+            "sysmenu_undo": "Geri Al",
+            "sysmenu_redo": "Yinele",
+            "sysmenu_cut": "Kes",
+            "sysmenu_copy": "Kopyala",
+            "sysmenu_paste": "Yapıştır",
+            "sysmenu_paste_plain": "Yapıştır ve Stili Eşle",
+            "sysmenu_delete": "Sil",
+            "sysmenu_select_all": "Tümünü Seç",
+            "sysmenu_close": "Kapat",
+            "sysmenu_minimize": "Simge Durumuna Küçült",
+            "sysmenu_zoom": "Büyüt/Küçült",
+            "sysmenu_front": "Tümünü Öne Getir",
+            "sysmenu_app_help": "Menfez Yardım",
+            "sysmenu_dictation": "Dikteyi Başlat…",
+            "sysmenu_emoji": "Emoji ve Semboller",
+            "set_tab_general": "Genel",
+            "set_tab_tunnel": "Tünel",
+            "set_tab_notifications": "Bildirimler",
+            "set_tab_shortcut": "Kısayol",
+            "set_tab_updates": "Güncellemeler",
+            "set_look": "Dil ve görünüm",
+            "set_language": "Dil",
+            "set_networks_note": "Menfez her ağda hangi modu açacağını hatırlayabilir. Ev, okul ya da iş ağı gibi.",
+            "set_reconnect": "Bağlantı koparsa",
+            "set_setup": "Kurulum",
+            "set_installed": "Tünel bu Mac'te kurulu.",
+            "set_not_installed": "Tünel kurulu değil.",
+            "set_install_note": "Kurulum bir kez yönetici şifresi ister. DPI için gerekmez.",
+            "set_remove_note": "Kaldırınca Menfez'in sisteme kurduğu her şey silinir. DPI çalışmaya devam eder.",
+            "set_tunnel_none": "Tünel bu Mac'te kurulu değil. DPI tünelsiz çalışır. Kurulum için Yardım'a bak.",
+            "set_updates_unavailable": "Güncellemeler yalnız Uygulamalar klasöründeki Menfez'de çalışır.",
+            "cancel_esc": "Vazgeç",
+            "hotkey_examples": "Hazır kısayollar",
+            "hotkey_examples_note": "Birine tıkla, hemen kullanılır. Başka bir uygulama kullanıyorsa üstte uyarı çıkar.",
+            "hotkey_use": "Kısayolu {what} yap",
             "ks_toggle": "Tünel düşerse interneti kes",
             "ks_hint_all": "Tünel düşerse hiçbir şey tünel dışından çıkmaz. Ev ağın (yazıcı, AirPlay) açık kalır.",
             "ks_hint_discord": "Tünel düşerse Discord kesilir, diğer siteler normal açılır.",
@@ -374,7 +425,7 @@ struct L {
             "sites_empty": "Henüz site yok. Bir site adı yaz ve Ekle'ye bas.",
             "sites_invalid": "Bu bir site adı değil.",
             "sites_full": "Liste dolu (en çok {what} site).",
-            "sites_save_failed": "Site listesi kaydedilemedi.",
+            "sites_save_failed": "Site listesi kaydedilemedi. Diskte yer olduğundan emin ol ve tekrar dene.",
             "net_title": "Ağlar",
             "net_open": "Ağlar…",
             "net_auto": "Ağa göre modu kendiliğinden değiştir",
@@ -389,7 +440,7 @@ struct L {
             "net_remember": "Bu ağı hatırla",
             "net_empty": "Henüz hatırlanan ağ yok.",
             "net_default_name": "Ağ",
-            "net_mode_leave": "Dokunma",
+            "net_mode_leave": "Değiştirme",
             "net_mode_label": "{name} için mod",
             "net_now": "Şu an",
             "net_rename": "Yeniden adlandır",
@@ -397,7 +448,7 @@ struct L {
             "net_name_label": "Ağ adı",
             "net_forget": "Unut",
             "net_recovered": "Ağ listesi okunamadı, boş bir listeyle başladım. Eskisi networks.json.bak adıyla duruyor.",
-            "net_save_failed": "Ağ listesi kaydedilemedi.",
+            "net_save_failed": "Ağ listesi kaydedilemedi. Diskte yer olduğundan emin ol ve tekrar dene.",
             "net_needs_tunnel": "{name}: Tünel için kurulum ya da sunucu gerekiyor, mod değişmedi.",
             "notify_networkSwitched_setting": "Ağa göre mod değişince",
             "notify_networkSwitched_title": "Ağ değişti: {what} açıldı",
@@ -471,7 +522,7 @@ struct L {
             "dc_open": "Aç",
             "dc_reopen": "Yeniden aç",
             "dc_reopen_hint": "Discord kapanır ve Menfez'den geçecek şekilde yeniden açılır.",
-            "lang_menu_restart": "Menü dili Menfez'i yeniden açınca değişir.",
+            "lang_menu_restart": "Güncelleme penceresinin dili Menfez'i yeniden açınca değişir.",
             "browser_check_all": "Hepsini dene",
             "browser_check_again": "Yeniden denemek için tıkla",
             "dpi_group_title": "DPI ile açılanlar",
@@ -560,7 +611,7 @@ struct L {
             "updates_tunnel": "Download Discord updates through the tunnel",
             "updates_tunnel_note": "In DPI mode only Discord updates and DNS go through the tunnel. Everything else stays on DPI.",
             "updates_tunnel_on": "Discord updates come through your tunnel",
-            "updates_tunnel_failed": "Couldn't open the tunnel for updates. Discord may stay on \"Checking for updates\".",
+            "updates_tunnel_failed": "Couldn't open the tunnel for updates. Discord may stay on \"Checking for updates\". Try turning DPI off and on again.",
             "mode_direct": "Direct",
             "mode_dpi": "DPI",
             "mode_tunnel": "Tunnel",
@@ -591,16 +642,19 @@ struct L {
             "tunnel_remove_leave_first": "Leave Tunnel mode before removing it.",
             "help_setup_terminal": "If you prefer Terminal:",
             "tunnel_install_need_wg": "The WireGuard tools are needed first. In Terminal, run: brew install wireguard-tools wireguard-go bash",
+            "tunnel_install_old_bash": "The tunnel needs a newer bash. In Terminal, run: brew install wireguard-tools wireguard-go bash",
             "tunnel_needs_setup": "To use the tunnel you need to set it up once.",
             "help_copy_command": "Copy command",
             "dpi_title": "DPI",
             "dpi_off": "off",
             "dpi_off_state": "DPI is off. Your connection goes direct.",
             "dpi_split": "split",
+            "dpi_on_line": "DPI on · {n} connections",
             "dpi_passthrough": "untouched",
             "dpi_open": "open",
             "dpi_refused": "refused",
             "dpi_at": "splits the first packet at byte {n}",
+            "dpi_details": "Details",
             "dpi_probe": "Test now",
             "dpi_probing": "testing…",
             "dpi_stop": "Stop",
@@ -677,7 +731,7 @@ struct L {
             "kc_move_failed": "Couldn't move {n} key(s). Those files are unchanged.",
             "kc_restored": "Keys written back to files ({n})",
             "kc_restore_failed": "Couldn't write back {n} key(s). Those files are unchanged.",
-            "kc_failed": "Couldn't read Keychain, so the tunnel didn't start",
+            "kc_failed": "Couldn't read Keychain, so the tunnel didn't start. If Keychain asks for access, allow it and try again.",
             "f_discord": "Discord",
             "up": "Tunnel is on",
             "down": "Tunnel is off. Your connection goes direct.",
@@ -737,7 +791,7 @@ struct L {
             "menu_open": "Open window",
             "menu_quit": "Quit",
             "launch_at_login": "Open at login",
-            "launch_at_login_failed": "Couldn't set open at login: {what}",
+            "launch_at_login_failed": "Couldn't set open at login: {what}. You can add Menfez in System Settings > General > Login Items.",
             "login_move_first": "Move Menfez to the Applications folder first.",
             "login_needs_approval": "Allow Menfez in System Settings > General > Login Items.",
             "det_ip": "IP details",
@@ -759,7 +813,7 @@ struct L {
             "donate_hint": "Buy me a tea (burhanrb.com)",
             "export_log": "Save log…",
             "log_exported": "Debug log saved",
-            "log_export_failed": "Couldn't save the debug log",
+            "log_export_failed": "Couldn't save the debug log. Pick another folder and try again.",
             "help_title": "Help",
             "help_modes": "There are three modes",
             "help_direct": "Direct: Menfez does nothing and your internet works as usual.",
@@ -864,6 +918,54 @@ struct L {
             "hotkey_needs_modifier": "Press it together with ⌘, ⌥ or ⌃.",
             "hotkey_taken": "Another app already uses this shortcut. Try a different one.",
             "hotkey_menu": "Shortcut: {what}",
+            "settings_title": "Settings",
+            "sysmenu_window": "Window",
+            "sysmenu_help": "Help",
+            "sysmenu_edit": "Edit",
+            "sysmenu_view": "View",
+            "sysmenu_file": "File",
+            "sysmenu_services": "Services",
+            "sysmenu_settings": "Settings…",
+            "sysmenu_about": "About Menfez",
+            "sysmenu_hide": "Hide Menfez",
+            "sysmenu_hide_others": "Hide Others",
+            "sysmenu_show_all": "Show All",
+            "sysmenu_quit": "Quit Menfez",
+            "sysmenu_undo": "Undo",
+            "sysmenu_redo": "Redo",
+            "sysmenu_cut": "Cut",
+            "sysmenu_copy": "Copy",
+            "sysmenu_paste": "Paste",
+            "sysmenu_paste_plain": "Paste and Match Style",
+            "sysmenu_delete": "Delete",
+            "sysmenu_select_all": "Select All",
+            "sysmenu_close": "Close",
+            "sysmenu_minimize": "Minimize",
+            "sysmenu_zoom": "Zoom",
+            "sysmenu_front": "Bring All to Front",
+            "sysmenu_app_help": "Menfez Help",
+            "sysmenu_dictation": "Start Dictation…",
+            "sysmenu_emoji": "Emoji & Symbols",
+            "set_tab_general": "General",
+            "set_tab_tunnel": "Tunnel",
+            "set_tab_notifications": "Notifications",
+            "set_tab_shortcut": "Shortcut",
+            "set_tab_updates": "Updates",
+            "set_look": "Language and look",
+            "set_language": "Language",
+            "set_networks_note": "Menfez can remember which mode to use on each network. Home, school or work, for example.",
+            "set_reconnect": "If the connection drops",
+            "set_setup": "Setup",
+            "set_installed": "The tunnel is set up on this Mac.",
+            "set_not_installed": "The tunnel is not set up.",
+            "set_install_note": "Setup asks for an administrator password once. DPI doesn't need it.",
+            "set_remove_note": "Removing it deletes everything Menfez installed. DPI keeps working.",
+            "set_tunnel_none": "The tunnel is not set up on this Mac. DPI works without it. See Help to set it up.",
+            "set_updates_unavailable": "Updates only work for Menfez in the Applications folder.",
+            "cancel_esc": "Cancel",
+            "hotkey_examples": "Ready-made shortcuts",
+            "hotkey_examples_note": "Click one and it works right away. If another app uses it, a warning shows above.",
+            "hotkey_use": "Use {what} as the shortcut",
             "ks_toggle": "Block internet if the tunnel drops",
             "ks_hint_all": "If the tunnel drops, nothing leaves outside it. Your home network (printer, AirPlay) still works.",
             "ks_hint_discord": "If the tunnel drops, Discord is cut. Other sites open as usual.",
@@ -883,7 +985,7 @@ struct L {
             "sites_empty": "No sites yet. Type a site name and press Add.",
             "sites_invalid": "That isn't a site name.",
             "sites_full": "The list is full (at most {what} sites).",
-            "sites_save_failed": "Couldn't save the site list.",
+            "sites_save_failed": "Couldn't save the site list. Make sure the disk has free space and try again.",
             "net_title": "Networks",
             "net_open": "Networks…",
             "net_auto": "Change mode by network",
@@ -906,7 +1008,7 @@ struct L {
             "net_name_label": "Network name",
             "net_forget": "Forget",
             "net_recovered": "Couldn't read the network list, so I started an empty one. The old one is saved as networks.json.bak.",
-            "net_save_failed": "Couldn't save the network list.",
+            "net_save_failed": "Couldn't save the network list. Make sure the disk has free space and try again.",
             "net_needs_tunnel": "{name}: Tunnel needs the setup or a server, so the mode stayed.",
             "notify_networkSwitched_setting": "Mode changes by network",
             "notify_networkSwitched_title": "Network changed: {what} on",
@@ -980,7 +1082,7 @@ struct L {
             "dc_open": "Open",
             "dc_reopen": "Reopen",
             "dc_reopen_hint": "Discord quits and opens again through Menfez.",
-            "lang_menu_restart": "The menu language changes when you reopen Menfez.",
+            "lang_menu_restart": "The update window's language changes when you reopen Menfez.",
             "browser_check_all": "Test all",
             "browser_check_again": "Click to test again",
             "dpi_group_title": "Goes through DPI",
@@ -1200,7 +1302,14 @@ final class Backend: @unchecked Sendable {
     /// Absolute path of the privileged helper: always the root-owned installed
     /// copy the sudoers rule names. A copy in the bundle or a build directory
     /// is writable by the user, so it is never run through sudo.
-    let helper = TunnelSetup.trustedHelper
+    let helper: String = {
+        #if DEBUG
+        // Scratch runs (CPU measurements) point this at a path that does not
+        // exist, so a debug build never runs the installed helper.
+        if let path = ProcessInfo.processInfo.environment["MENFEZ_DEBUG_HELPER"] { return path }
+        #endif
+        return TunnelSetup.trustedHelper
+    }()
 
     /// The copy shipped in this bundle, which the one-time setup installs.
     /// Empty outside a bundle (a `swift run`), where Help shows no command.
@@ -1392,6 +1501,17 @@ final class Model: ObservableObject {
     @Published var report: Report? { didSet { reportAt = Date(); fillServerGeo() } }
     /// When `report` last changed, for the footer's "last updated" line.
     @Published var reportAt: Date?
+
+    /// The tick's way to store a fresh read. An identical report is not
+    /// published again: every publish redraws the whole window, and on the
+    /// 2 s tick that was most of the idle work (1.0.9). The footer time still
+    /// moves, but only when the minute it shows changes.
+    func store(_ fresh: Report?) {
+        if fresh != report { report = fresh; return }
+        let now = Date()
+        if let reportAt, Calendar.current.isDate(reportAt, equalTo: now, toGranularity: .minute) { return }
+        reportAt = now
+    }
 
     /// "Son güncelleme 14:05", or nothing before the first report.
     var lastUpdatedLine: String {
@@ -1672,6 +1792,8 @@ final class Model: ObservableObject {
 
         status = L(lang: lang).t("checking")
         _ = Model.syncMenuLanguage(lang)
+        let startLang = lang
+        DispatchQueue.main.async { MenuLanguage.follow(startLang) }
         readLaunchAtLogin()
 
         // First paint waits for nothing: `report` stays nil (rows read
@@ -1690,6 +1812,17 @@ final class Model: ObservableObject {
         }
 
         isActive = NSApp?.isActive ?? true
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["MENFEZ_DEBUG_ACTIVE"] != nil { isActive = true }
+        #endif
+        observers.append(NotificationCenter.default.addObserver(
+            forName: NSWindow.didChangeOcclusionStateNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.windowVisibilityChanged()
+            }
+        })
         observers.append(NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
             object: nil, queue: .main
@@ -1737,6 +1870,15 @@ final class Model: ObservableObject {
         HotKey.shared.action = { [weak self] in self?.toggleLastMode() }
         if let hotKey { hotKeyRefused = !HotKey.shared.register(hotKey) }
         scheduleTimer()
+        #if DEBUG
+        // Scratch runs only: start in DPI mode without a click.
+        if ProcessInfo.processInfo.environment["MENFEZ_DEBUG_START"] == "dpi" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.enableDPI() }
+        }
+        if ProcessInfo.processInfo.environment["MENFEZ_DEBUG_HIDE"] != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { NSApp.windows.forEach { $0.orderOut(nil) } }
+        }
+        #endif
         // The proxy must not outlive the app. A process that quit leaves its
         // listener gone with it anyway, but a Discord launched with
         // `--proxy-server` would then point at a dead port and fail every
@@ -1997,6 +2139,20 @@ final class Model: ObservableObject {
             && TunnelInstaller.appleScript(.remove, helper: installerHelper, user: "") != nil
     }
 
+    /// Everything the tunnel needs from Homebrew. brew skips what is already
+    /// installed, so the full line is safe to run whichever piece is missing.
+    static let wireGuardBrewCommand = "brew install wireguard-tools wireguard-go bash"
+
+    /// The Terminal command to copy when the installer stopped and named a
+    /// brew command (tools not found, one tool missing, or bash older than 4),
+    /// nil otherwise.
+    var tunnelInstallCommand: String? {
+        if case .failed(.install, let detail) = tunnelInstall, detail.contains("brew install") {
+            return Self.wireGuardBrewCommand
+        }
+        return nil
+    }
+
     /// One line for the buttons' state, or nil when there is nothing to say.
     var tunnelInstallMessage: String? {
         switch tunnelInstall {
@@ -2004,9 +2160,9 @@ final class Model: ObservableObject {
         case .running(let a): return l.t(a == .install ? "tunnel_install_running" : "tunnel_remove_running")
         case .succeeded(let a): return l.t(a == .install ? "tunnel_install_done" : "tunnel_remove_done")
         case .cancelled: return l.t("tunnel_install_cancelled")
-        case .failed(.install, let detail) where detail.hasPrefix("WireGuard tools not found"):
-            // The usual first-time failure; the script's sentence is English.
-            return l.t("tunnel_install_need_wg")
+        case .failed(.install, let detail) where TunnelInstaller.brewFailureKey(detail) != nil:
+            // Missing or old brew tools. The script's sentence is English.
+            return l.t(TunnelInstaller.brewFailureKey(detail)!)
         case .failed(let a, let detail):
             return l.t(a == .install ? "tunnel_install_failed" : "tunnel_remove_failed", ["detail": detail])
         }
@@ -2105,7 +2261,27 @@ final class Model: ObservableObject {
     /// four short-lived unprivileged commands.
     var currentInterval: TimeInterval {
         if let settlingUntil, Date() < settlingUntil { return activeTick }
-        return isActive ? activeTick : idleTick
+        if isActive { return activeTick }
+        // No window on screen and no tunnel to watch: nothing on the tick is
+        // visible and nothing can drop, so it only keeps the menu fresh.
+        if !windowOnScreen && runMode != .tunnel && !tunnelCarriesTraffic { return hiddenTick }
+        return idleTick
+    }
+
+    /// Slowest tick: 60 s while no Menfez window is on screen outside the
+    /// tunnel (1.0.9). Each tick spawns four short local commands.
+    private let hiddenTick: TimeInterval = 60
+
+    /// True while any Menfez window is at least partly visible.
+    private var windowOnScreen = true
+
+    /// Occlusion covers close, minimise, hide, another Space and a window on top.
+    private func windowVisibilityChanged() {
+        let visible = NSApp.windows.contains { $0.isVisible && $0.occlusionState.contains(.visible) && $0.canBecomeMain }
+        guard visible != windowOnScreen else { return }
+        windowOnScreen = visible
+        scheduleTimer()
+        if visible { refresh(announce: false) }
     }
 
     private func scheduleTimer() {
@@ -2138,6 +2314,10 @@ final class Model: ObservableObject {
     }
 
     private func windowResignedActive() {
+        #if DEBUG
+        // Scratch runs: measure the frontmost tick without taking focus.
+        if ProcessInfo.processInfo.environment["MENFEZ_DEBUG_ACTIVE"] != nil { return }
+        #endif
         isActive = false
         scheduleTimer()
     }
@@ -2232,6 +2412,9 @@ final class Model: ObservableObject {
     /// The window was hidden; nothing draws, so the egress probe is not
     /// re-paid.
     private func tick() {
+        // The rate follows the state: the end of a settle window or a mode
+        // change made from the menu bar would otherwise keep the old rate.
+        if timer?.timeInterval != currentInterval { scheduleTimer() }
         refreshLocal()
         killSwitchActive = killSwitchProbe()
         refreshDPIStatus()
@@ -2334,7 +2517,7 @@ final class Model: ObservableObject {
             }.value
             self.localInFlight = false
             if self.tunnelCarriesTraffic != carrying { self.tunnelCarriesTraffic = carrying }
-            self.report = self.merge(local, into: self.report)
+            self.store(self.merge(local, into: self.report))
             // The launch "checking" ends when the first local pass lands.
             if self.status == self.l.t("checking") { self.status = self.l.t("now") }
         }
@@ -2348,7 +2531,8 @@ final class Model: ObservableObject {
     /// and reading it back from `running` would make the button flicker off when
     /// a listener died.
     func refreshDPIStatus() {
-        dpi = coordinator.proxy
+        let proxy = coordinator.proxy
+        if proxy != dpi { dpi = proxy }
         let state = runMode == .dpi ? DiscordPresence.state(port: dpi.running ? dpi.port : nil) : .closed
         if state != discordState { discordState = state }
     }
@@ -2404,7 +2588,7 @@ final class Model: ObservableObject {
             self.facts = fresh
             self.factsAt = Date()
             if let report = self.report {
-                self.report = self.merge(report, into: report)
+                self.store(self.merge(report, into: report))
                 // The live endpoint is what decides which profile row is the
                 // active one, and it only arrived with the facts. Re-listing
                 // here is a directory read; no privileged call.
@@ -2545,6 +2729,7 @@ final class Model: ObservableObject {
         guard new != lang else { return }
         lang = new
         savePrefs()
+        MenuLanguage.follow(new)
         status = l.t(Model.syncMenuLanguage(new) ? "lang_menu_restart" : "now")
     }
 
@@ -3818,16 +4003,15 @@ final class Model: ObservableObject {
     }
 
     var statusLine: String {
-        // DPI mode: the honest line is the counters and the port. There is no
+        // DPI mode: the honest line is the proxy's own state. There is no
         // handshake to age and no route to lose, so borrowing the tunnel's
         // sentences would describe something that is not running.
         if runMode == .dpi {
             guard dpi.running else { return l.t("dpi_off_state") }
-            return dpi.summary(open: l.t("dpi_open"),
-                               split: l.t("dpi_split"),
-                               passthrough: l.t("dpi_passthrough"),
-                               refused: l.t("dpi_refused"),
-                               off: l.t("dpi_off_state"))
+            // Plain words up here (1.0.9). The port and the split counters
+            // stay in the DPI card, for whoever wants them.
+            let line = l.t("dpi_on_line", ["n": "\(dpi.connections)"])
+            return dpi.rejected > 0 ? "\(line) · \(dpi.rejected) \(l.t("dpi_refused"))" : line
         }
         guard let r = report else { return l.t("checking") }
         // Direct, and nothing is intercepting: the honest line is the one the
@@ -3934,6 +4118,20 @@ struct PrimaryButtonStyle: ButtonStyle {
     }
 }
 
+/// A plain button that answers a press: the label dims while held, like
+/// AppKit's borderless buttons. Opacity only, so Reduce Motion needs nothing.
+struct PressableButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.6 : 1)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == PressableButtonStyle {
+    static var pressable: PressableButtonStyle { PressableButtonStyle() }
+}
+
 /// Crossfades a status value when it changes: digits roll on macOS 14 and
 /// later, plain opacity on macOS 13 and under Reduce Motion.
 struct ValueChange: ViewModifier {
@@ -3952,31 +4150,131 @@ struct ValueChange: ViewModifier {
     }
 }
 
-/// The header's status dot. Breathes while something is in progress; under
-/// Reduce Motion it only dims, it does not shrink. Colour is not the only cue:
-/// it is a hollow ring while Menfez is off, and VoiceOver reads the mode.
+/// The header's status dot. Colour is not the only cue: it is a hollow ring
+/// while Menfez is off, and VoiceOver reads the mode.
+///
+/// Motion (1.0.9): a quick pulse while something is in progress, a slow
+/// breath while Menfez is on and healthy, still otherwise. Both run as Core
+/// Animation on one layer, so the window server draws every frame and the app
+/// itself stays idle (measured in ROADMAP §3.8). Under Reduce Motion the
+/// breath stops and the pulse only dims.
 struct StatusDot: View {
     let color: Color
     let pulsing: Bool
     var on = true
+    var breathing = false
     var label = ""
+    /// Snapshots draw with `ImageRenderer`, which cannot draw an AppKit view.
+    static var animates = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var dimmed = false
 
     var body: some View {
         Group {
-            if on { Circle().fill(color) }
-            else { Circle().strokeBorder(color, lineWidth: 2) }
+            if Self.animates {
+                DotLayer(color: NSColor(color), filled: on, motion: motion)
+            } else if on {
+                Circle().fill(color)
+            } else {
+                Circle().strokeBorder(color, lineWidth: 2)
+            }
         }
-            .opacity(dimmed ? 0.4 : 1)
-            .scaleEffect(dimmed && !reduceMotion ? 0.8 : 1)
-            .animation(pulsing ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true)
-                               : .easeInOut(duration: 0.2),
-                       value: dimmed)
-            .onAppear { dimmed = pulsing }
-            .onChange(of: pulsing) { dimmed = $0 }
-            .accessibilityElement()
-            .accessibilityLabel(label)
+        .accessibilityElement()
+        .accessibilityLabel(label)
+    }
+
+    private var motion: DotView.Motion {
+        if pulsing { return reduceMotion ? .dim : .pulse }
+        return breathing && !reduceMotion ? .breathe : .still
+    }
+}
+
+private struct DotLayer: NSViewRepresentable {
+    let color: NSColor
+    let filled: Bool
+    let motion: DotView.Motion
+
+    func makeNSView(context: Context) -> DotView { DotView() }
+
+    func updateNSView(_ view: DotView, context: Context) {
+        view.color = color
+        view.filled = filled
+        view.motion = motion
+    }
+}
+
+final class DotView: NSView {
+    enum Motion { case still, breathe, pulse, dim }
+
+    var color: NSColor = .clear { didSet { needsDisplay = true } }
+    var filled = true { didSet { if filled != oldValue { needsDisplay = true } } }
+    var motion: Motion = .still { didSet { if motion != oldValue { applyMotion() } } }
+    private let dot = CALayer()
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        wantsLayer = true
+        layer?.addSublayer(dot)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override var wantsUpdateLayer: Bool { true }
+
+    override func layout() {
+        super.layout()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        dot.frame = bounds
+        dot.cornerRadius = min(bounds.width, bounds.height) / 2
+        CATransaction.commit()
+    }
+
+    override func updateLayer() {
+        var cg = color.cgColor
+        effectiveAppearance.performAsCurrentDrawingAppearance { cg = self.color.cgColor }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        dot.backgroundColor = filled ? cg : nil
+        dot.borderColor = cg
+        dot.borderWidth = filled ? 0 : 2
+        CATransaction.commit()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        applyMotion()
+    }
+
+    private func applyMotion() {
+        dot.removeAnimation(forKey: "motion")
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = 1
+        fade.toValue = 0.4
+        let animation: CAAnimation
+        switch motion {
+        case .still:
+            return
+        case .breathe:
+            fade.toValue = 0.45
+            fade.duration = 1.8
+            animation = fade
+        case .dim:
+            fade.duration = 0.8
+            animation = fade
+        case .pulse:
+            let shrink = CABasicAnimation(keyPath: "transform.scale")
+            shrink.fromValue = 1
+            shrink.toValue = 0.8
+            let group = CAAnimationGroup()
+            group.animations = [fade, shrink]
+            group.duration = 0.8
+            animation = group
+        }
+        animation.autoreverses = true
+        animation.repeatCount = .infinity
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        animation.isRemovedOnCompletion = false
+        dot.add(animation, forKey: "motion")
     }
 }
 
@@ -4016,6 +4314,7 @@ struct ContentView: View {
     @State private var editName = ""
     @State private var editError: String?
     @State private var pendingDelete: Profile?
+    @State private var dpiDetailsShown = false
 
     /// Follow the system, or force dark or light. See `Appearance`.
     @AppStorage(Appearance.key) private var appearanceRaw = Appearance.system.rawValue
@@ -4222,10 +4521,10 @@ struct ContentView: View {
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: Space.m) {
-            if m.helperOutdated { helperUpdateRow }
-            if m.tunnelLost && m.killSwitchActive { blockedRow }
+            if m.helperOutdated { helperUpdateRow.transition(reveal) }
+            if m.tunnelLost && m.killSwitchActive { blockedRow.transition(reveal) }
             // In DPI mode the Discord row in the DPI card holds this action.
-            if m.runMode != .dpi { primaryAction }
+            if m.runMode != .dpi { primaryAction.transition(reveal) }
             modeBar
             // The server picker only configures the tunnel; in DPI and direct
             // mode there is no tunnel to point anywhere, so it would be a dead
@@ -4295,6 +4594,7 @@ struct ContentView: View {
         HStack(alignment: .top, spacing: HeaderMetrics.gap) {
             StatusDot(color: m.badgeColor, pulsing: m.busy || m.probing,
                       on: m.runMode != .direct,
+                      breathing: m.runMode != .direct && m.badgeColor == Palette.success,
                       label: m.l.t(MenuBarModes.labelKey(m.runMode)))
                 .frame(width: HeaderMetrics.dot, height: HeaderMetrics.dot)
                 // The dot is a fixed 32 pt box with the circle centred in it, so
@@ -4343,7 +4643,7 @@ struct ContentView: View {
                     .padding(.vertical, 5)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .modifier(Chip())
                 .foregroundStyle(Palette.text)
                 .help(m.lang.label)
@@ -4459,7 +4759,7 @@ struct ContentView: View {
                     .padding(.vertical, Space.s)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .background {
                     if active {
                         RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
@@ -4505,7 +4805,7 @@ struct ContentView: View {
                             .padding(.vertical, Space.xs + 2)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .background {
                         if active {
                             RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
@@ -4537,7 +4837,7 @@ struct ContentView: View {
                             .padding(.vertical, Space.xs + 1)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .modifier(Chip())
                     .foregroundStyle(Palette.accent)
                     .fixedSize()
@@ -4696,7 +4996,7 @@ struct ContentView: View {
                         .padding(.vertical, Space.xs + 1)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .modifier(Chip())
                 .foregroundStyle(Palette.accent)
                 .disabled(!m.tunnelCarriesTraffic)
@@ -4733,7 +5033,7 @@ struct ContentView: View {
                             .padding(.vertical, Space.xs + 1)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .modifier(Chip())
                     .foregroundStyle(reconnect ? Palette.accent : Palette.text)
                     .disabled(m.busy)
@@ -4769,7 +5069,7 @@ struct ContentView: View {
                 .padding(.vertical, Space.xs + 1)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .modifier(Chip())
             .foregroundStyle(Palette.accent)
             .disabled(m.tunnelInstall.isRunning)
@@ -4798,11 +5098,16 @@ struct ContentView: View {
             } else {
                 // The installer's progress or result replaces the reason while
                 // there is one: it is the newer news.
-                Text(m.tunnelInstallMessage ?? m.tunnelReason)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Palette.secondary)
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: Space.xs) {
+                    Text(m.tunnelInstallMessage ?? m.tunnelReason)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.secondary)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let command = m.tunnelInstallCommand {
+                        CopyCommandButton(command: command, l: m.l)
+                    }
+                }
             }
             Spacer(minLength: 4)
             if !m.capabilities.tunnelAvailable {
@@ -4822,7 +5127,7 @@ struct ContentView: View {
                     .padding(.vertical, Space.xs + 1)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .modifier(Chip())
                 .foregroundStyle(Palette.accent)
                 .disabled(m.tunnelInstall.isRunning)
@@ -4874,7 +5179,7 @@ struct ContentView: View {
                 .padding(.vertical, 10)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .modifier(Chip())
             .foregroundStyle(Palette.text)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -4908,7 +5213,7 @@ struct ContentView: View {
             .padding(.vertical, 10)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .modifier(Chip())
         .foregroundStyle(Palette.text)
         // About 40/60 in the 360 pt side column: the resolver gets 156 pt (room for "Oto (DHCP)") and
@@ -5018,7 +5323,11 @@ struct ContentView: View {
             discordText = m.l.t((r.discord.failure ?? .blocked).labelKey)
             discordColor = Palette.danger
         }
-        out.append(("bubble.left.and.bubble.right", m.l.t("f_discord"), discordText, discordColor, "discord"))
+        // In DPI mode the DPI group above already has a Discord row. A second
+        // one here would only read "—", so it is left out.
+        if m.runMode != .dpi {
+            out.append(("bubble.left.and.bubble.right", m.l.t("f_discord"), discordText, discordColor, "discord"))
+        }
         return out
     }
 
@@ -5100,16 +5409,27 @@ struct ContentView: View {
                     .foregroundStyle(m.dpi.running ? Palette.success : Palette.secondary)
             }
 
-            HStack(alignment: .bottom, spacing: Space.l) {
-                counter("\(m.dpi.reframed)", m.l.t("dpi_split"), Palette.success)
-                counter("\(m.dpi.passthrough)", m.l.t("dpi_passthrough"), Palette.secondary)
-                counter("\(m.dpi.connections)", m.l.t("dpi_open"), Palette.accent)
-                if m.dpi.rejected > 0 {
-                    counter("\(m.dpi.rejected)", m.l.t("dpi_refused"), Palette.warning)
+            // The counters and the split offset are for the curious, so they
+            // start folded away.
+            DisclosureGroup(isExpanded: $dpiDetailsShown) {
+                VStack(alignment: .leading, spacing: Space.s) {
+                    HStack(alignment: .bottom, spacing: Space.l) {
+                        counter("\(m.dpi.reframed)", m.l.t("dpi_split"), Palette.success)
+                        counter("\(m.dpi.passthrough)", m.l.t("dpi_passthrough"), Palette.secondary)
+                        counter("\(m.dpi.connections)", m.l.t("dpi_open"), Palette.accent)
+                        if m.dpi.rejected > 0 {
+                            counter("\(m.dpi.rejected)", m.l.t("dpi_refused"), Palette.warning)
+                        }
+                        Spacer()
+                    }
+                    Text(m.l.t("dpi_at", ["n": "\(m.dpi.splitAt)"]))
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.secondary)
                 }
-                Spacer()
-                Text(m.l.t("dpi_at", ["n": "\(m.dpi.splitAt)"]))
-                    .font(.system(size: 11))
+                .padding(.top, Space.xs)
+            } label: {
+                Text(m.l.t("dpi_details"))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.secondary)
             }
 
@@ -5145,7 +5465,7 @@ struct ContentView: View {
                     .padding(.vertical, Space.s - 2)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .modifier(Chip())
                 .foregroundStyle(Palette.text)
                 .disabled(m.probing || !m.dpi.running)
@@ -5159,7 +5479,7 @@ struct ContentView: View {
                         .padding(.vertical, Space.s - 2)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .modifier(Chip())
                 .foregroundStyle(Palette.text)
 
@@ -5177,7 +5497,7 @@ struct ContentView: View {
                             .disabled(!m.dpi.running)
                         Button(m.l.t("close")) { m.dismissDiscordSettingsHint() }
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .font(.system(size: 12))
                     .padding(.horizontal, Space.m)
                     .padding(.vertical, Space.s - 2)
@@ -5237,7 +5557,7 @@ struct ContentView: View {
                 .padding(.vertical, Space.xs + 1)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .modifier(Chip())
         .foregroundStyle(Palette.accent)
         .fixedSize()
@@ -5276,7 +5596,7 @@ struct ContentView: View {
                     .padding(.vertical, Space.s - 2)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .modifier(Chip())
             .foregroundStyle(Palette.text)
             .disabled(m.busy)
@@ -5330,7 +5650,7 @@ struct ContentView: View {
             // The quiet way back: after "Not now", or to undo a move.
             if !keychainOffer, let link = keychainLink {
                 Button(m.l.t(link.key)) { m.moveKeys(toKeychain: link.toKeychain) }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .font(.system(size: 10))
                     .foregroundStyle(Palette.accent)
                     .disabled(m.busy)
@@ -5339,14 +5659,14 @@ struct ContentView: View {
 
             HStack(spacing: 6) {
                 Button(m.l.t("import_conf")) { importConfig() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
 
                 if !m.profiles.isEmpty {
                     Button(m.l.t(m.measuringLatency ? "lat_measuring" : "lat_pick")) { m.pickFastest() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .padding(.horizontal, 12).padding(.vertical, 6)
                         .modifier(Chip())
                         .foregroundStyle(Palette.text)
@@ -5358,7 +5678,8 @@ struct ContentView: View {
                 Spacer()
 
                 Button(m.l.t("close")) { close(.servers) }
-                    .buttonStyle(.plain)
+                    .keyboardShortcut(.cancelAction)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
@@ -5467,7 +5788,7 @@ struct ContentView: View {
                 .padding(.vertical, 8)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             rowIcon("pencil", m.l.t("srv_edit"), active: m.isChosen(p)) {
                 editName = p.name
                 editError = nil
@@ -5499,7 +5820,7 @@ struct ContentView: View {
                 .frame(width: 24, height: 24)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .foregroundStyle(active ? Palette.accentText.opacity(0.85) : Palette.secondary)
         .help(label)
         .accessibilityLabel(label)
@@ -5541,7 +5862,7 @@ struct ContentView: View {
 
     private func sheetButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(title, action: action)
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .font(.system(size: 12))
             .padding(.horizontal, 10).padding(.vertical, 5)
             .modifier(Chip())
@@ -5622,7 +5943,7 @@ struct ContentView: View {
                     .padding(.vertical, 7)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .background(p.active == true ? Palette.accent : Palette.card)
                 .foregroundStyle(p.active == true ? Palette.accentText : Palette.text)
                 .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
@@ -5651,7 +5972,7 @@ struct ContentView: View {
                             .padding(.vertical, 6)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .background(on ? Palette.accent : Palette.card)
                     .foregroundStyle(on ? Palette.accentText : Palette.text)
                     .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
@@ -5692,7 +6013,8 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Button(m.l.t("close")) { close(.dns) }
-                    .buttonStyle(.plain)
+                    .keyboardShortcut(.cancelAction)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
@@ -5835,7 +6157,8 @@ struct DetailView: View {
                 }
                 Spacer()
                 Button(L(lang: lang).t("close")) { onClose() }
-                .buttonStyle(.plain)
+                    .keyboardShortcut(.cancelAction)
+                .buttonStyle(.pressable)
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .modifier(Chip())
                 .foregroundStyle(Palette.text)
@@ -5991,5 +6314,32 @@ struct MenfezApp: App {
         Settings {
             SettingsView(m: model)
         }
+    }
+}
+
+/// "Copy command", then "copied": puts a Terminal command on the clipboard,
+/// since a sentence in a status line cannot be selected.
+struct CopyCommandButton: View {
+    let command: String
+    let l: L
+    @State private var copied = false
+
+    var body: some View {
+        Button {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(command, forType: .string)
+            copied = true
+        } label: {
+            Text(copied ? l.t("copied") : l.t("help_copy_command"))
+                .font(.system(size: 10.5))
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .background(Palette.raised)
+        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .foregroundStyle(copied ? Palette.success : Palette.accent)
+        .onChange(of: command) { _ in copied = false }
     }
 }

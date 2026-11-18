@@ -58,7 +58,7 @@ struct WhatsNewSheet: View {
             HStack {
                 Spacer()
                 Button(l.t("close")) { onClose() }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .modifier(Chip())
                     .foregroundStyle(Palette.text)
@@ -104,7 +104,7 @@ struct WhatsNewSheet: View {
                         }
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .accessibilityAddTraits(isOpen ? .isSelected : [])
 
                     if isOpen {

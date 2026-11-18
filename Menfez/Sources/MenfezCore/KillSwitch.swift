@@ -70,6 +70,13 @@ public enum KillSwitch {
                           "169.254.0.0/16", "224.0.0.0/4", "255.255.255.255"]
     static let localV6 = ["fe80::/10", "ff00::/8"]
 
+    /// Loopback in both directions, stateless. A stateful `pass out on lo0`
+    /// let the SYN to a closed 127.0.0.1 port out, then matched the kernel's
+    /// RST on its way back in against that state and dropped it as out of
+    /// window, so the connect waited for its timeout instead of failing at
+    /// once (1.0.8 test run). `set skip on lo0` is not allowed in an anchor.
+    static let lo0 = "pass quick on lo0 all no state"
+
     /// pf rules for the anchor, or nil when any input is not what it claims to
     /// be (the text goes to pfctl as root).
     public static func rules(scope: Mode, iface: String, endpoints: [String],
@@ -90,7 +97,7 @@ public enum KillSwitch {
             let ips = endpoints.compactMap(Validate.ipAddress)
             guard !ips.isEmpty, ips.count == endpoints.count else { return nil }
             var lines = [
-                "pass out quick on lo0 all",
+                lo0,
                 "pass out quick on \(iface) all",
             ]
             for ip in ips {
