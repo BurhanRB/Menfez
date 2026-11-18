@@ -43,6 +43,12 @@ struct HelpSheet: View {
 
     var onImport: () -> Void = {}
 
+    /// Opens "Test a site".
+    var onSiteTest: () -> Void = {}
+
+    /// Opens the first-run guide again.
+    var onGuide: () -> Void = {}
+
     /// Saves a masked diagnostic file (`LogExport`) for a bug report.
     var onExportLog: () -> Void = {}
 
@@ -68,6 +74,8 @@ struct HelpSheet: View {
             section(l.t("help_conf_title"), [l.t("help_conf")],
                     button: (l.t("import_conf"), onImport))
             section(l.t("help_discord_title"), [l.t("help_discord"), l.t("help_discord_wait")])
+            section(l.t("help_sitetest_title"), [l.t("help_sitetest")],
+                    button: (l.t("sitetest_open"), onSiteTest))
 
             tunnelSetup
 
@@ -81,6 +89,11 @@ struct HelpSheet: View {
                         .buttonStyle(.plain)
                         .font(.system(size: 11))
                         .foregroundStyle(Palette.accent)
+                    Button(l.t("onb_again")) { onGuide() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.accent)
+                        .padding(.leading, 10)
                     Spacer()
                     Button(l.t("close")) { onClose() }
                         .buttonStyle(.plain)

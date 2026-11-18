@@ -19,6 +19,21 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.3",
+            date: "2026-11-18",
+            tr: [
+                "İlk açılışta kısa bir rehber: DPI nedir, Menfez ne yapar, kendi sunucunla tünel. Atlanabilir, Yardım'dan yeniden açılır.",
+                "Bildirimler: tünel düşünce ya da geri gelince, silinen sunucu yüzünden tünel kapanınca, DPI durunca, tünel bileşeni eskiyince.",
+                "Her bildirim Ayarlar'dan ayrı ayrı kapatılabilir. Pencere öndeyken bildirim gelmez, aynı uyarı art arda gelmez.",
+                "Bir siteyi test et: site adını yaz, Menfez doğrudan, DPI ile ya da tünelle açılıyor mu birkaç saniyede söyler.",
+            ],
+            en: [
+                "A short guide on first launch: what DPI is, what Menfez does, and the tunnel with your own server. Skippable, and you can reopen it from Help.",
+                "Notifications: when the tunnel drops or comes back, when a removed server closes the tunnel, when DPI stops, and when the tunnel component is out of date.",
+                "You can turn each notification off in Settings. None arrive while the window is in front, and the same alert doesn't repeat.",
+                "Test a site: type a site name and Menfez tells you in a few seconds whether it opens directly, with DPI or through the tunnel.",
+            ]),
+        ChangelogEntry(
             version: "1.0.2",
             date: "2026-11-18",
             tr: [

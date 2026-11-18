@@ -76,6 +76,20 @@ enum Snapshots {
                              onInstall: {}, showSetup: true),
                    .light, to: "\(dir)/help-running.png")
 
+        // The first-run guide, each page, on a machine without the helper.
+        for page in 0..<3 {
+            renderView(OnboardingSheet(lang: .tr, showTunnelSetup: true, page: page),
+                       .light, to: "\(dir)/onboarding-\(page + 1).png")
+        }
+
+        // A finished site test: blocked directly, opens with DPI.
+        // A window, not `ImageRenderer`: the text field is AppKit and would not draw.
+        renderWindow(SiteTestSheet(lang: .tr, input: "ornek.com",
+                                   report: SiteTest.Report(host: "ornek.com",
+                                                           results: [.direct: .fails, .dpi: .opens],
+                                                           summary: .opensWithDPI)),
+                     title: "Menfez", .light, to: "\(dir)/sitetest.png")
+
         // The tunnel-setup row on a machine without the helper: idle, running,
         // failed, then the Settings window after a successful setup.
         m.installerHelper = "/Applications/Menfez.app/Contents/MacOS/menfez-route"
@@ -200,6 +214,8 @@ enum Snapshots {
                     }.padding(10).background(Palette.bg),
                    .light, to: "\(dir)/menubar-icons.png")
         renderWindow(SettingsView(m: m), title: "Menfez", .dark, to: "\(dir)/settings.png")
+        // Settings with the notification switches, Turkish, light.
+        renderWindow(SettingsView(m: m), title: "Menfez", .light, to: "\(dir)/settings-notifications.png")
 
         exit(0)
     }

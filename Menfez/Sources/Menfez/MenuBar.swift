@@ -130,6 +130,10 @@ struct MenuBarContent: View {
 struct SettingsView: View {
     @ObservedObject var m: Model
     @AppStorage(DiscordUpdateRoutes.defaultsKey) private var updatesViaTunnel = true
+    @AppStorage(NotificationEvent.tunnelDropped.defaultsKey) private var notifyTunnel = true
+    @AppStorage(NotificationEvent.serverRemoved.defaultsKey) private var notifyServer = true
+    @AppStorage(NotificationEvent.dpiStopped.defaultsKey) private var notifyDPI = true
+    @AppStorage(NotificationEvent.helperUpdate.defaultsKey) private var notifyHelper = true
 
     var body: some View {
         Form {
@@ -181,12 +185,30 @@ struct SettingsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            notifications
         }
         .padding(Space.l)
         .frame(width: 320)
         .tint(Palette.accent)
         .background(Palette.bg)
         .onAppear { m.readLaunchAtLogin() }
+    }
+}
+
+extension SettingsView {
+    /// One switch per event; all on by default (see `NotificationEvent`).
+    @ViewBuilder var notifications: some View {
+        Text(m.l.t("notify_title"))
+            .font(.headline)
+            .padding(.top, Space.s)
+        Toggle(m.l.t("notify_tunnelDropped_setting"), isOn: $notifyTunnel)
+        Toggle(m.l.t("notify_serverRemoved_setting"), isOn: $notifyServer)
+        Toggle(m.l.t("notify_dpiStopped_setting"), isOn: $notifyDPI)
+        Toggle(m.l.t("notify_helperUpdate_setting"), isOn: $notifyHelper)
+        Text(m.l.t("notify_note"))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

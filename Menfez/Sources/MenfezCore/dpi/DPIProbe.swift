@@ -186,6 +186,7 @@ public enum DPIProbe {
     public static func attempt(host: String,
                                proxyPort: Int?,
                                doh: Bool = false,
+                               pin address: String? = nil,
                                using runner: CommandRunner = SystemRunner()) -> DPIProbeOutcome.Attempt {
         var args = ["-sS", "-o", "/dev/null", "-I",
                     "--max-time", "\(Int(curlTimeout))"]
@@ -202,6 +203,9 @@ public enum DPIProbe {
         // split is the only difference and a plain-DNS block cannot pass for a
         // TLS block.
         if proxyPort == nil, doh { args += ["--doh-url", DoHProvider.current().endpoints[0]] }
+        // The site test resolves and checks the address itself; pinning it
+        // means curl dials exactly that address and no other lookup happens.
+        if proxyPort == nil, let address { args += ["--resolve", "\(host):443:\(address)"] }
         args.append("https://\(host)/")
 
         let started = Date()

@@ -285,6 +285,68 @@ struct L {
             "dt_via": "{iface}, {gateway} üzerinden",
             "dt_host": "sunucu {what}",
             "dt_unreachable_why": "ulaşılamıyor ({what})",
+            "notify_title": "Bildirimler",
+            "notify_tunnelDropped_setting": "Tünel düşünce ve geri gelince",
+            "notify_serverRemoved_setting": "Sunucu silinip tünel kapanınca",
+            "notify_dpiStopped_setting": "DPI kendiliğinden durunca",
+            "notify_helperUpdate_setting": "Yardımcı güncellenmeli olunca",
+            "notify_note": "Menfez penceresi öndeyken bildirim gelmez. Aynı uyarı 5 dakikada bir kereden sık gelmez.",
+            "notify_tunnelDropped_title": "Tünel düştü",
+            "notify_tunnelDropped_body": "Trafiğin şu an tünelden geçmiyor. Menfez'i açıp bak.",
+            "notify_tunnelRestored_title": "Tünel geri geldi",
+            "notify_tunnelRestored_body": "Trafiğin yeniden tünelden geçiyor.",
+            "notify_serverRemoved_title": "Tünel kapatıldı",
+            "notify_serverRemoved_body": "Kullandığın sunucu listeden silindiği için tüneli kapattım.",
+            "notify_dpiStopped_title": "DPI durdu",
+            "notify_dpiStopped_body": "DPI beklenmedik şekilde durdu. Discord bağlanamayabilir. Menfez'den yeniden aç.",
+            "notify_helperUpdate_title": "Tünel yardımcısı eski",
+            "notify_helperUpdate_body": "Tünelin düzgün çalışması için yardımcıyı güncelle. Menfez'deki Güncelle düğmesine bas.",
+            "sitetest_open": "Bir siteyi test et…",
+            "sitetest_title": "Bir siteyi test et",
+            "sitetest_intro": "Site adını ya da adresini yaz. Menfez siteyi doğrudan ve DPI ile aynı anda dener, birkaç saniyede sonucu söyler. Tüm internet tüneli açıksa tünelle dener.",
+            "sitetest_placeholder": "ornek.com",
+            "sitetest_run": "Test et",
+            "sitetest_running": "Deneniyor",
+            "sitetest_err_empty": "Önce bir site adı yaz.",
+            "sitetest_err_notAName": "Bu bir site adına benzemiyor. Şöyle yaz: ornek.com",
+            "sitetest_err_address": "IP adresi değil, site adı yaz (ör. ornek.com).",
+            "sitetest_err_local": "Bu ev ağındaki ya da bu bilgisayardaki bir ad. Yalnız internetteki siteler test edilir.",
+            "sitetest_err_port": "Yalnız normal web adresleri test edilir. Adresteki :port kısmını sil.",
+            "sitetest_path_direct": "Doğrudan",
+            "sitetest_path_dpi": "DPI ile",
+            "sitetest_path_tunnel": "Tünel ile",
+            "sitetest_opens": "Açılıyor",
+            "sitetest_fails": "Açılmıyor",
+            "sitetest_timedOut": "Cevap yok",
+            "sitetest_notFound": "Ad bulunamadı",
+            "sitetest_sum_opensDirect": "Bu site engelli değil, doğrudan açılıyor.",
+            "sitetest_sum_opensWithDPI": "Bu site engelli ama DPI ile açılıyor. Menfez DPI'ı şimdilik yalnız Discord için kullanıyor; tarayıcında açmak için Tüm internet tünelini kullan.",
+            "sitetest_sum_opensWithTunnel": "Bu site tünelle açılıyor.",
+            "sitetest_sum_opensNowhere": "Bu site ne doğrudan ne DPI ile açılıyor. Site kapalı olabilir ya da engel daha sıkı. Kendi sunucun varsa Tüm internet tünelini dene.",
+            "sitetest_sum_opensNowhereTunnel": "Bu site tünelle de açılmıyor. Site şu an kapalı olabilir.",
+            "sitetest_sum_notFound": "Bu ad bulunamadı. Yazımı kontrol et.",
+            "sitetest_sum_refused": "Bu ad ev ağındaki bir adrese çıkıyor, test etmedim.",
+            "sitetest_tunnel_discord_only": "Tünel şu an yalnız Discord'u taşıyor, bu yüzden site tünelle denenmedi.",
+            "help_sitetest_title": "Bir site açılmıyorsa",
+            "help_sitetest": "Menfez'e sor: site adını yaz, engelli mi, hangi yolla açılıyor söylesin.",
+            "onb1_title": "Menfez ne yapar?",
+            "onb1_1": "İnternet sağlayıcın bağlantıların içine bakıp bazılarını kesebiliyor. Buna DPI deniyor; Discord'un açılmamasının sebebi bu.",
+            "onb1_2": "Menfez, Discord'un bağlantısını bu kontrole takılmayacak şekilde gönderir. Hesap, sunucu ya da ücret gerekmez; her şey bu Mac'te olur.",
+            "onb1_3": "Kullanmak için Discord'u kapat, sonra Menfez'de Discord'u aç düğmesine bas.",
+            "onb2_title": "Kendi sunucun varsa",
+            "onb2_1": "DPI yetmezse ya da bütün internetini başka bir yerden geçirmek istersen tünel kullanabilirsin.",
+            "onb2_2": "Menfez sunucu vermez. Bir WireGuard sağlayıcısından aldığın .conf dosyasını eklersin; tünel bir kez kurulur.",
+            "onb2_3": "Sunucun yoksa bu adımı geç. DPI tek başına çalışır.",
+            "onb3_title": "Hazırsın",
+            "onb3_1": "Bir site açılmazsa Yardım'daki \"Bir siteyi test et\" ile engelli mi, hangi yolla açılıyor bak.",
+            "onb3_2": "Tünel düşerse ya da DPI durursa sana bildirim gönderirim. macOS bunun için bir kez izin soracak. Bu rehber Yardım'da durur.",
+            "onb3_3": "Discord kapalıysa Discord'u aç'a bas; Menfez önce DPI'ı açar, sonra Discord'u.",
+            "onb_skip": "Geç",
+            "onb_back": "Geri",
+            "onb_next": "İleri",
+            "onb_done": "Bitti",
+            "onb_step": "Adım {n} / {of}",
+            "onb_again": "Rehberi yeniden göster",
         ],
         .en: [
             "app": "Menfez",
@@ -536,6 +598,68 @@ struct L {
             "dt_via": "{iface} via {gateway}",
             "dt_host": "host {what}",
             "dt_unreachable_why": "unreachable ({what})",
+            "notify_title": "Notifications",
+            "notify_tunnelDropped_setting": "Tunnel drops or comes back",
+            "notify_serverRemoved_setting": "Removed server closes the tunnel",
+            "notify_dpiStopped_setting": "DPI stops on its own",
+            "notify_helperUpdate_setting": "Helper needs an update",
+            "notify_note": "No notifications while the Menfez window is in front. The same alert comes at most once every 5 minutes.",
+            "notify_tunnelDropped_title": "Tunnel dropped",
+            "notify_tunnelDropped_body": "Your traffic is not going through the tunnel right now. Open Menfez to check.",
+            "notify_tunnelRestored_title": "Tunnel is back",
+            "notify_tunnelRestored_body": "Your traffic is going through the tunnel again.",
+            "notify_serverRemoved_title": "Tunnel closed",
+            "notify_serverRemoved_body": "The server you were using was removed from the list, so I closed the tunnel.",
+            "notify_dpiStopped_title": "DPI stopped",
+            "notify_dpiStopped_body": "DPI stopped unexpectedly. Discord may not connect. Turn it back on in Menfez.",
+            "notify_helperUpdate_title": "Tunnel helper is out of date",
+            "notify_helperUpdate_body": "Update the helper so the tunnel keeps working. Press Update in Menfez.",
+            "sitetest_open": "Test a site…",
+            "sitetest_title": "Test a site",
+            "sitetest_intro": "Type a site name or address. Menfez tries it directly and with DPI at the same time and tells you in a few seconds. With the Whole internet tunnel on, it tries the tunnel.",
+            "sitetest_placeholder": "example.com",
+            "sitetest_run": "Test",
+            "sitetest_running": "Trying",
+            "sitetest_err_empty": "Type a site name first.",
+            "sitetest_err_notAName": "That doesn't look like a site name. Try something like example.com",
+            "sitetest_err_address": "Type a site name, not an IP address (e.g. example.com).",
+            "sitetest_err_local": "That name is on your home network or this computer. Only sites on the internet can be tested.",
+            "sitetest_err_port": "Only normal web addresses can be tested. Remove the :port part.",
+            "sitetest_path_direct": "Directly",
+            "sitetest_path_dpi": "With DPI",
+            "sitetest_path_tunnel": "Through tunnel",
+            "sitetest_opens": "Opens",
+            "sitetest_fails": "Doesn't open",
+            "sitetest_timedOut": "No answer",
+            "sitetest_notFound": "Name not found",
+            "sitetest_sum_opensDirect": "This site isn't blocked; it opens directly.",
+            "sitetest_sum_opensWithDPI": "This site is blocked, but it opens with DPI. For now Menfez uses DPI only for Discord; to open it in your browser, use the Whole internet tunnel.",
+            "sitetest_sum_opensWithTunnel": "This site opens through the tunnel.",
+            "sitetest_sum_opensNowhere": "This site doesn't open directly or with DPI. It may be down, or the block is stricter. If you have your own server, try the Whole internet tunnel.",
+            "sitetest_sum_opensNowhereTunnel": "This site doesn't open through the tunnel either. It may be down right now.",
+            "sitetest_sum_notFound": "This name wasn't found. Check the spelling.",
+            "sitetest_sum_refused": "This name points to an address on your home network, so I didn't test it.",
+            "sitetest_tunnel_discord_only": "The tunnel only carries Discord right now, so the site wasn't tried through it.",
+            "help_sitetest_title": "If a site won't open",
+            "help_sitetest": "Ask Menfez: type the site name and it tells you whether it's blocked and which way it opens.",
+            "onb1_title": "What Menfez does",
+            "onb1_1": "Your internet provider can look inside your connections and cut some of them. This is called DPI, and it's why Discord won't open.",
+            "onb1_2": "Menfez sends Discord's connection in a way that slips past this check. No account, server or payment needed; it all happens on this Mac.",
+            "onb1_3": "To use it, quit Discord, then press Open Discord in Menfez.",
+            "onb2_title": "If you have your own server",
+            "onb2_1": "If DPI isn't enough, or you want all your internet to go out somewhere else, you can use a tunnel.",
+            "onb2_2": "Menfez doesn't come with a server. You add the .conf file you get from a WireGuard provider; the tunnel is set up once.",
+            "onb2_3": "No server? Skip this step. DPI works on its own.",
+            "onb3_title": "You're set",
+            "onb3_1": "If a site won't open, use \"Test a site\" in Help to see whether it's blocked and which way it opens.",
+            "onb3_2": "If the tunnel drops or DPI stops, I'll send you a notification. macOS will ask permission once. This guide stays in Help.",
+            "onb3_3": "With Discord closed, press Open Discord; Menfez turns on DPI first, then opens Discord.",
+            "onb_skip": "Skip",
+            "onb_back": "Back",
+            "onb_next": "Next",
+            "onb_done": "Done",
+            "onb_step": "Step {n} of {of}",
+            "onb_again": "Show the guide again",
         ],
     ]
 
@@ -867,6 +991,34 @@ final class Model: ObservableObject {
     /// Bumped when a tunnel start needs a server; the view opens the servers
     /// sheet on change. A counter, not a flag, so a second ask still fires.
     @Published var serverRequests = 0
+    /// Bumped by the DPI menu's "Test a site…"; the window opens the sheet.
+    @Published var siteTestRequests = 0
+
+    /// Tunnel mode carries everything, so a site test can only try the tunnel.
+    var tunnelCarriesEverything: Bool {
+        runMode == .tunnel && tunnelCarriesTraffic && tunnelScope == .all
+    }
+
+    /// One site test (`SiteTest`), off the main thread. DPI is tried through
+    /// a proxy started for the test alone, so it works in every mode and the
+    /// running proxy's counters stay Discord's.
+    func runSiteTest(_ host: String) async -> SiteTest.Report {
+        let paths = SiteTest.paths(tunnelCarriesEverything: tunnelCarriesEverything)
+        return await Task.detached(priority: .userInitiated) {
+            var engine: DPIEngine?
+            var port: Int?
+            if paths.contains(.dpi) {
+                var config = DPIEngine.Configuration()
+                let split = UserDefaults.standard.integer(forKey: DPIEngine.splitDefaultsKey)
+                if DPIEngine.splitRange.contains(split) { config.firstRecordPayloadLimit = split }
+                let e = DPIEngine(configuration: config)
+                port = (try? e.start())?.port
+                engine = e
+            }
+            defer { engine?.stop() }
+            return SiteTest.run(host: host, paths: paths, proxyPort: port)
+        }.value
+    }
     @Published var lang: Lang = .tr
 
     /// The DPI proxy's published status. Refreshed from the engine on the fast
@@ -1126,6 +1278,7 @@ final class Model: ObservableObject {
             }
         })
 
+        Notifier.shared.start()
         scheduleTimer()
         // The proxy must not outlive the app. A process that quit leaves its
         // listener gone with it anyway, but a Discord launched with
@@ -1196,6 +1349,7 @@ final class Model: ObservableObject {
                 }.value
                 self.helperOutdated = HelperVersion.needsUpdate(installed: installed)
                     && self.canRunTunnelInstaller
+                if self.helperOutdated { Notifier.shared.post(.helperUpdate, lang: self.lang) }
                 self.coordinator.updateRoutes = { Model.updateRoutes() }
                 // Removes an updates tunnel a quit app left behind.
                 await self.coordinator.syncUpdateTunnel()
@@ -1466,6 +1620,29 @@ final class Model: ObservableObject {
             dnsCheckTicks = 0
             if mode == Mode.discord.rawValue { checkDNSRoutes() }
         }
+        noticeEvents()
+    }
+
+    /// Last tick's facts, for the edges `NotificationPolicy` reads.
+    private var wasTunnelLost = false
+    private var wasDPIRunning = false
+
+    /// Turn this tick's state changes into notifications (rate limit,
+    /// per-event switch and "not while the window is in front" live in
+    /// `NotificationPolicy`).
+    private func noticeEvents() {
+        let lost = tunnelLost
+        if let event = NotificationPolicy.tunnelEvent(wasLost: wasTunnelLost, isLost: lost,
+                                                      inTunnel: runMode == .tunnel,
+                                                      healthy: report?.health.code == .ok) {
+            Notifier.shared.post(event, lang: lang)
+        }
+        wasTunnelLost = lost
+        if NotificationPolicy.dpiStoppedUnexpectedly(wasRunning: wasDPIRunning, isRunning: dpi.running,
+                                                     dpiSelected: dpiOn) {
+            Notifier.shared.post(.dpiStopped, lang: lang)
+        }
+        wasDPIRunning = dpi.running
     }
 
     private var dnsCheckTicks = 0
@@ -1609,6 +1786,7 @@ final class Model: ObservableObject {
                 guard await self.releaseTunnel() else { return self.refresh(announce: false) }
                 self.status = self.l.t("tunnel_orphan_closed")
                 self.statusColor = Palette.warning
+                Notifier.shared.post(.serverRemoved, lang: self.lang)
             }
             self.orphanTeardownTried = iface
             await self.teardownTunnel()
@@ -2387,8 +2565,7 @@ final class Model: ObservableObject {
     private var tunnelControl: TunnelControl = NoTunnel()
 
     /// Tunnel mode is selected but the report says the tunnel stopped working.
-    /// No user notification: the app has no notification permission, and
-    /// asking for one is out of scope; the status line says it instead.
+    /// The status line says it; `noticeEvents` also posts a notification.
     var tunnelLost: Bool {
         TunnelLoss.isLost(runMode: runMode, report: report,
                           settling: busy || (settlingUntil.map { Date() < $0 } ?? false))
@@ -2636,6 +2813,7 @@ struct ContentView: View {
 
     @Namespace private var tabSelection
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.openWindow) private var openWindow
 
     /// How pickers, notes and the DPI panel come and go: fade and drop in,
     /// or only fade under Reduce Motion.
@@ -2666,9 +2844,20 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.22), value: m.profiles.isEmpty)
         .background(Palette.bg)
         .preferredColorScheme(appearance.scheme)
-        .onAppear { NSApp.appearance = appearance.nsAppearance }
+        .onAppear {
+            NSApp.appearance = appearance.nsAppearance
+            // A notification click reopens this window even after it was closed.
+            Notifier.shared.openMain = { [openWindow] in openWindow(id: MenuBarContent.mainWindowID) }
+            // First run only; an upgrading user is marked as having seen it.
+            if Onboarding.shouldShow() {
+                DispatchQueue.main.async { show(.onboarding) }
+            } else {
+                Onboarding.markSeen()
+            }
+        }
         .onChange(of: appearanceRaw) { _ in NSApp.appearance = appearance.nsAppearance }
         .onChange(of: m.serverRequests) { _ in show(.servers) }
+        .onChange(of: m.siteTestRequests) { _ in show(.siteTest) }
         .alert(m.l.t("discord_restart_title"),
                isPresented: Binding(get: { m.discordRestartPID != nil },
                                     set: { shown in
@@ -2715,6 +2904,13 @@ struct ContentView: View {
         router.dismiss(route)
     }
 
+    /// Close one panel and open another once it has gone; the router refuses
+    /// a second sheet while one is up.
+    private func swap(_ from: SheetRoute, for to: SheetRoute) {
+        close(from)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { show(to) }
+    }
+
     /// The panel for a route.
     ///
     /// Every branch closes through `close(_:)`. None of them reaches for
@@ -2748,11 +2944,35 @@ struct ContentView: View {
                       onRemove: m.canRunTunnelInstaller ? { m.runTunnelInstaller(.remove) } : nil,
                       removeBlockedReason: m.runMode == .tunnel ? m.l.t("tunnel_remove_leave_first") : nil,
                       onImport: { close(.help); importConfig() },
+                      onSiteTest: { swap(.help, for: .siteTest) },
+                      onGuide: { swap(.help, for: .onboarding) },
                       onExportLog: { m.exportDebugLog() }) { close(.help) }
         case .about:
             AboutSheet(lang: m.lang) { close(.about) }
         case .whatsNew:
             WhatsNewSheet(lang: m.lang) { close(.whatsNew) }
+        case .onboarding:
+            OnboardingSheet(lang: m.lang,
+                            showTunnelSetup: !m.capabilities.tunnelAvailable && m.canRunTunnelInstaller,
+                            installRunning: m.tunnelInstall.isRunning,
+                            installMessage: m.tunnelInstallMessage,
+                            onInstall: { m.runTunnelInstaller(.install) },
+                            onStartDPI: {
+                                close(.onboarding)
+                                Notifier.shared.requestPermission()
+                                m.enableDPIAndLaunchDiscord()
+                            },
+                            onDone: {
+                                close(.onboarding)
+                                Notifier.shared.requestPermission()
+                            },
+                            onSkip: { close(.onboarding) })
+                // However it closed (button, Escape), it does not come back by itself.
+                .onDisappear { Onboarding.markSeen() }
+        case .siteTest:
+            SiteTestSheet(lang: m.lang,
+                          tunnelOnlyDiscord: m.runMode == .tunnel && !m.tunnelCarriesEverything,
+                          onRun: { await m.runSiteTest($0) }) { close(.siteTest) }
         case .detail(let d):
             DetailView(sheet: d, lang: m.lang) { close(.detail(d)) }
         }
@@ -3965,6 +4185,8 @@ enum SheetRoute: Equatable {
     case help
     case about
     case whatsNew
+    case siteTest
+    case onboarding
     case detail(DetailSheet)
 }
 
@@ -4135,6 +4357,10 @@ struct MenfezApp: App {
                     model.runProbe()
                 }
                 .disabled(model.probing || !model.dpi.running)
+
+                Button(L(lang: model.lang).t("sitetest_open")) {
+                    model.siteTestRequests += 1
+                }
 
                 Divider()
 
