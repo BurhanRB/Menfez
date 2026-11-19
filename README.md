@@ -1,27 +1,63 @@
 <p align="center">
-  <img src="icon.png" alt="Menfez" width="120">
+  <img src="icon.png" alt="Menfez" width="128">
 </p>
 
-<h1 align="center">Menfez<sub><sup>.app</sup></sub></h1>
+<h1 align="center">Menfez</h1>
 
 <p align="center">
-  Engelli ağda Discord'a bağlanmak için macOS uygulaması<br>
-  Open Discord on networks that block it (macOS)
+  <b>Engelli ağda Discord'a bağlanmak için macOS uygulaması</b><br>
+  Open Discord on networks that block it, on your Mac
 </p>
 
 <p align="center">
-  <a href="https://github.com/BurhanRB/Menfez/releases"><img src="https://img.shields.io/github/v/release/BurhanRB/Menfez?include_prereleases&label=release" alt="Release"></a>
+  <a href="https://github.com/BurhanRB/Menfez/releases/latest"><img src="https://img.shields.io/github/v/release/BurhanRB/Menfez?label=release&color=3fb27f" alt="Release"></a>
   <img src="https://img.shields.io/badge/macOS-13%2B-lightgrey?logo=apple" alt="macOS 13+">
-  <img src="https://img.shields.io/badge/Apple%20Silicon%20%2B%20Intel-universal-lightgrey" alt="Apple Silicon + Intel">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache-2.0"></a>
-  <a href="https://github.com/BurhanRB/Menfez/releases"><img src="https://img.shields.io/github/downloads/BurhanRB/Menfez/total" alt="Downloads"></a>
 </p>
-
-<h3 align="center"><a href="https://github.com/BurhanRB/Menfez/releases">İndir / Download</a></h3>
 
 <p align="center">
-  <img src="docs/screenshots/demo.gif" alt="Menfez ekranları / Menfez screens" width="800">
+  <a href="https://github.com/BurhanRB/Menfez/releases/latest"><b>İndir / Download</b></a>
+  &nbsp;·&nbsp;
+  <a href="#kurulum">Kurulum</a>
+  &nbsp;·&nbsp;
+  <a href="#install">Install</a>
 </p>
+
+<p align="center">
+  <img src="docs/screenshots/modes.gif" alt="Menfez: Doğrudan, DPI ve Tünel modları / Direct, DPI and Tunnel modes" width="400">
+</p>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/screenshots/dpi-light.png">
+        <img src="docs/screenshots/dpi-dark.png" alt="DPI modu / DPI mode" width="380">
+      </picture>
+      <br><b>DPI</b><br>Discord ve seçtiğin siteler yerel proxy ile açılır<br><sub>Discord and the sites you pick open through a local proxy</sub>
+    </td>
+    <td align="center" width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/screenshots/tunnel-light.png">
+        <img src="docs/screenshots/tunnel-dark.png" alt="Tünel modu / Tunnel mode" width="380">
+      </picture>
+      <br><b>Tünel / Tunnel</b><br>Kendi WireGuard sunucun üzerinden<br><sub>Through your own WireGuard server</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: light)" srcset="docs/screenshots/settings-light.png">
+        <img src="docs/screenshots/settings-dark.png" alt="Ayarlar / Settings" width="380">
+      </picture>
+      <br><b>Ayarlar / Settings</b><br>Genel, Tünel, Bildirimler, Kısayol, Güncellemeler<br><sub>General, Tunnel, Notifications, Shortcut, Updates</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/screenshots/update-dark.png" alt="Güncelle satırı / Update row" width="380">
+      <br><b>Tek tıkla güncelleme / One-click update</b><br>Yeni sürüm hazır olunca Güncelle'ye bas<br><sub>Press Update when the new version is ready</sub>
+    </td>
+  </tr>
+</table>
 
 <details open>
 <summary><b>🇹🇷 Türkçe</b></summary>
@@ -31,25 +67,6 @@
 Menfez, Discord'un engellendiği ağlarda Discord'a bağlanmanı sağlayan bir macOS
 uygulamasıdır. DPI modu bilgisayarının içinde küçük bir proxy çalıştırır ve
 yönetici şifresi istemez. macOS 13 (Ventura) ve sonrası, Apple silicon ve Intel.
-
-### Kurulum
-
-1. [Releases](https://github.com/BurhanRB/Menfez/releases) sayfasından indir:
-   Apple Silicon (M1, M2 …) için `Menfez-<sürüm>-arm64.dmg`, Intel için `Menfez-<sürüm>-intel.dmg`.
-   Emin değilsen: Apple menüsü > **Bu Mac Hakkında**.
-2. DMG'yi aç, Menfez'i **Uygulamalar** klasörüne sürükle.
-3. Menfez'i aç.
-
-Homebrew ile:
-
-```sh
-brew tap burhanrb/menfez
-brew trust burhanrb/menfez
-brew install --cask menfez
-```
-
-**İlk açılış:** 1.0.5'ten itibaren sürümler Developer ID ile imzalı ve Apple
-tarafından notarize. Menfez her uygulama gibi açılır.
 
 ### Modlar
 
@@ -67,6 +84,26 @@ tarafından notarize. Menfez her uygulama gibi açılır.
 - **Ayar ara:** DPI yetmezse Menfez bu ağda işe yarayan ayarı kendisi dener ve saklar.
 - **Anahtar Zinciri:** Sunucu anahtarların istersen diskte değil Keychain'de durur.
 - **Canlı durum:** Discord satırı yanıt süresini, site listesi de her sitenin açılıp açılmadığını gösterir.
+
+<h3 id="kurulum">Kurulum</h3>
+
+1. [Releases](https://github.com/BurhanRB/Menfez/releases) sayfasından indir:
+   Apple Silicon (M1, M2 …) için `Menfez-<sürüm>-arm64.dmg`, Intel için `Menfez-<sürüm>-intel.dmg`.
+   Emin değilsen: Apple menüsü > **Bu Mac Hakkında**.
+2. DMG'yi aç, Menfez'i **Uygulamalar** klasörüne sürükle.
+3. Menfez'i aç.
+
+Homebrew ile:
+
+```sh
+brew tap burhanrb/menfez
+brew trust burhanrb/menfez
+brew install --cask menfez
+```
+
+Sürümler Developer ID ile imzalı ve Apple tarafından notarize edilmiş. Menfez her uygulama gibi açılır.
+
+**Güncelleme:** 1.0.11 ve sonrası kendini tek tıkla günceller. Menfez açılınca yeni sürüme bakar ve arka planda indirir. Hazır olunca pencerenin üstünde yazar. **Güncelle**'ye bir kez bas, Menfez kurulur ve yeniden açılır.
 
 ### Kendi WireGuard sunucun
 
@@ -103,7 +140,6 @@ Kural `visudo -c` ile denetlenir, hatalıysa silinir.
 
 #### Sorun giderme
 
-- (1.0.4 ve öncesi) "Menfez hasarlı" diyorsa dosya bozuk değil: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
 - İndirmeyi doğrulamak için: `shasum -a 256 Menfez-*.dmg` ve `SHA256SUMS` ile karşılaştır.
 - DPI çalışmıyorsa Discord'u tamamen kapatıp Menfez'den aç.
 - Menfez kapandıktan sonra tarayıcıların proxy ayarı değişik kalırsa: Menfez'de tarayıcı anahtarını kapat ya da `networksetup -listallnetworkservices` ile servis adını bul ve `sudo networksetup -setautoproxystate "Wi-Fi" off` çalıştır.
@@ -119,25 +155,6 @@ Kural `visudo -c` ile denetlenir, hatalıysa silinir.
 Menfez is a macOS app that lets you open Discord on networks that block it. DPI
 mode runs a small proxy on your Mac and needs no administrator password.
 macOS 13 (Ventura) or later, Apple silicon and Intel.
-
-### Install
-
-1. Download from [Releases](https://github.com/BurhanRB/Menfez/releases):
-   `Menfez-<version>-arm64.dmg` for Apple Silicon (M1, M2 …), `Menfez-<version>-intel.dmg` for Intel.
-   Not sure? Apple menu > **About This Mac**.
-2. Open the DMG and drag Menfez into **Applications**.
-3. Open Menfez.
-
-With Homebrew:
-
-```sh
-brew tap burhanrb/menfez
-brew trust burhanrb/menfez
-brew install --cask menfez
-```
-
-**First open:** from 1.0.5 on, builds are signed with a Developer ID and
-notarised by Apple, so Menfez opens like any other app.
 
 ### Modes
 
@@ -155,6 +172,26 @@ notarised by Apple, so Menfez opens like any other app.
 - **Find a setting:** if DPI isn't enough, Menfez tries settings for this network itself and keeps the one that works.
 - **Keychain:** your server keys can live in Keychain instead of on disk, if you want.
 - **Live status:** the Discord row shows response time, and the site list shows whether each site opens.
+
+<h3 id="install">Install</h3>
+
+1. Download from [Releases](https://github.com/BurhanRB/Menfez/releases):
+   `Menfez-<version>-arm64.dmg` for Apple Silicon (M1, M2 …), `Menfez-<version>-intel.dmg` for Intel.
+   Not sure? Apple menu > **About This Mac**.
+2. Open the DMG and drag Menfez into **Applications**.
+3. Open Menfez.
+
+With Homebrew:
+
+```sh
+brew tap burhanrb/menfez
+brew trust burhanrb/menfez
+brew install --cask menfez
+```
+
+Builds are signed with a Developer ID and notarised by Apple, so Menfez opens like any other app.
+
+**Updates:** from 1.0.11 on, Menfez updates itself with one click. When it opens, it checks for a new version and downloads it in the background. When it is ready, Menfez says so at the top of the window. Press **Update** once and Menfez installs it and opens again.
 
 ### Your own WireGuard server
 
@@ -191,26 +228,12 @@ The rule is checked with `visudo -c` and removed if invalid.
 
 #### Troubleshooting
 
-- (1.0.4 and older) "Menfez is damaged" means macOS does not trust it, not that it is broken: `xattr -dr com.apple.quarantine /Applications/Menfez.app`
 - To verify a download: `shasum -a 256 Menfez-*.dmg` and compare with `SHA256SUMS`.
 - If DPI does not work, quit Discord fully and open it from Menfez.
 - If the browsers' proxy setting stays changed after Menfez closes: turn the browser switch off in Menfez, or find the service name with `networksetup -listallnetworkservices` and run `sudo networksetup -setautoproxystate "Wi-Fi" off`.
 
 </details>
 </details>
-
-<table>
-  <tr>
-    <td align="center"><img src="docs/screenshots/light.png" alt="Açık / Light" width="260"><br>Açık / Light</td>
-    <td align="center"><img src="docs/screenshots/dpi.png" alt="DPI" width="260"><br>DPI</td>
-    <td align="center"><img src="docs/screenshots/tunnel.png" alt="Tünel / Tunnel" width="260"><br>Tünel / Tunnel</td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/servers.png" alt="Sunucular / Servers" width="260"><br>Sunucular / Servers</td>
-    <td align="center"><img src="docs/screenshots/help.png" alt="Yardım / Help" width="260"><br>Yardım / Help</td>
-    <td align="center"><img src="docs/screenshots/whatsnew.png" alt="Yenilikler / What's new" width="260"><br>Yenilikler / What's new</td>
-  </tr>
-</table>
 
 <details>
 <summary><b>Geliştiriciler için / For developers</b></summary>
