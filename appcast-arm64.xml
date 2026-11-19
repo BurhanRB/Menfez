@@ -3,13 +3,13 @@
   <channel>
     <title>Menfez (arm64)</title>
     <item>
-      <title>Menfez 1.0.11</title>
-      <pubDate>Thu, 19 Nov 2026 10:13:13 +0000</pubDate>
-      <sparkle:version>1.0.11</sparkle:version>
-      <sparkle:shortVersionString>1.0.11</sparkle:shortVersionString>
+      <title>Menfez 1.0.12</title>
+      <pubDate>Thu, 19 Nov 2026 12:38:24 +0000</pubDate>
+      <sparkle:version>1.0.12</sparkle:version>
+      <sparkle:shortVersionString>1.0.12</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<h3>Yenilikler</h3><ul><li>Menfez açılınca yeni sürüm var mı diye bakar. Varsa arka planda indirir.</li><li>Yeni sürüm hazır olunca pencerenin üstünde yazar. Güncelle'ye bir kez basman yeter. Menfez kurulur ve yeniden açılır.</li></ul><h3>What's new</h3><ul><li>When Menfez opens, it checks for a new version. If there is one, it downloads it in the background.</li><li>When the new version is ready, Menfez says so at the top of the window. Press Update once and Menfez installs it and opens again.</li></ul>]]></description>
-      <enclosure url="https://github.com/BurhanRB/Menfez/releases/download/v1.0.11/Menfez-1.0.11-arm64.dmg" type="application/octet-stream" sparkle:edSignature="rysehJ07xC63RlN7hZDDj8BzLD4LAQD9ZiZwb7GGSnJtXJmThrdOEZ9epUDZiHPfCB9UNXBiorMwK1YC57J/CQ==" length="4292734"/>
+      <description><![CDATA[<h3>Yenilikler</h3><ul><li>DPI kartı daha derli toplu. Sayılar artık simgeli, renkli küçük kutucuklarda. DPI çalışırken adresin yanındaki yeşil nokta nefes alır.</li><li>Mod seçici ve tünel kapsamı seçici yenilendi. Her seçeneğin bir simgesi var ve seçim yumuşakça kayar.</li><li>Düğmeler her yerde aynı görünüyor. Asıl düğme dolu renkli, öbürleri ince kenarlı. Durdurma ve kaldırma düğmeleri kırmızıyla uyarır.</li><li>Mod değişince kartlar yumuşak bir geçişle gelir. Hareketi azalt açıksa geçişler anında olur.</li><li>Ayrıntılardaki Mod satırı artık tünelde seçtiğin kapsamı doğru gösteriyor.</li><li>Bundan sonraki güncellemeler pencerenin üstündeki Güncelle satırından tek tıkla kurulur.</li></ul><h3>What's new</h3><ul><li>The DPI card is tidier. The numbers now sit in small coloured chips with icons. While DPI is working, a green dot next to the address breathes.</li><li>The mode switch and the tunnel scope picker are new. Each option has an icon and the selection slides smoothly.</li><li>Buttons look the same everywhere. The main button is filled, the others have a thin border. Stop and remove buttons warn you in red.</li><li>When you change mode, the cards come in with a smooth transition. With Reduce Motion on, the change is instant.</li><li>The Mode row in the details now shows the tunnel scope you chose.</li><li>From now on, updates install with one click from the Update row at the top of the window.</li></ul>]]></description>
+      <enclosure url="https://github.com/BurhanRB/Menfez/releases/download/v1.0.12/Menfez-1.0.12-arm64.dmg" type="application/octet-stream" sparkle:edSignature="UmFtjPKMSR//lFzjC0k5TuzSdpRrOCvma30zdpc7/pbFxhP8jbidhU1hppaSP3ajl6QNGsuU/kOqltKhwPDEDg==" length="4315192"/>
     </item>
   </channel>
 </rss>
