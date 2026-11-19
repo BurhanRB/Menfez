@@ -30,17 +30,17 @@ struct SitesSheet: View {
                     .onSubmit(add)
                     .accessibilityLabel(m.l.t("sites_title"))
                 Button(action: add) {
+                    // As tall as the text field beside it (the row is fixed vertically).
                     Text(m.l.t("sites_add"))
                         .font(.system(size: 12, weight: .medium))
-                        .padding(.horizontal, 12).padding(.vertical, 5)
+                        .padding(.horizontal, 12)
+                        .frame(maxHeight: .infinity)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.pressable)
-                .background(Palette.accent)
-                .foregroundStyle(Palette.accentText)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                .buttonStyle(.primary)
                 .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty)
             }
+            .fixedSize(horizontal: false, vertical: true)
             if let problem {
                 Text(problem)
                     .font(.system(size: 11))
@@ -63,9 +63,8 @@ struct SitesSheet: View {
                     .foregroundStyle(Palette.secondary)
                 Spacer()
                 Button(m.l.t("close")) { onClose() }
-                    .buttonStyle(.pressable)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary(h: 12, v: 4))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.text)
                     .keyboardShortcut(.cancelAction)
             }

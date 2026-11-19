@@ -19,6 +19,25 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.12",
+            date: "2026-11-19",
+            tr: [
+                "DPI kartı daha derli toplu. Sayılar artık simgeli, renkli küçük kutucuklarda. DPI çalışırken adresin yanındaki yeşil nokta nefes alır.",
+                "Mod seçici ve tünel kapsamı seçici yenilendi. Her seçeneğin bir simgesi var ve seçim yumuşakça kayar.",
+                "Düğmeler her yerde aynı görünüyor. Asıl düğme dolu renkli, öbürleri ince kenarlı. Durdurma ve kaldırma düğmeleri kırmızıyla uyarır.",
+                "Mod değişince kartlar yumuşak bir geçişle gelir. Hareketi azalt açıksa geçişler anında olur.",
+                "Ayrıntılardaki Mod satırı artık tünelde seçtiğin kapsamı doğru gösteriyor.",
+                "Bundan sonraki güncellemeler pencerenin üstündeki Güncelle satırından tek tıkla kurulur.",
+            ],
+            en: [
+                "The DPI card is tidier. The numbers now sit in small coloured chips with icons. While DPI is working, a green dot next to the address breathes.",
+                "The mode switch and the tunnel scope picker are new. Each option has an icon and the selection slides smoothly.",
+                "Buttons look the same everywhere. The main button is filled, the others have a thin border. Stop and remove buttons warn you in red.",
+                "When you change mode, the cards come in with a smooth transition. With Reduce Motion on, the change is instant.",
+                "The Mode row in the details now shows the tunnel scope you chose.",
+                "From now on, updates install with one click from the Update row at the top of the window.",
+            ]),
+        ChangelogEntry(
             version: "1.0.11",
             date: "2026-11-19",
             tr: [

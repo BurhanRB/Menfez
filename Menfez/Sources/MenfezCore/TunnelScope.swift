@@ -44,6 +44,13 @@ public enum TunnelScope {
         save(choice: Choice(scope), defaults)
     }
 
+    /// The suffix of the `m_` string for the detail card's Mode row. Chosen
+    /// sites run in the helper's Discord mode, so the route mode alone would
+    /// read "Discord only" while the picker says "Discord + sites".
+    public static func rowKey(routeMode: String, choice: Choice) -> String {
+        routeMode == Mode.discord.rawValue && choice == .sites ? Choice.sites.rawValue : routeMode
+    }
+
     /// True when a scope change must re-route the live tunnel (`mode <scope>`):
     /// Tunnel mode is on, it carries one of the two scopes, and not this one.
     public static func needsReroute(inTunnel: Bool, routeMode: String, to scope: Mode) -> Bool {

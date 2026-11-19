@@ -63,12 +63,15 @@ struct SettingsView: View {
             }
             .padding(Space.l)
             .frame(maxWidth: .infinity, alignment: .topLeading)
+            // The app's own buttons, as in the main window. Buttons that set
+            // their own style (tabs, shortcut examples) keep it.
+            .buttonStyle(.secondary(h: Space.m, v: 5))
             .id(tab)
             .transition(.opacity)
         }
         .frame(width: Self.width)
         .fixedSize(horizontal: false, vertical: true)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: tab)
+        .animation(Animate.layout(reduceMotion), value: tab)
         .tint(Palette.accent)
         .background(Palette.bg)
         .background(WindowTitle(title: m.l.t("settings_title")))
@@ -173,17 +176,8 @@ struct SettingsView: View {
         if m.capabilities.tunnelAvailable {
             SettingsSection(title: m.l.t("scope_label"),
                             note: m.l.t("scope_" + m.scopeChoice.rawValue + "_hint")) {
-                Picker(m.l.t("scope_label"), selection: Binding(
-                    get: { m.scopeChoice },
-                    set: { m.setTunnelScope($0) })) {
-                    ForEach(TunnelScope.Choice.allCases, id: \.self) { scope in
-                        Text(m.l.t("m_" + scope.rawValue)).tag(scope)
-                    }
-                }
-                .pickerStyle(.radioGroup)
-                .labelsHidden()
-                .disabled(m.busy)
-                .padding(.vertical, Space.s)
+                ScopePicker(m: m)
+                    .padding(.vertical, Space.s)
             }
             if !m.profiles.isEmpty {
                 SettingsSection(note: m.l.t("updates_tunnel_note")) {
@@ -210,9 +204,19 @@ struct SettingsView: View {
                     HStack {
                         Text(m.l.t(available ? "set_installed" : "set_not_installed"))
                         Spacer()
-                        Button(m.l.t(available ? "tunnel_remove" : "tunnel_install")) {
+                        // Blocked while the tunnel runs: a lock and the reason,
+                        // so it reads "not now" rather than "careful".
+                        let blocked = available && m.runMode == .tunnel
+                        Button {
                             m.runTunnelInstaller(available ? .remove : .install)
+                        } label: {
+                            HStack(spacing: 5) {
+                                if blocked { Image(systemName: "lock.fill").font(.system(size: 10)) }
+                                Text(m.l.t(available ? "tunnel_remove" : "tunnel_install"))
+                            }
                         }
+                        .help(blocked ? m.l.t("tunnel_remove_leave_first") : "")
+                        .buttonStyle(MenfezButtonStyle(kind: available ? .danger : .primary, h: Space.m, v: 5))
                         .disabled(m.tunnelInstall.isRunning || (available && m.runMode == .tunnel))
                     }
                     .padding(.vertical, Space.s)

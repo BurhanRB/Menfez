@@ -31,17 +31,17 @@ struct BrowserSitesSheet: View {
                     .onSubmit(add)
                     .accessibilityLabel(m.l.t("browser_title"))
                 Button(action: add) {
+                    // As tall as the text field beside it (the row is fixed vertically).
                     Text(m.l.t("sites_add"))
                         .font(.system(size: 12, weight: .medium))
-                        .padding(.horizontal, 12).padding(.vertical, 5)
+                        .padding(.horizontal, 12)
+                        .frame(maxHeight: .infinity)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.pressable)
-                .background(Palette.accent)
-                .foregroundStyle(Palette.accentText)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                .buttonStyle(.primary)
                 .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty)
             }
+            .fixedSize(horizontal: false, vertical: true)
             if let problem {
                 Text(problem)
                     .font(.system(size: 11))
@@ -60,17 +60,15 @@ struct BrowserSitesSheet: View {
             HStack {
                 if m.browserSites.contains(where: { if case .success = SiteTest.host(from: $0) { return true } else { return false } }) {
                     Button(m.l.t("browser_check_all")) { m.checkBrowserSites(m.browserSites) }
-                        .buttonStyle(.pressable)
-                        .padding(.horizontal, 12).padding(.vertical, 6)
-                        .modifier(Chip())
+                        .buttonStyle(.secondary(h: 12, v: 4))
+                        .font(.system(size: 12))
                         .foregroundStyle(Palette.accent)
                         .disabled(m.browserSites.allSatisfy { m.browserSiteChecks[$0].map { $0.outcome == nil } ?? false })
                 }
                 Spacer()
                 Button(m.l.t("close")) { onClose() }
-                    .buttonStyle(.pressable)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary(h: 12, v: 4))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.text)
                     .keyboardShortcut(.cancelAction)
             }

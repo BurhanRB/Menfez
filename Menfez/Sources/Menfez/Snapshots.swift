@@ -158,6 +158,11 @@ enum Snapshots {
         render(m, .light, to: "\(dir)/dpi-verdict.png")
         m.probe = nil
         render(m, .light, to: "\(dir)/dpi.png")
+        // The compact card (2026-11-19): counters inline, dark and English.
+        render(m, .dark, to: "\(dir)/dpi-dark.png")
+        m.lang = .en
+        render(m, .light, to: "\(dir)/dpi-en.png")
+        m.lang = .tr
         m.probe = DPIProbeOutcome(host: "discord.com",
                                   direct: .init(exit: 0, ms: 120), proxied: .init(exit: 0, ms: 140))
         m.lang = .en

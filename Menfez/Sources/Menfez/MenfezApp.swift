@@ -93,8 +93,8 @@ struct L {
             "dpi_passthrough": "dokunulmadı",
             "dpi_open": "açık",
             "dpi_refused": "reddedildi",
-            "dpi_at": "ilk paketi {n}. baytta bölüyor",
-            "dpi_details": "Ayrıntılar",
+            "dpi_at": "ilk paket {n}. baytta",
+            "dpi_byte": "{n}. bayt",
             "dpi_probe": "Şimdi test et",
             "dpi_probing": "test ediliyor…",
             "dpi_stop": "Durdur",
@@ -657,8 +657,8 @@ struct L {
             "dpi_passthrough": "untouched",
             "dpi_open": "open",
             "dpi_refused": "refused",
-            "dpi_at": "splits the first packet at byte {n}",
-            "dpi_details": "Details",
+            "dpi_at": "first packet at byte {n}",
+            "dpi_byte": "split at {n}",
             "dpi_probe": "Test now",
             "dpi_probing": "testing…",
             "dpi_stop": "Stop",
@@ -4088,44 +4088,220 @@ struct Card: ViewModifier {
     }
 }
 
-/// A small control: raised fill, 1 px separator edge, dimmed when disabled.
-struct Chip: ViewModifier {
-    @Environment(\.isEnabled) private var isEnabled
+/// The app's buttons, one style in three kinds (polish pass after 1.0.11).
+///
+///   primary      filled accent: the one action a screen is about ("Aç", "Güncelle")
+///   secondary    raised fill and a hairline edge, the old `Chip` look ("Şimdi test et")
+///   destructive  drawn like secondary, turns red only under the pointer ("Durdur")
+///   danger       red text and edge at rest, red fill on hover ("Tüneli kaldır").
+///                Disabled it drops the red, so "not now" never reads as "careful"
+///
+/// All three lighten on hover, shrink to 0.97 while pressed (not under Reduce
+/// Motion) and fade while disabled. `h`/`v` pad the label inside the fill, for
+/// `Button("title")` call sites whose label cannot carry its own padding.
+struct MenfezButtonStyle: ButtonStyle {
+    enum Kind { case primary, secondary, destructive, danger }
+    var kind: Kind
+    var h: CGFloat = 0
+    var v: CGFloat = 0
+    var radius: CGFloat = Radius.control
 
-    func body(content: Content) -> some View {
-        content
-            .background(Palette.raised)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
-                .strokeBorder(Palette.separator, lineWidth: 1))
-            .opacity(isEnabled ? 1 : 0.5)
+    func makeBody(configuration: Configuration) -> some View {
+        Styled(configuration: configuration, style: self)
+    }
+
+    private struct Styled: View {
+        let configuration: Configuration
+        let style: MenfezButtonStyle
+        @Environment(\.isEnabled) private var isEnabled
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+        @State private var hovering = false
+
+        private var hot: Bool { hovering && isEnabled }
+        private var shape: RoundedRectangle { RoundedRectangle(cornerRadius: style.radius, style: .continuous) }
+
+        var body: some View {
+            styled
+                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+                .onHover { hovering = $0 }
+                .animation(Animate.feedback, value: hot)
+                .animation(Animate.feedback, value: configuration.isPressed)
+        }
+
+        @ViewBuilder private var styled: some View {
+            let label = configuration.label
+                .padding(.horizontal, style.h)
+                .padding(.vertical, style.v)
+                .contentShape(shape)
+            switch style.kind {
+            case .primary:
+                label
+                    .foregroundStyle(isEnabled ? Palette.accentText : Palette.secondary)
+                    .background(isEnabled ? Palette.accent : Palette.raised, in: shape)
+                    .overlay(shape.fill(Color.white.opacity(hot ? 0.1 : 0)))
+                    .overlay(shape.fill(Color.black.opacity(configuration.isPressed ? 0.12 : 0)))
+            case .secondary, .destructive, .danger:
+                let danger = style.kind == .danger && isEnabled
+                let red = (style.kind == .destructive && hot) || danger
+                label
+                    .foregroundStyle(red ? AnyShapeStyle(Palette.danger) : AnyShapeStyle(.foreground))
+                    .background(red && hot ? Palette.danger.opacity(0.16)
+                                : (hot ? Palette.separator : Palette.raised), in: shape)
+                    .overlay(shape.strokeBorder(red ? Palette.danger.opacity(hot ? 0.6 : 0.4) : Palette.separator,
+                                                lineWidth: 1))
+                    .overlay(shape.fill(Color.black.opacity(configuration.isPressed ? 0.08 : 0)))
+                    .opacity(isEnabled ? 1 : 0.5)
+            }
+        }
     }
 }
 
-/// The one accent-filled button: lighter on hover, flat grey while disabled.
-struct PrimaryButtonStyle: ButtonStyle {
+extension ButtonStyle where Self == MenfezButtonStyle {
+    static var primary: MenfezButtonStyle { .init(kind: .primary) }
+    static var secondary: MenfezButtonStyle { .init(kind: .secondary) }
+    static var destructive: MenfezButtonStyle { .init(kind: .destructive) }
+    /// For `Button("title")`: the padding goes inside the fill.
+    static func secondary(h: CGFloat, v: CGFloat) -> MenfezButtonStyle { .init(kind: .secondary, h: h, v: v) }
+}
+
+/// One segment of a segmented control (the mode bar, the tunnel scope).
+/// The selection pill is drawn by the caller, so it can slide between
+/// segments. This adds the accent tint, a hover wash, the press and a
+/// focus ring for keyboard users.
+struct SegmentButtonStyle: ButtonStyle {
+    let selected: Bool
+    let focused: Bool
+
     func makeBody(configuration: Configuration) -> some View {
-        Label(configuration: configuration)
+        Styled(configuration: configuration, selected: selected, focused: focused)
     }
 
-    private struct Label: View {
+    private struct Styled: View {
         let configuration: Configuration
+        let selected: Bool
+        let focused: Bool
         @Environment(\.isEnabled) private var isEnabled
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
         @State private var hovering = false
 
         var body: some View {
+            let shape = RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
             configuration.label
-                .foregroundStyle(isEnabled ? Palette.accentText : Palette.secondary)
-                .background(isEnabled ? Palette.accent : Palette.raised)
-                .overlay(Color.white.opacity(isEnabled && hovering ? 0.08 : 0))
-                .overlay(Color.black.opacity(configuration.isPressed ? 0.12 : 0))
-                .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
-                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
+                .foregroundStyle(selected ? Palette.accent : (hovering && isEnabled ? Palette.text : Palette.secondary))
+                .background(shape.fill(hovering && isEnabled && !selected ? Palette.raised : .clear))
+                .overlay(shape.strokeBorder(Palette.accent, lineWidth: 2).opacity(focused ? 1 : 0))
+                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
                 .onHover { hovering = $0 }
-                .animation(.easeOut(duration: 0.12), value: hovering)
-                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+                .animation(Animate.feedback, value: hovering)
+                .animation(Animate.feedback, value: configuration.isPressed)
         }
+    }
+}
+
+/// The app's segmented control: the mode bar, the tunnel scope (main window
+/// and Settings). Icon and label per segment, the selected one in accent on a
+/// pill that slides on the shared spring. A segment that cannot be picked
+/// shows a lock and says why in its tooltip. `busy` puts a small spinner on
+/// a segment that is being switched to.
+struct SegmentedControl<ID: Hashable>: View {
+    struct Item {
+        let id: ID
+        let title: String
+        let symbol: String
+        var enabled = true
+        var help = ""
+        var busy = false
+    }
+
+    let items: [Item]
+    let selection: ID
+    var compact = false
+    let onSelect: (ID) -> Void
+
+    @Namespace private var pill
+    @FocusState private var focused: ID?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: Space.xs) {
+            ForEach(items, id: \.id) { item in
+                let active = item.id == selection
+                Button { onSelect(item.id) } label: {
+                    HStack(spacing: 5) {
+                        if item.busy {
+                            ProgressView().controlSize(.mini)
+                                .frame(width: 12, height: 12)
+                        } else {
+                            Image(systemName: item.enabled ? item.symbol : "lock.fill")
+                                .font(.system(size: compact ? 10 : 11, weight: .medium))
+                                .frame(width: 12, height: 12)
+                        }
+                        Text(item.title)
+                            .font(.system(size: compact ? 11.5 : 12, weight: active ? .semibold : .medium))
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, compact ? Space.xs + 2 : Space.s)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(SegmentButtonStyle(selected: active, focused: focused == item.id))
+                .focused($focused, equals: item.id)
+                .ownFocusRing()
+                .background {
+                    if active {
+                        RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
+                            .fill(Palette.selection)
+                            .overlay(RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
+                                .strokeBorder(Palette.accent, lineWidth: 1))
+                            // One shared id slides the pill. Under Reduce
+                            // Motion each segment has its own id and the
+                            // change is instant.
+                            .matchedGeometryEffect(id: reduceMotion ? AnyHashable(item.id) : AnyHashable("pill"),
+                                                   in: pill)
+                    }
+                }
+                // Not now, on purpose: the lock says so and the tooltip says why.
+                .opacity(item.enabled ? 1 : 0.6)
+                .disabled(!item.enabled)
+                .help(item.help)
+                .accessibilityAddTraits(active ? .isSelected : [])
+                .accessibilityHint(item.enabled ? "" : item.help)
+            }
+        }
+        .padding(Space.xs - 1)
+        .modifier(Card())
+        .animation(Animate.layout(reduceMotion), value: selection)
+    }
+}
+
+/// Discord only / Discord + sites / Whole internet, in the main window and
+/// in Settings. "Discord + sites" needs helper 4: locked with the reason.
+struct ScopePicker: View {
+    @ObservedObject var m: Model
+
+    var body: some View {
+        SegmentedControl(items: TunnelScope.Choice.allCases.map { scope in
+            let available = scope != .sites || m.sitesAvailable
+            return .init(id: scope, title: m.l.t("m_" + scope.rawValue), symbol: Self.symbol(scope),
+                         enabled: available,
+                         help: m.l.t(available ? "scope_" + scope.rawValue + "_hint" : "sites_needs_update"))
+        }, selection: m.scopeChoice, compact: true) { m.setTunnelScope($0) }
+        .disabled(m.busy)
+    }
+
+    private static func symbol(_ scope: TunnelScope.Choice) -> String {
+        switch scope {
+        case .discord: return "bubble.left.and.bubble.right"
+        case .sites:   return "list.bullet"
+        case .all:     return "network"
+        }
+    }
+}
+
+extension View {
+    /// Our own ring replaces the system one where macOS lets us turn it off (14+).
+    @ViewBuilder func ownFocusRing() -> some View {
+        if #available(macOS 14, *) { focusEffectDisabled() } else { self }
     }
 }
 
@@ -4314,7 +4490,47 @@ struct HoverHighlight: ViewModifier {
         content
             .background(inside ? hover : base)
             .onHover { inside = $0 }
-            .animation(.easeOut(duration: 0.12), value: inside)
+            .animation(Animate.feedback, value: inside)
+    }
+}
+
+/// One counter on the DPI card: symbol, number in monospaced digits, a short
+/// label, tinted. The number rolls when it changes (ValueChange). The chip
+/// bleeds 2 pt into the spacing above and below, so it is no taller in the
+/// layout than the plain line it replaced.
+struct DPIStat: View {
+    let symbol: String
+    let value: Int
+    let label: String
+    let tint: Color
+    var labelled = true
+    var quiet = false
+    /// Replaces number and label where the order differs by language ("40. bayt", "byte 40").
+    var text: String?
+    var spoken: String?
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: symbol)
+                .font(.system(size: 9, weight: .semibold))
+            Text(text ?? "\(value)")
+                .font(.system(size: 11, weight: quiet ? .regular : .semibold))
+                .monospacedDigit()
+                .modifier(ValueChange(value: text ?? "\(value)"))
+            if labelled && text == nil {
+                Text(label).font(.system(size: 11))
+            }
+        }
+        .foregroundStyle(tint)
+        .lineLimit(1)
+        .fixedSize()
+        .padding(.horizontal, 7)
+        .padding(.vertical, 2)
+        .background(quiet ? Palette.raised : tint.opacity(0.13), in: Capsule())
+        .padding(.vertical, -2)
+        .help(spoken ?? "\(value) \(label)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(spoken ?? "\(value) \(label)")
     }
 }
 
@@ -4342,7 +4558,6 @@ struct ContentView: View {
     @State private var editName = ""
     @State private var editError: String?
     @State private var pendingDelete: Profile?
-    @State private var dpiDetailsShown = false
 
     /// Follow the system, or force dark or light. See `Appearance`.
     @AppStorage(Appearance.key) private var appearanceRaw = Appearance.system.rawValue
@@ -4355,7 +4570,8 @@ struct ContentView: View {
     /// Shared with the menu-bar extra, so both list and call the same modes.
     private let modes = MenuBarModes.order.map(MenuBarModes.path)
 
-    @Namespace private var tabSelection
+    /// The segment a mode switch is heading to, for its spinner.
+    @State private var modeTarget: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.openWindow) private var openWindow
 
@@ -4384,9 +4600,13 @@ struct ContentView: View {
         .fixedSize(horizontal: false, vertical: true)
         // Mode changes show and hide blocks; animating them also animates
         // the window height, which follows the content.
-        .animation(.easeInOut(duration: 0.22), value: m.runMode)
-        .animation(.easeInOut(duration: 0.22), value: m.profiles.isEmpty)
-        .animation(.easeInOut(duration: 0.22), value: updater.banner)
+        .animation(Animate.layout(reduceMotion), value: m.runMode)
+        .animation(Animate.layout(reduceMotion), value: m.dpiOn)
+        .animation(Animate.layout(reduceMotion), value: m.dpi.running)
+        .animation(Animate.layout(reduceMotion), value: m.profiles.isEmpty)
+        .animation(Animate.layout(reduceMotion), value: updater.banner)
+        .animation(Animate.layout(reduceMotion), value: m.helperOutdated)
+        .animation(Animate.layout(reduceMotion), value: m.probe?.verdict)
         .background(Palette.bg)
         .preferredColorScheme(appearance.scheme)
         .onAppear {
@@ -4566,11 +4786,11 @@ struct ContentView: View {
                 pickers.transition(reveal)
                 if m.runMode == .tunnel {
                     scopeControl.transition(reveal)
-                    tunnelSafetyRow.transition(reveal)
+                    if m.killSwitchAvailable { tunnelSafetyRow.transition(reveal) }
                 }
             } else if m.runMode != .direct {
                 // Direct mode: the DNS row in the card opens the same sheet.
-                dnsButton(labelled: true)
+                dnsButton(labelled: true).transition(reveal)
             }
             if m.runMode == .dpi {
                 dpiGroup.transition(reveal)
@@ -4673,8 +4893,7 @@ struct ContentView: View {
                     .padding(.vertical, 5)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.pressable)
-                .modifier(Chip())
+                .buttonStyle(.secondary)
                 .foregroundStyle(Palette.text)
                 .help(m.lang.label)
 
@@ -4751,7 +4970,7 @@ struct ContentView: View {
             .padding(.vertical, Space.s)
             .contentShape(Rectangle())
         }
-        .buttonStyle(PrimaryButtonStyle())
+        .buttonStyle(MenfezButtonStyle(kind: .primary, radius: Radius.card))
         .disabled(m.busy)
         .help(m.dpiOn
               ? m.l.t("dpi_launch_again_hint")
@@ -4769,52 +4988,29 @@ struct ContentView: View {
     /// so a user who wonders why it is off finds out by hovering instead of
     /// clicking into an error.
     private var modeBar: some View {
-        HStack(spacing: Space.xs) {
-            ForEach(modes, id: \.self) { path in
-                let labelKey = "mode_" + path
-                let active = m.runMode.rawValue == path
-                let available = path == "tunnel" ? m.capabilities.tunnelAvailable : true
-                Button {
-                    m.setMode(path)
-                } label: {
-                    HStack(spacing: 4) {
-                        if path == "tunnel" && !available {
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 9))
-                        }
-                        Text(m.l.t(labelKey))
-                            .font(.system(size: 12, weight: active ? .semibold : .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Space.s)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.pressable)
-                .background {
-                    if active {
-                        RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
-                            .fill(Palette.accent.opacity(0.14))
-                            .overlay(RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
-                                .strokeBorder(Palette.accent, lineWidth: 1))
-                            // One shared id slides the highlight between tabs.
-                            // Under Reduce Motion each tab has its own id, so
-                            // the highlight fades out and in instead.
-                            .matchedGeometryEffect(id: reduceMotion ? "tab-\(path)" : "tab",
-                                                   in: tabSelection)
-                    }
-                }
-                .foregroundStyle(active ? Palette.text : Palette.secondary)
-                // Visibly unavailable, not merely grey: the lock and the fade
-                // together say "not now", and the tooltip says why.
-                .opacity(available ? 1 : 0.45)
-                .disabled(m.busy || !available)
-                .help(path == "tunnel" && !available
-                      ? m.tunnelReason
-                      : m.l.t(labelKey + "_hint"))
-            }
+        SegmentedControl(items: modes.map { path in
+            let available = path == "tunnel" ? m.capabilities.tunnelAvailable : true
+            return .init(id: path, title: m.l.t("mode_" + path), symbol: Self.modeSymbol(path),
+                         enabled: available,
+                         help: path == "tunnel" && !available ? m.tunnelReason : m.l.t("mode_" + path + "_hint"),
+                         // A switch can take seconds: the segment it goes to spins.
+                         busy: m.busy && modeTarget == path && m.runMode.rawValue != path)
+        }, selection: m.runMode.rawValue) { path in
+            modeTarget = path
+            m.setMode(path)
+            // A switch that finished at once (or was refused) leaves no spinner behind.
+            DispatchQueue.main.async { if !m.busy { modeTarget = nil } }
         }
-        .padding(Space.xs - 1)
-        .modifier(Card())
+        .disabled(m.busy)
+        .onChange(of: m.busy) { busy in if !busy { modeTarget = nil } }
+    }
+
+    private static func modeSymbol(_ path: String) -> String {
+        switch path {
+        case "dpi":    return "bolt.horizontal.fill"
+        case "tunnel": return "shield.lefthalf.filled"
+        default:       return "globe"
+        }
     }
 
     /// Discord only / Discord + sites / Whole internet, with one line on what
@@ -4822,44 +5018,16 @@ struct ContentView: View {
     /// as part of Tunnel.
     private var scopeControl: some View {
         VStack(alignment: .leading, spacing: Space.xs) {
-            HStack(spacing: Space.xs) {
-                ForEach(TunnelScope.Choice.allCases, id: \.self) { scope in
-                    let active = m.scopeChoice == scope
-                    let available = scope != .sites || m.sitesAvailable
-                    Button {
-                        m.setTunnelScope(scope)
-                    } label: {
-                        Text(m.l.t("m_" + scope.rawValue))
-                            .font(.system(size: 11, weight: active ? .semibold : .medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Space.xs + 2)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.pressable)
-                    .background {
-                        if active {
-                            RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
-                                .fill(Palette.accent.opacity(0.14))
-                                .overlay(RoundedRectangle(cornerRadius: Radius.control - 2, style: .continuous)
-                                    .strokeBorder(Palette.accent, lineWidth: 1))
-                        }
-                    }
-                    .foregroundStyle(active ? Palette.text : Palette.secondary)
-                    .opacity(available ? 1 : 0.45)
-                    .disabled(m.busy || !available)
-                    .accessibilityAddTraits(active ? .isSelected : [])
-                    .help(m.l.t(available ? "scope_" + scope.rawValue + "_hint" : "sites_needs_update"))
-                }
-            }
-            .padding(Space.xs - 1)
-            .modifier(Card())
-            HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+            ScopePicker(m: m)
+            // The scope's one-line meaning, then its buttons on the same line,
+            // so the leak test sits on a row instead of alone on the right.
+            HStack(alignment: .center, spacing: Space.s) {
                 Text(m.l.t("scope_" + m.scopeChoice.rawValue + "_hint"))
                     .font(.system(size: 11))
                     .foregroundStyle(Palette.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 4)
                 if m.scopeChoice == .sites {
-                    Spacer(minLength: 4)
                     Button { show(.sites) } label: {
                         Text(m.l.t("sites_edit", ["what": String(m.sites.count)]))
                             .font(.system(size: 11, weight: .medium))
@@ -4867,11 +5035,21 @@ struct ContentView: View {
                             .padding(.vertical, Space.xs + 1)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.pressable)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary)
                     .foregroundStyle(Palette.accent)
                     .fixedSize()
                 }
+                Button { show(.leakTest) } label: {
+                    Label(m.l.t("leak_open"), systemImage: "checkmark.shield")
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, Space.s + 2)
+                        .padding(.vertical, Space.xs + 1)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.secondary)
+                .foregroundStyle(Palette.accent)
+                .fixedSize()
+                .disabled(!m.tunnelCarriesTraffic)
             }
         }
     }
@@ -4943,7 +5121,7 @@ struct ContentView: View {
                             .padding(.vertical, Space.xs)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(PrimaryButtonStyle())
+                    .buttonStyle(.primary)
                     .disabled(m.busy)
                     .fixedSize()
                     .help(m.l.t(state == .closed ? "dpi_enable_hint" : "dc_reopen_hint"))
@@ -4999,6 +5177,7 @@ struct ContentView: View {
             }
         }
         .contentShape(Rectangle())
+        .modifier(HoverHighlight(base: .clear, hover: Palette.raised))
         .onTapGesture(perform: action)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
@@ -5019,17 +5198,6 @@ struct ContentView: View {
                     .disabled(m.busy)
                 }
                 Spacer(minLength: 4)
-                Button { show(.leakTest) } label: {
-                    Text(m.l.t("leak_open"))
-                        .font(.system(size: 11, weight: .medium))
-                        .padding(.horizontal, Space.s + 2)
-                        .padding(.vertical, Space.xs + 1)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.pressable)
-                .modifier(Chip())
-                .foregroundStyle(Palette.accent)
-                .disabled(!m.tunnelCarriesTraffic)
             }
             if m.killSwitchAvailable {
                 Text(m.l.t("ks_hint_" + m.scopeChoice.rawValue))
@@ -5063,8 +5231,7 @@ struct ContentView: View {
                             .padding(.vertical, Space.xs + 1)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.pressable)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary)
                     .foregroundStyle(reconnect ? Palette.accent : Palette.text)
                     .disabled(m.busy)
                 }
@@ -5097,9 +5264,7 @@ struct ContentView: View {
                     .padding(.vertical, Space.xs + 1)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.pressable)
-            .modifier(Chip())
-            .foregroundStyle(Palette.accent)
+            .buttonStyle(.primary)
             .accessibilityLabel(m.l.t("app_update_now_a11y", ["version": version]))
         }
     }
@@ -5127,9 +5292,7 @@ struct ContentView: View {
                 .padding(.vertical, Space.xs + 1)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.pressable)
-            .modifier(Chip())
-            .foregroundStyle(Palette.accent)
+            .buttonStyle(.primary)
             .disabled(m.tunnelInstall.isRunning)
         }
     }
@@ -5185,9 +5348,7 @@ struct ContentView: View {
                     .padding(.vertical, Space.xs + 1)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.pressable)
-                .modifier(Chip())
-                .foregroundStyle(Palette.accent)
+                .buttonStyle(.primary)
                 .disabled(m.tunnelInstall.isRunning)
             }
         }
@@ -5237,8 +5398,7 @@ struct ContentView: View {
                 .padding(.vertical, 10)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.pressable)
-            .modifier(Chip())
+            .buttonStyle(.secondary)
             .foregroundStyle(Palette.text)
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -5271,8 +5431,7 @@ struct ContentView: View {
             .padding(.vertical, 10)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable)
-        .modifier(Chip())
+        .buttonStyle(.secondary)
         .foregroundStyle(Palette.text)
         // About 40/60 in the 360 pt side column: the resolver gets 156 pt (room for "Oto (DHCP)") and
         // the server label, the long one, takes the rest and all the growth.
@@ -5339,7 +5498,8 @@ struct ContentView: View {
         // Everything below describes the tunnel. With no tunnel up they would
         // all read "none/never" while the proxy above is doing its job.
         if tunnelShown {
-            out.append(("slider.horizontal.3", m.l.t("f_mode"), m.l.t("m_" + m.mode),
+            out.append(("slider.horizontal.3", m.l.t("f_mode"),
+                        m.l.t("m_" + TunnelScope.rowKey(routeMode: m.mode, choice: m.scopeChoice)),
                         m.mode == "off" ? Palette.secondary : Palette.success, nil))
             out.append(("arrow.triangle.branch", m.l.t("f_routes"),
                         totalRoutes == 0 ? m.l.t("none")
@@ -5424,6 +5584,8 @@ struct ContentView: View {
                 .padding(.horizontal, Space.l)
                 .padding(.vertical, Space.s - 1)
                 .contentShape(Rectangle())
+                // Rows that open something answer the pointer.
+                .modifier(HoverHighlight(base: .clear, hover: target == nil ? .clear : Palette.raised))
                 .onTapGesture {
                     // The DNS row is the way to the resolver settings in every
                     // mode (direct mode has no separate DNS chip).
@@ -5449,46 +5611,35 @@ struct ContentView: View {
     /// counted or a sentence the probe measured; there is no "on/healthy" light
     /// that could claim health without a measurement.
     private var dpiPanel: some View {
-        VStack(alignment: .leading, spacing: Space.m) {
+        VStack(alignment: .leading, spacing: Space.s) {
             HStack(spacing: Space.s) {
                 Image(systemName: "puzzlepiece.extension")
-                    .font(.system(size: 13))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.secondary)
                 Text(m.l.t("dpi_title"))
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Palette.text)
                 Spacer()
-                // The counters are the proof the proxy is doing something. They
-                // are shown even at zero, because "0 split" while Discord is
-                // connected is information: nothing has gone through the proxy.
+                if m.dpi.running {
+                    // Live: breathes like the header dot, only while the
+                    // window is key and never under Reduce Motion.
+                    StatusDot(color: Palette.success, pulsing: false, breathing: true)
+                        .frame(width: 6, height: 6)
+                        .accessibilityHidden(true)
+                        .transition(.opacity)
+                }
                 Text(m.dpi.running ? "127.0.0.1:\(m.dpi.port ?? 0)" : m.l.t("dpi_off"))
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .monospacedDigit()
                     .foregroundStyle(m.dpi.running ? Palette.success : Palette.secondary)
             }
 
-            // The counters and the split offset are for the curious, so they
-            // start folded away.
-            DisclosureGroup(isExpanded: $dpiDetailsShown) {
-                VStack(alignment: .leading, spacing: Space.s) {
-                    HStack(alignment: .bottom, spacing: Space.l) {
-                        counter("\(m.dpi.reframed)", m.l.t("dpi_split"), Palette.success)
-                        counter("\(m.dpi.passthrough)", m.l.t("dpi_passthrough"), Palette.secondary)
-                        counter("\(m.dpi.connections)", m.l.t("dpi_open"), Palette.accent)
-                        if m.dpi.rejected > 0 {
-                            counter("\(m.dpi.rejected)", m.l.t("dpi_refused"), Palette.warning)
-                        }
-                        Spacer()
-                    }
-                    Text(m.l.t("dpi_at", ["n": "\(m.dpi.splitAt)"]))
-                        .font(.system(size: 11))
-                        .foregroundStyle(Palette.secondary)
-                }
-                .padding(.top, Space.xs)
-            } label: {
-                Text(m.l.t("dpi_details"))
-                    .font(.system(size: 12))
-                    .foregroundStyle(Palette.secondary)
+            // The counters and the split offset as small tinted chips, one
+            // row (owner, 2026-11-19: compact, but not only text). When the
+            // labels do not fit, the chips drop them and keep icon and number.
+            ViewThatFits(in: .horizontal) {
+                dpiStats(labelled: true)
+                dpiStats(labelled: false)
             }
 
             // The probe's verdict is the only thing on this panel that says
@@ -5515,7 +5666,11 @@ struct ContentView: View {
                     m.runProbe()
                 } label: {
                     HStack(spacing: 5) {
-                        if m.probing { ProgressView().controlSize(.mini) }
+                        if m.probing {
+                            ProgressView().controlSize(.mini)
+                        } else {
+                            Image(systemName: "stethoscope").font(.system(size: 11))
+                        }
                         Text(m.probing ? m.l.t("dpi_probing") : m.l.t("dpi_probe"))
                             .font(.system(size: 12))
                     }
@@ -5523,22 +5678,20 @@ struct ContentView: View {
                     .padding(.vertical, Space.s - 2)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.pressable)
-                .modifier(Chip())
+                .buttonStyle(.secondary)
                 .foregroundStyle(Palette.text)
                 .disabled(m.probing || !m.dpi.running)
 
                 Button {
                     m.disableDPI()
                 } label: {
-                    Text(m.l.t("dpi_stop"))
+                    Label(m.l.t("dpi_stop"), systemImage: "stop.circle")
                         .font(.system(size: 12))
                         .padding(.horizontal, Space.m)
                         .padding(.vertical, Space.s - 2)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.pressable)
-                .modifier(Chip())
+                .buttonStyle(.destructive)
                 .foregroundStyle(Palette.text)
 
                 Spacer()
@@ -5555,28 +5708,39 @@ struct ContentView: View {
                             .disabled(!m.dpi.running)
                         Button(m.l.t("close")) { m.dismissDiscordSettingsHint() }
                     }
-                    .buttonStyle(.pressable)
+                    .buttonStyle(.secondary(h: Space.m, v: Space.s - 2))
                     .font(.system(size: 12))
-                    .padding(.horizontal, Space.m)
-                    .padding(.vertical, Space.s - 2)
                     .foregroundStyle(Palette.text)
                 }
             }
 
         }
-        .padding(Space.l)
+        .padding(.horizontal, Space.l)
+        .padding(.vertical, Space.m)
         .modifier(Card())
     }
 
-    private func counter(_ value: String, _ label: String, _ color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(value)
-                .font(.system(size: 16, weight: .semibold))
-                .monospacedDigit()
-                .foregroundStyle(color)
-            Text(label)
-                .font(.system(size: 11))
-                .foregroundStyle(Palette.secondary)
+    /// "12 bölündü · 2 dokunulmadı · 3 açık · 40. bayt" as chips. Zero
+    /// counts stay: "0 split" while Discord is connected is information.
+    /// Refused shows only above zero. The byte offset is the quiet one.
+    private func dpiStats(labelled: Bool) -> some View {
+        HStack(spacing: Space.xs + 2) {
+            DPIStat(symbol: "scissors", value: m.dpi.reframed, label: m.l.t("dpi_split"),
+                    tint: Palette.success, labelled: labelled)
+            DPIStat(symbol: "arrow.right", value: m.dpi.passthrough, label: m.l.t("dpi_passthrough"),
+                    tint: Palette.secondary, labelled: labelled)
+            DPIStat(symbol: "link", value: m.dpi.connections, label: m.l.t("dpi_open"),
+                    tint: Palette.accent, labelled: labelled)
+            if m.dpi.rejected > 0 {
+                DPIStat(symbol: "exclamationmark.triangle", value: m.dpi.rejected, label: m.l.t("dpi_refused"),
+                        tint: Palette.warning, labelled: labelled)
+                    .transition(.opacity)
+            }
+            DPIStat(symbol: "ruler", value: m.dpi.splitAt, label: "",
+                    tint: Palette.secondary, labelled: labelled, quiet: true,
+                    text: m.l.t("dpi_byte", ["n": "\(m.dpi.splitAt)"]),
+                    spoken: m.l.t("dpi_at", ["n": "\(m.dpi.splitAt)"]))
+            Spacer(minLength: 0)
         }
     }
 
@@ -5615,8 +5779,7 @@ struct ContentView: View {
                 .padding(.vertical, Space.xs + 1)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable)
-        .modifier(Chip())
+        .buttonStyle(.secondary)
         .foregroundStyle(Palette.accent)
         .fixedSize()
     }
@@ -5640,10 +5803,22 @@ struct ContentView: View {
         HStack(spacing: Space.m) {
             // Wraps rather than truncating: a failure sentence cut at "…" is
             // the part the user needed.
-            Text(m.status.isEmpty ? m.lastUpdatedLine : m.status)
-                .font(.system(size: 11))
-                .foregroundStyle(m.status.isEmpty ? Palette.secondary : m.statusColor)
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+                // The colour's meaning as a shape too, so it is not colour alone.
+                if m.busy {
+                    ProgressView().controlSize(.mini)
+                        .frame(width: 11, height: 11)
+                        .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 }
+                } else if let symbol = footerSymbol {
+                    Image(systemName: symbol)
+                        .font(.system(size: 10, weight: .semibold))
+                        .accessibilityHidden(true)
+                }
+                Text(m.status.isEmpty ? m.lastUpdatedLine : m.status)
+                    .font(.system(size: 11))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .foregroundStyle(m.status.isEmpty ? Palette.secondary : m.statusColor)
             Spacer(minLength: Space.s)
             Button {
                 m.refresh()
@@ -5654,14 +5829,23 @@ struct ContentView: View {
                     .padding(.vertical, Space.s - 2)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.pressable)
-            .modifier(Chip())
+            .buttonStyle(.secondary)
             .foregroundStyle(Palette.text)
             .disabled(m.busy)
         }
         .padding(.top, Space.m)
         .overlay(alignment: .top) {
             Rectangle().fill(Palette.separator).frame(height: 1)
+        }
+    }
+
+    private var footerSymbol: String? {
+        if m.status.isEmpty { return "clock" }
+        switch m.statusColor {
+        case Palette.danger:  return "xmark.octagon.fill"
+        case Palette.warning: return "exclamationmark.triangle.fill"
+        case Palette.success: return "checkmark.circle.fill"
+        default:              return nil
         }
     }
 
@@ -5717,16 +5901,14 @@ struct ContentView: View {
 
             HStack(spacing: 6) {
                 Button(m.l.t("import_conf")) { importConfig() }
-                    .buttonStyle(.pressable)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary(h: 12, v: 4))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.text)
 
                 if !m.profiles.isEmpty {
                     Button(m.l.t(m.measuringLatency ? "lat_measuring" : "lat_pick")) { m.pickFastest() }
-                        .buttonStyle(.pressable)
-                        .padding(.horizontal, 12).padding(.vertical, 6)
-                        .modifier(Chip())
+                        .buttonStyle(.secondary(h: 12, v: 4))
+                        .font(.system(size: 12))
                         .foregroundStyle(Palette.text)
                         .disabled(m.busy || m.measuringLatency)
                         .help(m.l.t("lat_pick_help"))
@@ -5737,9 +5919,8 @@ struct ContentView: View {
 
                 Button(m.l.t("close")) { close(.servers) }
                     .keyboardShortcut(.cancelAction)
-                    .buttonStyle(.pressable)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary(h: 12, v: 4))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.text)
             }
             .padding(.top, 8)
@@ -5920,10 +6101,8 @@ struct ContentView: View {
 
     private func sheetButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(title, action: action)
-            .buttonStyle(.pressable)
+            .buttonStyle(.secondary(h: 10, v: 5))
             .font(.system(size: 12))
-            .padding(.horizontal, 10).padding(.vertical, 5)
-            .modifier(Chip())
             .foregroundStyle(Palette.text)
     }
 
@@ -6072,9 +6251,8 @@ struct ContentView: View {
                 Spacer()
                 Button(m.l.t("close")) { close(.dns) }
                     .keyboardShortcut(.cancelAction)
-                    .buttonStyle(.pressable)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary(h: 12, v: 4))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.text)
             }
             .padding(.top, 8)
@@ -6216,9 +6394,8 @@ struct DetailView: View {
                 Spacer()
                 Button(L(lang: lang).t("close")) { onClose() }
                     .keyboardShortcut(.cancelAction)
-                .buttonStyle(.pressable)
-                .padding(.horizontal, 12).padding(.vertical, 6)
-                .modifier(Chip())
+                .buttonStyle(.secondary(h: 12, v: 4))
+                .font(.system(size: 12))
                 .foregroundStyle(Palette.text)
             }
             .padding(.top, 10)
@@ -6394,9 +6571,7 @@ struct CopyCommandButton: View {
                 .padding(.vertical, 4)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable)
-        .background(Palette.raised)
-        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .buttonStyle(.secondary)
         .foregroundStyle(copied ? Palette.success : Palette.accent)
         .onChange(of: command) { _ in copied = false }
     }

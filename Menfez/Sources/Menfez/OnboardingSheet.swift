@@ -51,8 +51,7 @@ struct OnboardingSheet: View {
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.pressable)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary)
                     .foregroundStyle(Palette.accent)
                     .disabled(installRunning)
                     if let installMessage {
@@ -98,10 +97,9 @@ struct OnboardingSheet: View {
 
     private func chip(_ title: String, action: @escaping () -> Void) -> some View {
         Button(title, action: action)
-            .buttonStyle(.pressable)
+            .buttonStyle(.secondary(h: 12, v: 4))
+           .font(.system(size: 12))
             .font(.system(size: 12))
-            .padding(.horizontal, 12).padding(.vertical, 6)
-            .modifier(Chip())
             .foregroundStyle(Palette.text)
     }
 
@@ -112,10 +110,7 @@ struct OnboardingSheet: View {
                 .padding(.horizontal, 14).padding(.vertical, 6)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable)
-        .background(Palette.accent)
-        .foregroundStyle(Palette.accentText)
-        .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+        .buttonStyle(.primary)
         .keyboardShortcut(.defaultAction)
     }
 }

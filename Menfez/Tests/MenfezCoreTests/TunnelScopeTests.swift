@@ -19,6 +19,15 @@ final class TunnelScopeTests: XCTestCase {
 
     // MARK: Persistence
 
+    func testModeRowFollowsChosenSites() {
+        XCTAssertEqual(TunnelScope.rowKey(routeMode: "discord", choice: .sites), "sites")
+        XCTAssertEqual(TunnelScope.rowKey(routeMode: "discord", choice: .discord), "discord")
+        XCTAssertEqual(TunnelScope.rowKey(routeMode: "all", choice: .all), "all")
+        // Down or mid-switch: the helper's word wins, never a scope it is not in.
+        XCTAssertEqual(TunnelScope.rowKey(routeMode: "off", choice: .sites), "off")
+        XCTAssertEqual(TunnelScope.rowKey(routeMode: "all", choice: .sites), "all")
+    }
+
     func testScopeDefaultsToDiscordAndPersists() {
         XCTAssertEqual(TunnelScope.current(defaults), .discord)
         TunnelScope.save(.all, defaults)

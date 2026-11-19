@@ -29,6 +29,9 @@ enum Palette {
     static let success    = dynamic(dark: 0x5CC08F, light: 0x21663F)
     static let warning    = dynamic(dark: 0xE0B04F, light: 0x7A520B)
     static let danger     = dynamic(dark: 0xE2716B, light: 0x9E3A33)
+    /// The selected segment's pill: accent at 15 % on card (dark), 22 % (light),
+    /// so the choice is plain in light too. Accent text on it: 5.0 light.
+    static let selection  = dynamic(dark: 0x20322F, light: 0xC8D9D5)
 
     /// One colour per appearance, picked by AppKit when it draws.
     private static func dynamic(dark: UInt32, light: UInt32) -> Color {
@@ -52,6 +55,17 @@ enum Space {
 enum Radius {
     static let card: CGFloat = 12
     static let control: CGFloat = 8
+}
+
+/// One way to move. Every layout change (mode switch, rows coming and going,
+/// the selection pill) uses `layout`, hover and press use `feedback`.
+/// Under Reduce Motion layout changes are instant, and feedback stays a
+/// short fade, which is not motion.
+enum Animate {
+    static let spring = Animation.spring(response: 0.3, dampingFraction: 0.86)
+    static let feedback = Animation.easeOut(duration: 0.12)
+
+    static func layout(_ reduceMotion: Bool) -> Animation? { reduceMotion ? nil : spring }
 }
 
 extension NSColor {

@@ -54,9 +54,9 @@ struct HelpSheet: View {
 
     var onClose: () -> Void = {}
 
-    @State private var copied = false
     /// Not private, so a snapshot can render it open.
     @State var showSetup = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var l: L { L(lang: lang) }
 
@@ -100,9 +100,8 @@ struct HelpSheet: View {
                         .padding(.leading, 10)
                     Spacer()
                     Button(l.t("close")) { onClose() }
-                        .buttonStyle(.pressable)
-                        .padding(.horizontal, 12).padding(.vertical, 6)
-                        .modifier(Chip())
+                        .buttonStyle(.secondary(h: 12, v: 4))
+                        .font(.system(size: 12))
                         .foregroundStyle(Palette.text)
                         .keyboardShortcut(.cancelAction)
                 }
@@ -129,10 +128,8 @@ struct HelpSheet: View {
             }
             if let button {
                 Button(button.0, action: button.1)
-                    .buttonStyle(.pressable)
+                    .buttonStyle(.secondary(h: 9, v: 4))
                     .font(.system(size: 11))
-                    .padding(.horizontal, 9).padding(.vertical, 4)
-                    .modifier(Chip())
                     .foregroundStyle(Palette.accent)
                     .padding(.top, 2)
             }
@@ -175,9 +172,7 @@ struct HelpSheet: View {
                             .padding(.horizontal, 9).padding(.vertical, 4)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.pressable)
-                        .modifier(Chip())
-                        .foregroundStyle(Palette.accent)
+                        .buttonStyle(MenfezButtonStyle(kind: installed ? .danger : .primary))
                         .disabled(installRunning || (installed && removeBlockedReason != nil))
                         // The sentence above names the brew command, which a
                         // Text cannot hand over.
@@ -211,28 +206,10 @@ struct HelpSheet: View {
                     .padding(7)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Palette.raised)
-                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
 
                 HStack(spacing: 7) {
-                    Button {
-                        let pasteboard = NSPasteboard.general
-                        pasteboard.clearContents()
-                        pasteboard.setString(command,
-                                             forType: .string)
-                        copied = true
-                    } label: {
-                        Text(copied
-                             ? l.t("copied")
-                             : l.t("help_copy_command"))
-                            .font(.system(size: 10.5))
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 4)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.pressable)
-                    .background(Palette.raised)
-                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                    .foregroundStyle(copied ? Palette.success : Palette.accent)
+                    CopyCommandButton(command: command, l: l)
 
                     Text(TunnelSetup.sudoersPath)
                         .font(.system(size: 9, design: .monospaced))
@@ -243,7 +220,7 @@ struct HelpSheet: View {
             .padding(.top, 6)
             } label: {
                 // The whole row toggles, not only the chevron.
-                Button { withAnimation { showSetup.toggle() } } label: {
+                Button { withAnimation(Animate.layout(reduceMotion)) { showSetup.toggle() } } label: {
                     Text(l.t("help_setup_title"))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Palette.text)

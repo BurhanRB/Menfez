@@ -52,16 +52,14 @@ struct LeakTestSheet: View {
 
             HStack {
                 Button(l.t("leak_again")) { run() }
-                    .buttonStyle(.pressable)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary(h: 12, v: 4))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.accent)
                     .disabled(running)
                 Spacer()
                 Button(l.t("close")) { onClose() }
-                    .buttonStyle(.pressable)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
-                    .modifier(Chip())
+                    .buttonStyle(.secondary(h: 12, v: 4))
+                    .font(.system(size: 12))
                     .foregroundStyle(Palette.text)
                     .keyboardShortcut(.cancelAction)
             }
