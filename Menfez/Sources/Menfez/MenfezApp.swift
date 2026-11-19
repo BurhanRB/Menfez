@@ -113,6 +113,10 @@ struct L {
             "tunnel_not_installed": "Tünel bileşeni kurulu değil. Tüneli kur'a bas.",
             "app_update_check": "Güncellemeleri denetle…",
             "app_update_auto": "Güncellemeleri kendiliğinden denetle",
+            "app_update_ready": "Yeni sürüm hazır: {version}",
+            "app_update_now": "Güncelle",
+            "app_update_now_a11y": "Menfez'i {version} sürümüne güncelle",
+            "app_update_menu": "Yeni sürümü kur: {version}",
             "helper_no_reply": "yardımcı program yanıt vermedi",
             "launch_proxyNotRunning": "Önce DPI'ı aç. Proxy çalışmıyor.",
             "launch_invalidPort": "{port} portu kullanılamıyor",
@@ -673,6 +677,10 @@ struct L {
             "tunnel_not_installed": "The tunnel helper isn't installed. Press Set up tunnel.",
             "app_update_check": "Check for Updates…",
             "app_update_auto": "Check for updates automatically",
+            "app_update_ready": "New version ready: {version}",
+            "app_update_now": "Update",
+            "app_update_now_a11y": "Update Menfez to version {version}",
+            "app_update_menu": "Install new version: {version}",
             "helper_no_reply": "the helper did not answer",
             "launch_proxyNotRunning": "Turn on DPI first. The proxy isn't running.",
             "launch_invalidPort": "Port {port} can't be used",
@@ -4314,6 +4322,7 @@ struct HoverHighlight: ViewModifier {
 
 struct ContentView: View {
     @ObservedObject var m: Model
+    @ObservedObject private var updater = Updater.shared
 
     /// Every sheet in the window, behind one value.
     ///
@@ -4377,6 +4386,7 @@ struct ContentView: View {
         // the window height, which follows the content.
         .animation(.easeInOut(duration: 0.22), value: m.runMode)
         .animation(.easeInOut(duration: 0.22), value: m.profiles.isEmpty)
+        .animation(.easeInOut(duration: 0.22), value: updater.banner)
         .background(Palette.bg)
         .preferredColorScheme(appearance.scheme)
         .onAppear {
@@ -4540,6 +4550,7 @@ struct ContentView: View {
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: Space.m) {
+            if updater.banner != .hidden { appUpdateRow.transition(reveal) }
             if m.helperOutdated { helperUpdateRow.transition(reveal) }
             if m.tunnelLost && m.killSwitchActive { blockedRow.transition(reveal) }
             // In DPI mode the Discord row in the DPI card holds this action.
@@ -5063,6 +5074,34 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Palette.danger.opacity(0.1),
                     in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+    }
+
+    /// A new Menfez is out (1.0.11). Downloaded: the button installs and
+    /// relaunches now. Not yet: it opens Sparkle's window. See `UpdateBanner`.
+    private var appUpdateRow: some View {
+        let version = updater.availableVersion ?? ""
+        return HStack(alignment: .firstTextBaseline, spacing: Space.s) {
+            Image(systemName: "arrow.down.circle")
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.accent)
+            Text(m.l.t("app_update_ready", ["version": version]))
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            Button {
+                updater.update()
+            } label: {
+                Text(m.l.t("app_update_now")).font(.system(size: 11, weight: .medium))
+                    .padding(.horizontal, Space.s + 2)
+                    .padding(.vertical, Space.xs + 1)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable)
+            .modifier(Chip())
+            .foregroundStyle(Palette.accent)
+            .accessibilityLabel(m.l.t("app_update_now_a11y", ["version": version]))
+        }
     }
 
     /// The installed helper is older than this app's. One line and a button

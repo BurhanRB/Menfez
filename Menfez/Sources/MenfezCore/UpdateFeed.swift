@@ -26,3 +26,17 @@ public enum UpdateFeed {
         #endif
     }
 }
+
+/// The main window's "new version ready" row (1.0.11): hidden, or what its
+/// button does. A downloaded update installs and relaunches at once. One that
+/// is found but not downloaded yet opens Sparkle's own window instead.
+public enum UpdateBanner: Equatable, Sendable {
+    case hidden
+    case installNow
+    case openUpdater
+
+    public init(version: String?, readyToInstall: Bool, installing: Bool) {
+        if version == nil || installing { self = .hidden }
+        else { self = readyToInstall ? .installNow : .openUpdater }
+    }
+}

@@ -41,6 +41,10 @@ struct MenuBarContent: View {
 
     var body: some View {
         Text(statusLine)
+        // 1.0.11: same action as the main window's update row.
+        if updater.banner != .hidden {
+            Button(m.l.t("app_update_menu", ["version": updater.availableVersion ?? ""])) { updater.update() }
+        }
 
         Divider()
 

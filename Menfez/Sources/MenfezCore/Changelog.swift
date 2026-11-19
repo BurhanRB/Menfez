@@ -19,6 +19,17 @@ public struct ChangelogEntry: Sendable {
 public enum Changelog {
     public static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "1.0.11",
+            date: "2026-11-19",
+            tr: [
+                "Menfez açılınca yeni sürüm var mı diye bakar. Varsa arka planda indirir.",
+                "Yeni sürüm hazır olunca pencerenin üstünde yazar. Güncelle'ye bir kez basman yeter. Menfez kurulur ve yeniden açılır.",
+            ],
+            en: [
+                "When Menfez opens, it checks for a new version. If there is one, it downloads it in the background.",
+                "When the new version is ready, Menfez says so at the top of the window. Press Update once and Menfez installs it and opens again.",
+            ]),
+        ChangelogEntry(
             version: "1.0.10",
             date: "2026-11-19",
             tr: [

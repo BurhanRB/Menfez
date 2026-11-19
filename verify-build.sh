@@ -98,6 +98,13 @@ else
     fail "Info.plist: SUPublicEDKey set, SUEnableSystemProfiling false" "PlistBuddy $plist" \
          "key='${edkey}' profiling='${profiling}'"
 fi
+# 1.0.11: the silent download behind the one-click "Update" row.
+autoupdate="$(/usr/libexec/PlistBuddy -c 'Print :SUAutomaticallyUpdate' "$plist" 2>/dev/null)"
+if [ "$autoupdate" = "true" ]; then
+    pass "Info.plist: SUAutomaticallyUpdate true" "PlistBuddy $plist"
+else
+    fail "Info.plist: SUAutomaticallyUpdate true" "PlistBuddy $plist" "value='${autoupdate}'"
+fi
 
 # --- 2. deployment target is 13.0 in every slice -------------------------
 # LC_BUILD_VERSION carries the minimum OS the loader enforces. Package.swift

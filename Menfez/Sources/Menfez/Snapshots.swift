@@ -465,6 +465,24 @@ enum Snapshots {
                             .padding(12).frame(width: 300)
                     }, title: "Menfez", .light, to: "\(dir)/updates.png")
 
+        // 1.0.11: the "new version ready" row, downloaded and waiting, and
+        // its menu-bar item.
+        let s11 = "\(dir)/1011"
+        try? FileManager.default.createDirectory(atPath: s11, withIntermediateDirectories: true)
+        Updater.shared.availableVersion = "1.0.12"
+        Updater.shared.readyToInstall = true
+        render(m, .light, to: "\(s11)/banner-tr-light.png")
+        render(m, .dark, to: "\(s11)/banner-tr-dark.png")
+        m.lang = .en
+        render(m, .light, to: "\(s11)/banner-en-light.png")
+        m.lang = .tr
+        renderWindow(VStack(alignment: .leading, spacing: 6) { MenuBarContent(m: m) }
+                        .buttonStyle(.plain).toggleStyle(MenuCheck())
+                        .padding(12).frame(width: 300),
+                     title: "Menfez", .light, to: "\(s11)/menu-tr.png")
+        Updater.shared.availableVersion = nil
+        Updater.shared.readyToInstall = false
+
         exit(0)
     }
 

@@ -18,3 +18,19 @@ final class UpdateFeedTests: XCTestCase {
         #endif
     }
 }
+
+final class UpdateBannerTests: XCTestCase {
+    func testHiddenWithoutAVersion() {
+        XCTAssertEqual(UpdateBanner(version: nil, readyToInstall: false, installing: false), .hidden)
+        XCTAssertEqual(UpdateBanner(version: nil, readyToInstall: true, installing: false), .hidden)
+    }
+
+    func testReadyInstallsNowOtherwiseOpensSparkle() {
+        XCTAssertEqual(UpdateBanner(version: "1.0.12", readyToInstall: true, installing: false), .installNow)
+        XCTAssertEqual(UpdateBanner(version: "1.0.12", readyToInstall: false, installing: false), .openUpdater)
+    }
+
+    func testHiddenOnceTheInstallStarts() {
+        XCTAssertEqual(UpdateBanner(version: "1.0.12", readyToInstall: true, installing: true), .hidden)
+    }
+}
