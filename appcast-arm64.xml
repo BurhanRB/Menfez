@@ -3,13 +3,13 @@
   <channel>
     <title>Menfez (arm64)</title>
     <item>
-      <title>Menfez 1.0.10</title>
-      <pubDate>Wed, 18 Nov 2026 23:22:16 +0000</pubDate>
-      <sparkle:version>1.0.10</sparkle:version>
-      <sparkle:shortVersionString>1.0.10</sparkle:shortVersionString>
+      <title>Menfez 1.0.11</title>
+      <pubDate>Thu, 19 Nov 2026 10:13:13 +0000</pubDate>
+      <sparkle:version>1.0.11</sparkle:version>
+      <sparkle:shortVersionString>1.0.11</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<h3>Yenilikler</h3><ul><li>Pencere açıkken Menfez daha az iş yapar. Böylece daha az pil ve işlemci harcar.</li><li>Menfez arkada kalınca adının yanındaki nokta dinlenir. Pencereye dönünce yeniden nefes alır.</li></ul><h3>What's new</h3><ul><li>With the window open, Menfez does less work, so it uses less battery and CPU.</li><li>When Menfez is in the background, the dot next to its name rests. It starts breathing again when you come back to the window.</li></ul>]]></description>
-      <enclosure url="https://github.com/BurhanRB/Menfez/releases/download/v1.0.10/Menfez-1.0.10-arm64.dmg" type="application/octet-stream" sparkle:edSignature="XhidKWHJDFvmPfLThODms9DDlb8yde0D6NJr4eZvclGl8xpHvMxkIOgcPXzYzW7DKouacXJjzWm1EXU8h2HLBQ==" length="4278458"/>
+      <description><![CDATA[<h3>Yenilikler</h3><ul><li>Menfez açılınca yeni sürüm var mı diye bakar. Varsa arka planda indirir.</li><li>Yeni sürüm hazır olunca pencerenin üstünde yazar. Güncelle'ye bir kez basman yeter. Menfez kurulur ve yeniden açılır.</li></ul><h3>What's new</h3><ul><li>When Menfez opens, it checks for a new version. If there is one, it downloads it in the background.</li><li>When the new version is ready, Menfez says so at the top of the window. Press Update once and Menfez installs it and opens again.</li></ul>]]></description>
+      <enclosure url="https://github.com/BurhanRB/Menfez/releases/download/v1.0.11/Menfez-1.0.11-arm64.dmg" type="application/octet-stream" sparkle:edSignature="rysehJ07xC63RlN7hZDDj8BzLD4LAQD9ZiZwb7GGSnJtXJmThrdOEZ9epUDZiHPfCB9UNXBiorMwK1YC57J/CQ==" length="4292734"/>
     </item>
   </channel>
 </rss>
